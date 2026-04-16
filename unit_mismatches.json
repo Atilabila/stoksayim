@@ -1,0 +1,45 @@
+{
+  "mismatches": [
+    {
+      "stok_kodu": "st0000431",
+      "recete_adi": "SANDVİÇ EKMEĞİ BÜFE TİP 6*65 GR",
+      "recete_birimi": "ADET",
+      "sistem_adi": "SANDVİÇ EKMEĞİ BÜFE TİP 6*65 GR",
+      "sistem_birimi": "PAKET",
+      "dogru_birim": "ADET"
+    },
+    {
+      "stok_kodu": "st0000144",
+      "recete_adi": "YOĞURT 2 KG",
+      "recete_birimi": "KİLOGRAM",
+      "sistem_adi": "YOĞURT 2 KG",
+      "sistem_birimi": "ADET",
+      "dogru_birim": "KİLOGRAM"
+    },
+    {
+      "stok_kodu": "st0000340",
+      "recete_adi": "SF PATATES KLASİK 9X9 2,5 KG X 5 EDT",
+      "recete_birimi": "KİLOGRAM",
+      "sistem_adi": "SF PATATES KLASİK 9X9 2,5 KG X 5 EDT",
+      "sistem_birimi": "KOLİ",
+      "dogru_birim": "KİLOGRAM"
+    },
+    {
+      "stok_kodu": "st0000027",
+      "recete_adi": "N73(BÜYÜK) PENNE BARİLLA 2 KG",
+      "recete_birimi": "ADET",
+      "sistem_adi": "N73(BÜYÜK) PENNE BARİLLA 2 KG",
+      "sistem_birimi": "KİLOGRAM",
+      "dogru_birim": "ADET"
+    },
+    {
+      "stok_kodu": "st0000048",
+      "recete_adi": "7 OZ KARTON BARDAK",
+      "recete_birimi": "KOLİ",
+      "sistem_adi": "7 OZ KARTON BARDAK",
+      "sistem_birimi": "ADET",
+      "dogru_birim": "KOLİ"
+    }
+  ],
+  "not_found": []
+}

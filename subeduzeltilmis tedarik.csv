@@ -1,0 +1,896 @@
+﻿Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;ISK:%…;örn. 18×500 g;örn. 18 AD;;POS / satış;Fiziki sayım;Otomatik;Otomatik;Otomatik;Tedarikçi / Fatura Adedi / Tarihler
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);PEKMEZCI SIGARA BÖREĞI(KALEM);40;1;40;Kilogram;;;;4760;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 4 fatura / 13.01.2026, 16.01.2026, 13.02.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);HARUN DILIM KAŞAR  PEYNİRİ;36;1;36;Kilogram;;;;11484;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);MIKROFIBER BEZ;20;1;20;Adet;;;;520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);TBT-JUMBO-DEMLIK 30 GR OF (30ADET);8;1;8;Adet;;;;2624;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);NAYLON TORBA;6;1;6;PA;;;;474;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);NAR TEKLI SARMA ŞEKER 4 KG;6;1;6;Paket;;;;1554;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);(FRİTÖZ YAĞ) TURYAĞ 18 LT;6;1;6;Adet;;;;10140;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);COLORADO KETÇAP P.P 10GR 600 AD;5;1;5;Paket;;;;2470;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);COLORADO MAYONEZ P.P 9GR 600AD;5;1;5;Paket;;;;2980;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;3;1;3;Adet;;;;438;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);NIĞDE GAZOZ;2;1;2;Paket;;;;738;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);AYRAN 200 MLT;2;1;2;Paket;;;;322;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;(HATA: Sadece 4 adet Note var);SIYAH MUAYENE ELDIVENI 100 LÜ;1;1;1;Adet;;;;155;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+HALİT PARMAK GIDA PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);SF PATATES KLASIK 9*9;2525;1;2525;Kilogram;;;;194425;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 4 fatura / 28.01.2026, 25.02.2026, 26.02.2026, 11.03.2026 | HALİT PARMAK GIDA PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ / 26 fatura / 02.01.2026, 03.01.2026, 09.01.2026, 13.01.2026, 15.01.2026, 19.01.2026, 21.01.2026, 26.01.2026, 29.01.2026, 30.01.2026, 03.02.2026, 05.02.2026, 09.02.2026, 14.02.2026, 16.02.2026, 18.02.2026, 21.02.2026, 24.02.2026, 27.02.2026, 28.02.2026, 04.03.2026, 05.03.2026, 09.03.2026, 13.03.2026, 17.03.2026, 25.03.2026 | HASAN BÖLEK - BOSTAN MANAV / 22 fatura / 06.01.2026, 08.01.2026, 13.01.2026, 15.01.2026, 20.01.2026, 23.01.2026, 29.01.2026, 04.02.2026, 05.02.2026, 11.02.2026, 12.02.2026, 19.02.2026, 25.02.2026, 27.02.2026, 05.03.2026, 12.03.2026, 25.03.2026 | MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ / 51 fatura / 03.01.2026, 06.01.2026, 07.01.2026, 08.01.2026, 13.01.2026, 15.01.2026, 17.01.2026, 19.01.2026, 20.01.2026, 23.01.2026, 26.01.2026, 28.01.2026, 31.01.2026, 05.02.2026, 07.02.2026, 11.02.2026, 12.02.2026, 13.02.2026, 17.02.2026, 19.02.2026, 21.02.2026, 27.02.2026, 04.03.2026, 06.03.2026, 09.03.2026, 10.03.2026, 12.03.2026, 13.03.2026, 17.03.2026, 25.03.2026 | SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 6 fatura / 07.01.2026, 13.01.2026, 20.01.2026, 28.01.2026, 09.02.2026, 11.03.2026 | YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş. / 15 fatura / 12.01.2026, 20.01.2026, 21.01.2026, 30.01.2026, 10.02.2026, 23.02.2026, 24.02.2026, 06.03.2026, 09.03.2026, 10.03.2026, 23.03.2026, 24.03.2026
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);YEŞİLLİK;970;1;970;Adet;;;;7802;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PATATES;308;1;308;Kilogram;;;;8677,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SALATALIK;289;1;289;Kilogram;;;;26694;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);AYSBERK;214;1;214;Adet;;;;18684;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;(Şube Belirtilmemiş);DON PS CITIR BONFILE PARCALARI (500GR*8);192;1;192;Adet;;;;24400;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LOLOROSSO;156;1;156;Adet;;;;13980;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);DOMATES;152,5;1;152,5;Kilogram;;;;12895;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PORTAKAL FİNİKE LÜX;152;1;152;Kilogram;;;;8740;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LOLO;144;1;144;Adet;;;;11520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);AYRAN 300 ML. EDT;144;1;144;Adet;;;;1708,35;;;#DEĞER!;#DEĞER!;#DEĞER!;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);SF PATATES KLASİK (9x9) 2,5 KG X 5;125;1;125;Adet;;;;120835;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);SÜT YARIM YAĞLI %1 1/1;120;1;120;Adet;;;;4564,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KEREVİZ;119;1;119;Kilogram;;;;7140;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LİMON;118,5;1;118,5;Kilogram;;;;10750;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ASPER;114;1;114;Adet;;;;7380;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇERY;112;1;112;Kilogram;;;;12640;;;#DEĞER!;#DEĞER!;#DEĞER!;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);SF KLASİK 9*9  5×2.5 kg;108;1;108;ZZ;;;;100006,25;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);HAVUÇ;95,5;1;95,5;Kilogram;;;;4775;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SOĞAN;92;1;92;Kilogram;;;;2175;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);MANTAR;90;1;90;Kilogram;;;;14220;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);DOMATES BEEF;88;1;88;Kilogram;;;;9925;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);SOSİS UZUN SERVİS CAT. 460 GR;84;1;84;Adet;;;;9141,24;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Yeşillik;80;1;80;Adet;;;;640;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇERİ DOMATES;73;1;73;Kilogram;;;;7320;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);SOSİS SERVİS 460 GR.;72;1;72;Adet;;;;8665,92;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);MAYONEZ SERVİS 700 GR.;70;1;70;Adet;;;;4551,7;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LİMON LAMAS;65,5;1;65,5;Kilogram;;;;7310;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;(Şube Belirtilmemiş);GEDIK PL. KOKT. SOSİS (1KG*8);64;1;64;Kilogram;;;;7488;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ELMA İTHAL;62,5;1;62,5;Kilogram;;;;6515;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);SOSİS BÜFE 460 GR.;60;1;60;Adet;;;;15309;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);YEŞİL BİBER;54,5;1;54,5;Kilogram;;;;6130;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PATATES ÇALMA;50;1;50;KF;;;;1750;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);BURGER BÜFE 90 GR.;49,14;1;49,14;Kilogram;;;;33928,23;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KARNABAHAR;49;1;49;Kilogram;;;;1960;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Portakal Fineke Lux;47;1;47;Kilogram;;;;3055;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SOĞAN KURU;47;1;47;Kilogram;;;;1060;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);CHERY DOMATES;43,5;1;43,5;Kilogram;;;;7410;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PORTAKAL;42;1;42;Kilogram;;;;2520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);HAVUÇ;41;1;41;KF;;;;2050;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SALATALIK;41;1;41;KF;;;;6160;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KEREVİZ;38,5;1;38,5;KF;;;;2310;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PATATES;38;1;38;KF;;;;1330;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SOĞAN KURU;36;1;36;KF;;;;900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);DOMATES;34,5;1;34,5;KF;;;;2760;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;(Şube Belirtilmemiş);PILIC KOKTEYL SOSIS KESKINOGLU  8*0.750;32;1;32;Adet;;;;3744;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ELMA;32;1;32;Kilogram;;;;3520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Patates;30;1;30;Kilogram;;;;900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Salatalık;30;1;30;Kilogram;;;;3900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇİLEK;30;1;30;PA;;;;6000;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KAPYA;29;1;29;Kilogram;;;;3555;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ELMA STARKİNG;28;1;28;Kilogram;;;;3080;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);MANTAR;27;1;27;KF;;;;4590;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇERİ DOMATES;26,5;1;26,5;KF;;;;2650;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Elma ithal;25,5;1;25,5;Kilogram;;;;3060;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KAPİYA BİBER;24,5;1;24,5;Kilogram;;;;3985;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Çeri;24;1;24;Kilogram;;;;2880;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Lolo;24;1;24;Adet;;;;1920;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);SUCUK BÜFE 900 GR.;24;1;24;Adet;;;;16778,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);DOMATES BEEF;23,5;1;23,5;KF;;;;1880;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Soğan;22;1;22;Kilogram;;;;550;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LİMON;22;1;22;KF;;;;2520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇİLEK;21,5;1;21,5;Kilogram;;;;5275;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PATLICAN KEMER;20;1;20;Kilogram;;;;4000;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LAHANA;20;1;20;KF;;;;800;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Havuç;20;1;20;Kilogram;;;;1000;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Limon;20;1;20;Kilogram;;;;2200;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);KETÇAP SERVİS 800 GR.;20;1;20;Adet;;;;997,3;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);MİCROFİBER BEZ MAVİ KIRMIZI;20;1;20;Adet;;;;768;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);MİCROFİBER BEZ;20;1;20;Adet;;;;768;;;#DEĞER!;#DEĞER!;#DEĞER!;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);TORKU PRATİKO PREMİUM PATATES 9*18 5*2,5 KG;19;1;19;Adet;;;;18310;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);MANTAR KÜLTÜR;18,5;1;18,5;Kilogram;;;;3145;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Mantar;18,5;1;18,5;Kilogram;;;;2775;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PATLICAN;18;1;18;Kilogram;;;;1860;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KABAK;17;1;17;Kilogram;;;;2160;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇERİ;16;1;16;Kilogram;;;;1600;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Ananas;15;1;15;Adet;;;;2250;;;#DEĞER!;#DEĞER!;#DEĞER!;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);SÜPERFRESH KLASİK PATATES 9*9 5*2,5 KG;14;1;14;Adet;;;;13930;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);BİBER SİVRİ;14;1;14;Kilogram;;;;2100;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ELMA  STARKİNG;13,5;1;13,5;KF;;;;1620;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);YEŞİL BİBER;13,5;1;13,5;KF;;;;1620;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Asper;13;1;13;Adet;;;;780;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PANCAR;13;1;13;Kilogram;;;;910;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SİVRİ;13;1;13;Kilogram;;;;1040;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);MUZ İTHAL;12,5;1;12,5;Kilogram;;;;1825;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ELMA;12,5;1;12,5;KF;;;;1500;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Yeşil biber;12,5;1;12,5;Kilogram;;;;1625;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LOLOROSSO;12;1;12;Kilogram;;;;960;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);AYSBERK MARUL;12;1;12;Adet;;;;720;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);BİBER TATLI;12;1;12;Kilogram;;;;1920;;;#DEĞER!;#DEĞER!;#DEĞER!;
+YAŞAR BİRLEŞİK PAZARLAMA DAĞITIM TURİZM VE TİCARET A.Ş.;(Şube Belirtilmemiş);SALAM BÜFE 900 GR. EDT;12;1;12;Adet;;;;6167,28;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);ASPEROX MAVİ GÜÇ;12;1;12;Adet;;;;1176;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);PORTAKAL FİNİKE;11;1;11;Kilogram;;;;690;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SİVRİ BİBER;11;1;11;Kilogram;;;;1210;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Çilek;10,5;1;10,5;Kilogram;;;;2625;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Domates Beef;10,5;1;10,5;Kilogram;;;;1050;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇİLEK ŞALE;9;1;9;PA;;;;1800;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ÇİLEK;9;1;9;KF;;;;1850;;;#DEĞER!;#DEĞER!;#DEĞER!;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);boş;8;1;8;ZZ;;;;7500;;;#DEĞER!;#DEĞER!;#DEĞER!;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;(Şube Belirtilmemiş);TORKU PREMİUM 9*18 5*2.50 KG;6;1;6;Adet;;;;5625;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);BROKOLİ;5;1;5;Kilogram;;;;350;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);LAHANA;5;1;5;Adet;;;;250;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Kapya;5;1;5;Kilogram;;;;650;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);BY PATATES;5;1;5;Kilogram;;;;425;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);4'LÜ ENDÜSTRİYEL SÜNGER;5;1;5;PA;;;;195;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);MUHAFAZALI WC FIRÇA METAL;5;1;5;Adet;;;;1290;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Kivi İthal;4;1;4;Kilogram;;;;800;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);BULAŞIK ELDİVENİ;4;1;4;Adet;;;;156;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);BULAŞIK TELİ TOP TEL;4;1;4;Adet;;;;192,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);MUZ İTHAL;3,5;1;3,5;KF;;;;525;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KIRMIZI SOĞAN;3;1;3;Kilogram;;;;210;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KIL BİBER ACI;3;1;3;KF;;;;690;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);ARMUT DEVECİ;3;1;3;Kilogram;;;;390;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);İÇTEN ÇEKMELİ HAVLU  6 LI;3;1;3;Paket;;;;1494;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);CİF SPREY TÜM YÜZEYLER 1000ML;3;1;3;Adet;;;;351;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);TAZE SOĞAN;2;1;2;Adet;;;;100;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KAPYA BİBER;2;1;2;KF;;;;260;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SARMISAK;2;1;2;Kilogram;;;;600;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);VİLEDA PASPAS YEDEK UÇ PM03;2;1;2;Adet;;;;176;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);VİLEDA HAVLU YEDEK UÇ;2;1;2;Adet;;;;176;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);TUVALET KAĞIDI 72 Lİ;2;1;2;Paket;;;;1048;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);SARIMSAK;1;1;1;Kilogram;;;;350;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KİVİ İTHAL;1;1;1;Kilogram;;;;200;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);KIL ACI;1;1;1;Kilogram;;;;150;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Muz ithal;1;1;1;Kilogram;;;;150;;;#DEĞER!;#DEĞER!;#DEĞER!;
+HASAN BÖLEK - BOSTAN MANAV;(Şube Belirtilmemiş);Zencefil;1;1;1;Kilogram;;;;300;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);ODA PARFÜMÜ 5 KG KONSANTRE;1;1;1;Adet;;;;568;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;(Şube Belirtilmemiş);DİSPENCER PEÇETE İDEAL;1;1;1;Paket;;;;393,6;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;ÜÇGEN PEYNİR 160X12,5 G;480;1;480;Adet;İskonto Oranı (10);;320 AD;1841,6;;;#DEĞER!;#DEĞER!;#DEĞER!;SÜTAŞ SÜT ÜRÜNLERİ A.Ş. / 3 fatura / 05.01.2026, 14.01.2026, 18.02.2026
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;BAL 120X20 G;240;1;240;Adet;İskonto Oranı (4.69);;120 AD;1600,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;ÇİLEK REÇELİ 120X20 G;240;1;240;Adet;İskonto Oranı (2.4);;120 AD;758,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;TEREYAĞI 144x10 G;144;1;144;Adet;İskonto Oranı (6.78);;144 AD;928,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;AYRAN 200 ML;2500;1;2500;Adet;İskonto Oranı (14);;200 AD;24714;;;#DEĞER!;#DEĞER!;#DEĞER!;SÜTAŞ SÜT ÜRÜNLERİ A.Ş. / 18 fatura / 02.01.2026, 09.01.2026, 13.01.2026, 16.01.2026, 20.01.2026, 23.01.2026, 27.01.2026, 03.02.2026, 06.02.2026, 13.02.2026, 17.02.2026, 20.02.2026, 27.02.2026, 06.03.2026, 10.03.2026, 13.03.2026, 23.03.2026, 24.03.2026
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;KAYMAKSIZ YĞR YY 150 G;680;1;680;Adet;İskonto Oranı (10);;140 AD;6174;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;SÜT YARIM YAĞLI 1 L;456;1;456;Adet;İskonto Oranı (7.93);;120 AD;19476;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;AYRAN 200 ML;280;1;280;Adet;İskonto Oranı (140);;280 AD;2884;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;AYRAN 275 ML;180;1;180;Adet;İskonto Oranı (14);;180 AD;2187;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;SÜT %2,5 YAĞLI 1 L;180;1;180;Adet;İskonto Oranı (5.32);;60 AD;7794;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;KAYMAKSIZ YĞR YY 150 G;140;1;140;Adet;İskonto Oranı (100);;140 AD;1330;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;AYRAN 300 ML;36;1;36;Adet;İskonto Oranı (14);;36 AD;550,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;TOST PEYNİRİ DİLİMLİ 1,5 KG (K6);31;1;31;Adet;İskonto Oranı (10);;6 AD;17010,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;KAYMAKSIZ YĞR YY KOVA 10 KG ED;31;1;31;Adet;İskonto Oranı (9.65);;2 AD;14864,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;LABNE 2750 G;16;1;16;Adet;İskonto Oranı (10);;1 AD;8720;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;SÜZME YĞR 3 KG;5;1;5;Adet;İskonto Oranı (10);;1 AD;1900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;BURGER PEYNİRİ 1000 G (K5);5;1;5;Adet;İskonto Oranı (60);;5 AD;2175;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;CINARLI;KAYMAKSIZ YĞR YY KOVA 10 KG ED;4;1;4;Adet;İskonto Oranı (96.5);;4 AD;1980;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SÜTAŞ SÜT ÜRÜNLERİ A.Ş.;TOROS;ÜÇGEN PEYNİR 160X12,5 G;320;1;320;Adet;İskonto Oranı (10);;320 AD;1379,2;;;#DEĞER!;#DEĞER!;#DEĞER!;SÜTAŞ SÜT ÜRÜNLERİ A.Ş. / 1 fatura / 28.01.2026
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;HISAR TÜRK KAH. FOLYO 18X500G;67;1;67;Adet;ISK:%13;18×500 g;19 AD;22140,15;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 17 fatura / 06.01.2026, 13.01.2026, 20.01.2026, 27.01.2026, 03.02.2026, 11.02.2026, 17.02.2026, 19.02.2026, 24.02.2026, 03.03.2026, 05.03.2026, 10.03.2026, 17.03.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;HISAR TÜRK KAH. FOLYO 18X500G;20;1;20;Adet;ISK:%5;18×500 g;20 AD;6609;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE INTENSE 12x500g;12;1;12;Adet;;12×500 g;3 AD;11527,13;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE SÜTLÜ 12x1kg;10;1;10;Adet;;;5 AD;6427,96;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE COFFEE CREAMER 12X1 KG;9;1;9;Adet;;;5 AD;3190,43;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE FORTE R&G COFFE 8x500g;8;1;8;Adet;;8×500 g;8 AD;3441,26;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE SICAK ÇIKOLATA 12x1Kg;7;1;7;Adet;;;4 AD;2984,57;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE CAPUCCINOCREAMER 12x1Kg;5;1;5;Adet;;;5 AD;3216,78;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE CLASSIC Tin SR 6x1kg;3;1;3;Adet;ISK:%15;;2 AD;4831,63;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE KAKAO 4x1kg;2;1;2;KL;ISK:%10;;2 KL;7715,66;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE CLASSIC Tin SR 6x1kg;2;1;2;Adet;ISK:%20;;2 AD;3221,09;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;HISAR TÜRK KAH. FOLYO 18X500G;1;1;1;KL;ISK:%13;18×500 g;1 KL;5948,1;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE 1927 BEYAZ DROP 2X10KG;1;1;1;Adet;ISK:%18;;1 AD;6987,93;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE COFFEE-MATE TIN 6x2 KG;1;1;1;Adet;ISK:%15;;1 AD;829,57;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE 1927 SÜTLÜ DROP 2X10KG;1;1;1;Adet;ISK:%18;;1 AD;6987,93;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE 1927 BEYAZ DROP 2X10KG;1;1;1;Adet;ISK:%5;;1 AD;6987,93;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE CLASSIC Tin SR 6x1kg;1;1;1;Adet;ISK:%10;;1 AD;1404,38;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESCAFE CLASSIC Tin SR 6x1kg;1;1;1;Adet;ISK:%5;;1 AD;1404,38;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE 1927 BEYAZ DROP 2X10KG;1;1;1;Adet;ISK:%10;;1 AD;6987,93;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE COFFEE-MATE TIN 6x2 KG;1;1;1;Adet;ISK:%20;;1 AD;829,57;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;1561 Sok. No:97/2 Çınarlı Mah.;NESTLE 1927 SÜTLÜ DROP 2X10KG;1;1;1;Adet;ISK:%5;;1 AD;6987,93;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ATILLA;HISAR TÜRK KAH. FOLYO 18X500G;54;1;54;Adet;ISK:%5;18×500 g;18 AD;17844,3;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 13 fatura / 12.01.2026, 19.01.2026, 26.01.2026, 02.02.2026, 09.02.2026, 23.02.2026, 09.03.2026, 16.03.2026, 23.03.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ATILLA;HISAR TÜRK KAH. FOLYO 18X500G;36;1;36;Adet;ISK:%13;18×500 g;18 AD;11896,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ATILLA;NESCAFE SÜTLÜ 12x1kg;33;1;33;Adet;;;5 AD;21662,24;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ATILLA;NESTLE SICAK ÇIKOLATA 12x1Kg;6;1;6;Adet;;;1 AD;2558,22;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ATILLA;NESTLE CAPUCCINOCREAMER 12x1Kg;3;1;3;Adet;;;1 AD;1930,08;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ATILLA;NESCAFE INTENSE 12x500g;2;1;2;Adet;;12×500 g;1 AD;1921,18;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;ABACI;DON PS CITIR BONFILE PARCALARI (500GR*8);664;1;664;Adet;;;;88200;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 19 fatura / 03.01.2026, 05.01.2026, 15.01.2026, 17.01.2026, 20.01.2026, 23.01.2026, 26.01.2026, 29.01.2026, 02.02.2026, 05.02.2026, 16.02.2026, 21.02.2026, 23.02.2026, 04.03.2026, 09.03.2026, 10.03.2026, 13.03.2026, 24.03.2026, 25.03.2026
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;ABACI;GEDIK PL. KOKT. SOSİS (1KG*8);480;1;480;Kilogram;;;;59856;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;4'LÜ ENDÜSTRİYEL SÜNGER;3;1;3;PA;;;;117;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 1 fatura / 04.03.2026
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;24*24 PEÇETE;3;1;3;Paket;;;;1374;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;İÇTEN ÇEKMELİ HAVLU  6 LI;3;1;3;Paket;;;;1494;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;VENTURA RİNSE (End.Bul.Mak.Parlatıcı/Durul.Mad.)21KG.;2;1;2;CA;;;;1856,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;VENTURA FRESH M (Genel Temizlik Mad.)20 KG.;1;1;1;CA;;;;598;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;ÇÖP TORBASI JUMBO DÖKK SİYAH 80*110;1;1;1;Paket;;;;1648;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;4 OZ BARDAK;20;1;20;Adet;;;;420;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 4 fatura / 07.01.2026, 05.02.2026, 19.02.2026, 07.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;ÇÖP TORBASI MİNİ;10;1;10;Adet;;;;147,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);8;1;8;Adet;;;;2864;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;JUMBO ÇÖP TORBASI ADET;6;1;6;Adet;;;;177;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;KESME ŞEKER ADET;4;1;4;Adet;;;;156;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;TERMAL POS RULOSU;2;1;2;Adet;;;;148;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;PLASTIK KAŞIK;2;1;2;Adet;;;;98;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;FROZEN PIPET;2;1;2;Adet;;;;47,6;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;NAYLON TORBA;1;1;1;PA;;;;79;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;KARIŞTIRICI;1;1;1;Adet;;;;56;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. SMOLL;1;1;1;Adet;;;;146;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;GENEL TEMIZLIK 5 KG;1;1;1;Adet;;;;119;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;BULAŞIK ELDİVENİ BEYBI;1;1;1;Adet;;;;29;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;MIKROFIBER BEZ;1;1;1;Adet;;;;26;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;NAR TEKLI SARMA ŞEKER 4 KG;1;1;1;Paket;;;;259;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ADILE;ERSAL JUMBO ÇÖP TORBASI 400 GR  KOLİ;1;1;1;Paket;;;;489;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ADILE;DİSPENCER PEÇETE İDEAL;1;1;1;Paket;;;;393,6;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 1 fatura / 13.03.2026
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ADILE;33*33 1/8 KATLAMA BEYAZ PEÇETE;1;1;1;Paket;;;;575,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ADILE;İÇTEN ÇEKMELİ HAVLU  6 LI;1;1;1;Paket;;;;498;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ADILE;GENEL TEMİZLİK 5 KG.;1;1;1;Adet;;;;189;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ADILE;VİLEDA PASPAS YEDEK UÇ PM03;1;1;1;Adet;;;;88;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;ATILLA;DON PS CITIR BONFILE PARCALARI (500GR*8);285;1;285;Adet;;;;32915;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 6 fatura / 07.01.2026, 27.01.2026, 04.02.2026, 25.02.2026, 13.03.2026, 25.03.2026
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;ATILLA;GEDIK PL. KOKT. SOSİS (1KG*8);80;1;80;Kilogram;;;;10416;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;KARTON KUMPİR 100'LÜ;2600;1;2600;Adet;;;;11154;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 9 fatura / 07.01.2026, 28.01.2026, 31.01.2026, 12.02.2026, 19.02.2026, 26.02.2026, 06.03.2026, 10.03.2026, 17.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;HARUN DILIM KAŞAR  PEYNİRİ;54;1;54;Kilogram;;;;17046;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PEKMEZCI SIGARA BÖREĞI(KALEM);40;1;40;Kilogram;;;;4760;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;AYRAN 200 MLT;17;1;17;Paket;;;;3082;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;KARIŞTIRICI;15;1;15;Adet;;;;840;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;NAR TEKLI SARMA ŞEKER 4 KG;11;1;11;Paket;;;;2849;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);8;1;8;Adet;;;;2864;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;(FRİTÖZ YAĞ) TURYAĞ 18 LT;6;1;6;Adet;;;;10105;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PLASTIK KAŞIK LÜKS SÜB KASIK;5;1;5;Adet;;;;295;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PEROS ASPEROX 1000 GR;4;1;4;Adet;;;;210;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;NIĞDE GAZOZ;4;1;4;Paket;;;;1640;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;COLORADO MAYONEZ P.P 9GR 600AD;3;1;3;Paket;;;;1836;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;COLORADO KETÇAP P.P 10GR 600 AD;2;1;2;Paket;;;;1038;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;7 OZ KARTON  BARDAK*3000AD;2;1;2;Paket;;;;2780;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;4 OZ BARDAK;2;1;2;Adet;;;;1958;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;ERSAL JUMBO ÇÖP TORBASI 400 GR  KOLİ;2;1;2;Paket;;;;978;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;NAYLON TORBA;2;1;2;PA;;;;158;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;1;1;1;Adet;;;;159;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;VİLEDA PASPAS UCU HAVLU MOP;1;1;1;Adet;;;;27,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;SELPAK MARATEM DİSPENSER   PEÇETE;1;1;1;Paket;;;;575;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;ISLAK KOLANYALI MENDIL KOLI 1000 ADET;1;1;1;Adet;;;;430;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;DOMESTOS 3,5 KG;1;1;1;Adet;;;;169;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PEROS ASPEROX 1000 GR SARI;1;1;1;Adet;;;;52,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;S.BRİTE YEŞİL  SÜNGER 4-Lİ 3 M;1;1;1;Adet;;;;196;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. SMOLL;1;1;1;Adet;;;;146;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. LARGE;1;1;1;Adet;;;;146;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;DAMLA PET500 KOYCEGIZ YD20 DYS;10;24;240;Kutu;;;;998,9952;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 3 fatura / 14.01.2026, 05.02.2026, 11.03.2026
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;COCA-COLA KUTU 330ML1X24 FIFA26;3;24;72;Kutu;;;;1930,896;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;COCA-COLA KUTU 330ML 1X24 DYS;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;CCZS 1X24 330 ML FIFA26;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;SPR KUTU330ML 1X24 2022 DYS;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;FT SEFT.KT330ML 1X12 REMIX2 DYS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;DAMLA MN.SADE OWB S200 DYS;1;24;24;Kutu;;;;172,26;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;FT LIMON KUTU 330ML RMX2 DYS;1;12;12;Kutu;;;;321,816;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;FT MAN-ANNS KUTU330ML REMIX DYS;1;12;12;Kutu;;;;321,816;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;AYAKUSTU ;FT KAVUN-CILEK KTU330ML 1X12DYS;1;12;12;Kutu;;;;321,816;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;AYAKUSTU ;DON PS CITIR BONFILE PARCALARI (500GR*8);136;1;136;Adet;;;;19400;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 4 fatura / 10.02.2026, 24.02.2026, 05.03.2026, 17.03.2026
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;KARTON KUMPİR 100'LÜ;1700;1;1700;Adet;;;;7043;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 6 fatura / 07.01.2026, 28.01.2026, 11.02.2026, 25.02.2026, 06.03.2026, 17.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;HEINZ HARDAL MILD 445 GR;20;1;20;Adet;;;;2960;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;(FRİTÖZ YAĞ) TURYAĞ 18 LT;13;1;13;Adet;;;;21770;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;MIKROFIBER BEZ;10;1;10;Adet;;;;260;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;PINAR KETÇAP BÜFE 800GR;10;1;10;Adet;;;;610;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;PEKMEZCI SIGARA BÖREĞI(KALEM);10;1;10;Kilogram;;;;1190;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;POS RULOSU;10;1;10;Adet;;;;740;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;8 OZ BARDAK;5;1;5;Adet;;;;212,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;SÜZME YOĞURT KG;4;1;4;Kilogram;;;;522;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;NAYLON TORBA;3;1;3;PA;;;;255,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;PEROS ASPEROX 1000 GR SARI;3;1;3;Adet;;;;157,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;PEROS ASPEROX 1000 GR MAVİ;3;1;3;Adet;;;;267;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. LARGE;3;1;3;Adet;;;;438;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;IÇTEN ÇEKMELI HAVLU;2;1;2;Paket;;;;850;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;ISLAK KOLANYALI MENDIL KOLI 1000 ADET;2;1;2;Adet;;;;860;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;COLORADO MAYONEZ 8 KG;2;1;2;Adet;;;;1430;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;BERRAK ACIBIBER SOSU PET 5 KG PAPRİKA SOSU;2;1;2;Adet;;;;2320;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;2;1;2;Adet;;;;292;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;DOMESTOS 3,5 KG;1;1;1;Adet;;;;169;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;ERSAL JUMBO ÇÖP TORBASI 400 GR  KOLİ;1;1;1;Paket;;;;489;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;AYAKUSTU ;ÇÖP TORBASI BATTAL BOY;1;1;1;Adet;;;;489;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SANEK GIDA SAN VE TIC A.S 2022;AYAKUSTU ;SANDVİÇ EKMEĞİ Büfe Tip 6*65 GR;140;1;140;PA;;;;6673,33;;;#DEĞER!;#DEĞER!;#DEĞER!;SANEK GIDA SAN VE TIC A.S 2022 / 12 fatura / 07.01.2026, 14.01.2026, 21.01.2026, 28.01.2026, 31.01.2026, 07.02.2026, 14.02.2026, 21.02.2026, 28.02.2026, 07.03.2026, 14.03.2026, 21.03.2026
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ADILE;HISAR TÜRK KAH. FOLYO 18X500G;5;1;5;Adet;ISK:%13;18×500 g;5 AD;1652,25;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 3 fatura / 05.01.2026, 23.02.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ADILE;NESTLE SICAK ÇIKOLATA 12x1Kg;3;1;3;Adet;;;1 AD;1279,11;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ADILE;NESCAFE INTENSE 12x500g;3;1;3;Adet;;12×500 g;1 AD;2881,78;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ADILE;NESTLE CAPUCCINOCREAMER 12x1Kg;1;1;1;Adet;;;1 AD;643,36;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ADILE;NESCAFE SÜTLÜ 12x1kg;1;1;1;Adet;;;1 AD;642,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;YAĞ ÇÖZ SPREY;6;1;6;Adet;;;;1008;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 3 fatura / 23.01.2026, 13.03.2026, 26.03.2026
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;ASPEROX SARI GÜÇ;6;1;6;Adet;;;;588;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;İÇTEN ÇEKMELİ HAVLU  6 LI;4;1;4;Paket;;;;1992;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;ASPEROX MAVİ GÜÇ;4;1;4;Adet;;;;392;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;FARAŞ SAPLI EXTRA HAZNELİ;2;1;2;Adet;;;;596;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;VİLEDA KEP;2;1;2;Adet;;;;176;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;VENTURA ELDE BULAŞIK DET.5 KG.;1;1;1;Adet;;;;213,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;DOMESTOS 3,5 KG.;1;1;1;CA;;;;234;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;SONKURT;ÇÖP TORBASI JUMBO 80*110 SİYAH;1;1;1;Paket;;;;617;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;COCA-COLA KUTU 330ML1X24 FIFA26;50;1;50;NPL;;;;32181,6;;;#DEĞER!;#DEĞER!;#DEĞER!;COCA-COLA SATIŞ VE DAĞITIM A.Ş. / 4 fatura / 08.01.2026, 23.01.2026, 03.03.2026, 26.03.2026
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;COCA-COLA KUTU 330ML 1X24 DYS;30;1;30;NPL;;;;19308,96;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;FT SEFT.KT330ML 1X12 REMIX2 DYS;21;1;21;NPL;;;;6758,14;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;DAMLA MN.SADE OWB S200 DYS;20;1;20;NPL;;;;3445,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;DAMLA SU OWB 330ML YENI SIS DYS;15;1;15;NPL;;;;2089,03;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;CC ZERO SUGAR KUTU 330ML DYS;10;1;10;NPL;;;;6436,32;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;FT LIMON KUTU 330ML RMX2 DYS;8;1;8;NPL;;;;2574,53;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;FAN POR.KUTU 330ML C+ (RCG)DYS;6;1;6;NPL;;;;3861,79;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;SPR KUTU330ML 1X24 2022 PXE DYS;3;1;3;NPL;;;;1930,9;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;CAPPY KRSK SLEEK KUTU330 VISPXE;3;1;3;NPL;;;;965,45;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;DAM MN.CLK-KRPZOWB2001X24YS DYS;2;1;2;NPL;;;;450,91;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;DAM MN.ELM OWB200ML 1X24 YS DYS;2;1;2;NPL;;;;450,91;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;CC LSSGR P2,5L 1X6 RMZN UTC26;2;1;2;NPL;;;;740,52;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;CAPPY KRSIK SLEEK KUTU330ML VIS;2;1;2;NPL;;;;643,63;;;#DEĞER!;#DEĞER!;#DEĞER!;
+COCA-COLA SATIŞ VE DAĞITIM A.Ş.;CINARLI;FAN ORN. P2,5L 1X6 RMZN26;1;1;1;NPL;;;;329,13;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;DAMLA PET500 KOYCEGIZ YD20 DYS;17;24;408;Kutu;;;;1558,5696;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-BUCA-DENIZ MESRUBAT / 4 fatura / 19.01.2026, 31.01.2026, 16.02.2026, 07.03.2026
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;COCA-COLA KUTU 330ML 1X24 DYS;6;24;144;Kutu;;;;3861,792;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;DAMLA MN.SADE OWB S200 DYS;3;24;72;Kutu;;;;516,78;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;CPY GLNK LMNT.PET330ML NHF DYS;5;12;60;Kutu;;;;1466,64;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;CAPPY PL.PORT PET 330ML NHF DYS;4;12;48;Kutu;;;;1173,312;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;CAPPY SFTLI SLEEK KUTU330ML VIS;4;12;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;FT MAN-ANNS KUTU330ML REMIX DYS;4;12;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;CAPPY VISNELI KUTU 330MLDYS;3;12;36;Kutu;;;;965,448;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;FT SEFT.KT330ML 1X12 REMIX2 DYS;3;12;36;Kutu;;;;965,448;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;FT KARPUZ KUTU 330ML REMIX DYS;3;12;36;Kutu;;;;965,448;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;ISKNTZ CCZS PET330 1X12 DYS;-5;1;-5;Kutu;;;;-118,425;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-BUCA-DENIZ MESRUBAT;CINARTEPE / TOROS;ISKNTZ CC KUTU 330ML;-24;1;-24;Kutu;;;;-321,816;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SIYAH SALATA KASESI;800;1;800;Adet;;;;6200;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 3 fatura / 21.01.2026, 11.02.2026, 04.03.2026 | GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ. / 9 fatura / 05.01.2026, 13.01.2026, 21.01.2026, 03.02.2026, 06.02.2026, 16.02.2026, 26.02.2026, 09.03.2026, 12.03.2026 | KARDEŞLER DAYANIKLI TÜKETİM MALLARI LİKİT PETROL GAZ GIDA ÜRÜNLERİ SANAYİ VE TİCARET LİMİTED ŞİRKETİ / 2 fatura / 04.03.2026 | NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 12 fatura / 06.01.2026, 13.01.2026, 20.01.2026, 22.01.2026, 27.01.2026, 28.01.2026, 03.02.2026, 10.02.2026, 24.02.2026, 10.03.2026, 11.03.2026, 17.03.2026 | TÜRKAN TURAN DALICI / 20 fatura / 05.01.2026, 12.01.2026, 13.01.2026, 19.01.2026, 20.01.2026, 26.01.2026, 02.02.2026, 06.02.2026, 10.02.2026, 16.02.2026, 18.02.2026, 23.02.2026, 27.02.2026, 02.03.2026, 03.03.2026, 09.03.2026, 13.03.2026, 17.03.2026, 24.03.2026, 28.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SALATA KASE KAPAĞI;800;1;800;Adet;;;;1520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KRISTAL KASE   PAPATYA;500;1;500;Adet;;;;2650;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KRISTAL KAPAK;500;1;500;Adet;;;;695;;;#DEĞER!;#DEĞER!;#DEĞER!;
+KARDEŞLER DAYANIKLI TÜKETİM MALLARI LİKİT PETROL GAZ GIDA ÜRÜNLERİ SANAYİ VE TİCARET LİMİTED ŞİRKETİ;CINARLI;PET SU;340;1;340;Adet;;;;16660;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;BAHÇIVAN MOZERELLA PEYNIR;192;1;192;Kilogram;;;;70680;;;#DEĞER!;#DEĞER!;#DEĞER!;
+TÜRKAN TURAN DALICI;CINARLI;Köfte;160,5;1;160,5;Kilogram;;;;119370;;;#DEĞER!;#DEĞER!;#DEĞER!;
+TÜRKAN TURAN DALICI;CINARLI;Kıyma;160;1;160;Kilogram;;;;119960;;;#DEĞER!;#DEĞER!;#DEĞER!;
+TÜRKAN TURAN DALICI;CINARLI;Kuşbaşı;136;1;136;Kilogram;;;;106480;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;AMERİKAN  KAPSÜL;128;1;128;Kutu;;;;3441,92;;;#DEĞER!;#DEĞER!;#DEĞER!;
+KARDEŞLER DAYANIKLI TÜKETİM MALLARI LİKİT PETROL GAZ GIDA ÜRÜNLERİ SANAYİ VE TİCARET LİMİTED ŞİRKETİ;CINARLI;damacana su;125;1;125;Adet;;;;10000;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;GÖZE KIRMIZI MERCIMEK YERLI;100;1;100;Kilogram;;;;9450;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;N73(BÜYÜK) PENNE BARILLA 2 KG;100;1;100;Adet;;;;14400;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;BIOGURME / FLENE %20 YAĞLI KREMA 1LT;96;1;96;Adet;;;;9216;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ATAŞLAR OSM. PRINÇ;75;1;75;Kilogram;;;;6300;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KALIN BULGUR;75;1;75;Kilogram;;;;2210;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FINEFOOD ISPANAK 10 KG;70;1;70;Kilogram;;;;4410;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PINAR KETÇAP BÜFE 800GR;70;1;70;Adet;;;;4270;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NİŞASTA;60;1;60;Kilogram;;;;1848;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KREMA TIKVEŞLI 1LT;60;1;60;Adet;;;;15012;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA ARPA DÖKME 5KG;55;1;55;Kilogram;;;;2034;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PINAR MAYONEZ 700 GR;50;1;50;Adet;;;;3800;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DEMKO DOĞRANMIŞ DOM.5KG;36;1;36;Adet;;;;10734;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;30 CM*12 ADET LAVALIA TORTILLA LAVAŞ **KOLI 10 ADETLI;30;1;30;Adet;;;;3670;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;BARILLA LAZANYA 500GR* 12 AD/15 AD;30;1;30;Adet;;;;3990;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SIZDIRMAZ KAP 250 GR;30;1;30;Adet;;;;3570;;;#DEĞER!;#DEĞER!;#DEĞER!;
+GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ.;CINARLI;19 LT DAMACAN SU;30;1;30;Adet;;;;3564,356435;;;#DEĞER!;#DEĞER!;#DEĞER!;
+TÜRKAN TURAN DALICI;CINARLI;Ciğer;30;1;30;Kilogram;;;;16500;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;ÇÖP TORBASI JUMBO DÖKME 80*110 SİYAH / KG;30;1;30;Kilogram;;;;2940;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;POLONEZ 150 GR HİNDİ FÜME DİLİMLİ;27;1;27;Adet;;;;3213;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NAYLON TORBA;25;1;25;PA;;;;2067,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;İRİ NOHUT MEKSIKA 10 MM;25;1;25;Kilogram;;;;2350;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DERMOSON ÜSTÜ  FASULYE 8,5MM;25;1;25;Kilogram;;;;1725;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;İÇTEN ÇEKMELİ HAVLU  6 LI;25;1;25;Paket;;;;12450;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KARIŞTIRICI;24;1;24;Adet;;;;1344;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÇİÇEK LİMON SOSU 1LT PET;24;1;24;Adet;;;;691,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TRAKYAĞ A.YAĞI 18LT;23;1;23;TN;;;;37121;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;21;1;21;Adet;;;;3031;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PUDRA ŞEKERİ DÖKME 5 KG;20;1;20;Kilogram;;;;1260;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. DOLPHİN XL;20;1;20;Adet;;;;3780;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. DOLPHİN;20;1;20;Adet;;;;3780;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SIYAH MUAYENE ELDIVENI 100 LÜ DOLPHİN;20;1;20;Adet;;;;3680;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA BURGU MAKARNA 5 KG;20;1;20;Kilogram;;;;756;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA İNCE UZUN MAKARNA 5 KG;20;1;20;Kilogram;;;;756;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;OVA UN 25 KG.;19;1;19;Adet;;;;13661;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TUKAŞ SALCA 5 KG;18;1;18;Adet;;;;5202;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SERA STRETCH FİLM 45*300;18;1;18;Adet;;;;5648;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;PORÇÖZ  KİREÇ ÇÖZÜCÜ 1 kg.;18;1;18;Adet;;;;1404;;;#DEĞER!;#DEĞER!;#DEĞER!;
+GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ.;CINARLI;45 KG GAZ PROPAN;17;1;17;Adet;;;;65500;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;CİF KREM 750 ML (1050 GR.);16;1;16;Adet;;;;1248;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;MUTFAK OCAK ÇAKMAĞI;15;1;15;Adet;;;;510;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA FIRIN MAKARANA 5 KG;15;1;15;Kilogram;;;;552;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;EFES DAMLA DROP BİTTER 1KG *12 AD;15;1;15;Adet;;;;3900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NAR TEKLI SARMA ŞEKER 4 KG;15;1;15;Paket;;;;3885;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DONUK ARPACIK SOĞAN 15KG;15;1;15;Kilogram;;;;3135;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FİNEFOOD DONUK MISIR 6*2,5KG;15;1;15;Kilogram;;;;1320;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FİNEFOOD DONUK BEZELYE 15 KG;15;1;15;Kilogram;;;;1095;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÇİÇEK NAR EKŞİLİ SOS 750ML PET (1000GR);12;1;12;Adet;;;;652,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KESKINKAYA TEREYAĞ 1000 GR;12;1;12;Kilogram;;;;5952;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;VERDE SIZMA Z.YAĞI 5KG;12;1;12;Adet;;;;18528;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;AMOY SOYA SOSU 750 ML (900 GR);12;1;12;Adet;;;;1656;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;MISIR UNU 1 KG;10;1;10;Kilogram;;;;262;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KAPAKLI SOS KABI;10;1;10;Adet;;;;690;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DR OETKER KABARTMA TOZU 1KG;10;1;10;Adet;;;;1890;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KARABİBER;10;1;10;Kilogram;;;;4400;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;VAKUMLU TULUM PEYNIRI KG BALKÖY;10;1;10;Kilogram;;;;4190;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;EZINE BEYAZ PEYNIR KG VAKUM BALKÖY;10;1;10;Kilogram;;;;3890;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ALBA SADE 10 KG;10;1;10;Paket;;;;11034;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;CEVİZ İCİ;10;1;10;Kilogram;;;;5440;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;GALETE UNU;10;1;10;Kilogram;;;;360;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FILIZ FIYONK 5 KG MAKARNA;10;1;10;Kilogram;;;;480;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;GÜLLAÇ 400 GR;10;1;10;Adet;;;;2190;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DERECIK SIRKE 2 LT *9AD;9;1;9;Adet;;;;369;;;#DEĞER!;#DEĞER!;#DEĞER!;
+GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ.;CINARLI;12 KG GAZ;9;1;9;Adet;;;;9545,454545;;;#DEĞER!;#DEĞER!;#DEĞER!;
+TÜRKAN TURAN DALICI;CINARLI;Et;9;1;9;Kilogram;;;;7020;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;5000 GR SÜZME ÇİÇEK BALI KOVA HASKAYMAK;8;1;8;Adet;;;;7680;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÖNCÜ BIBER SALÇA 5 KG;8;1;8;Adet;;;;5152;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;VENTURA EXTRA ELDE YIK.BUL.DET.20 KG YEŞİL;7;1;7;CA;;;;4161,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TARÇIN;6;1;6;Kilogram;;;;1650;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÇAYKUR RİZE TURIST ÇAY KOLI;6;1;6;Paket;;;;16530;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;M.EFENDI KAHVE 500GR TNK;6;1;6;Adet;;;;3174;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;BERRAK KÖZLENMİŞ PATLICAN  3 KG;6;1;6;Adet;;;;1854;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KORİNİTTA ŞANTI TORBASI-72 ADET;6;1;6;Adet;;;;1224;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FRİTA YAĞI 18 LT;5;1;5;TN;;;;10098;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PLASTİK KOVA ÇIÇEK KARIŞIK SEBZE TÜRLÜ TURŞU;5;1;5;Adet;;;;3220;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA DÖKME PENNE 5 KG;5;1;5;Kilogram;;;;184;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FINDIK KIRIK;5;1;5;Kilogram;;;;4375;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ALIMUNYUM 2 GÖZLÜ KASE;5;1;5;Adet;;;;3125;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PLASTIK KAŞIK;5;1;5;Adet;;;;245;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA TEL ŞEHRİYE DÖKME 5KG;5;1;5;Kilogram;;;;184;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARSLANOĞLU PEYNIR TATLISI;5;1;5;Adet;;;;2875;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÖNCÜ PUL BIBER 1 KG;5;1;5;Kilogram;;;;1045;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;İRMİK DÖKME KG;5;1;5;Kilogram;;;;155;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PIŞIRME KAĞIDI--YAĞLI KAĞIT;5;1;5;Adet;;;;990;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;ÇÖP TORBASI JUMBO DÖKK SİYAH 80*110;5;1;5;Paket;;;;8240;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;DİSPENCER PEÇETE İDEAL;5;1;5;Paket;;;;1968;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SAFTUZ KL (24 AD*750GR);4;1;4;Paket;;;;1144;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TOZ ŞEKER 50  KG;4;1;4;SA;;;;7900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SELPAK MARATEM DİSPENSER   PEÇETE;4;1;4;Paket;;;;2555;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DR OETKER VANILYA 1KG;4;1;4;Adet;;;;756;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ELIT DILIMLI PASTIRMA 250 GR;4;1;4;Adet;;;;2300;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;DOMESTOS;4;1;4;CA;;;;852;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;MUŞAMBA  ÖNLÜK;4;1;4;Adet;;;;540;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SEĞMEN KARADUT 5KG;3;1;3;Adet;;;;2037;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;JÖLE 1 KG;3;1;3;Adet;;;;417;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PRENS GENEL TEMİZLİK 30 LT;3;1;3;Adet;;;;2325;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NIĞDE GAZOZ;3;1;3;Paket;;;;1107;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;YER SİL 55 CM SAPLI;3;1;3;Adet;;;;474;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;TUVALET KAĞIDI 72 Lİ;3;1;3;Paket;;;;1572;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KARTON ÇORBA KASE 16 0Z;2;1;2;Paket;;;;1920;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KEKİK;2;1;2;Kilogram;;;;1260;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NANE;2;1;2;Kilogram;;;;520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;POŞET TUZ MINI;2;1;2;Adet;;;;96;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;GARSON KATLAMA PEÇETE 33-31;2;1;2;Paket;;;;1088;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;2000GR SIZDIRMAZ KAP;2;1;2;Adet;;;;1488;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KNORR TARHANA 3KG ÇORBA;2;1;2;Adet;;;;2450;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;HAŞHAŞ;2;1;2;Kilogram;;;;496;;;#DEĞER!;#DEĞER!;#DEĞER!;
+TÜRKAN TURAN DALICI;CINARLI;Antrikot;2;1;2;Kilogram;;;;2300;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;VENTURA ELDE BULAŞIK DET.5 KG.;2;1;2;Adet;;;;388;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;SIVI SABUN 5 LT;2;1;2;Adet;;;;379,6;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;VENTURA FRESH M (Genel Temizlik Mad.)20 KG.;2;1;2;CA;;;;1196;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;YAĞÇÖZ 5LT;1;1;1;Adet;;;;186;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ONLY PEÇETE KOLI GARSON KATLAMA;1;1;1;Paket;;;;525;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;İRİ BOY CEM DOĞAL SİYAH SELE ZEYTİN 201-230 10KG;1;1;1;TN;;;;3100;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NORMAL BOY---CEM TAŞ KIRMA YEŞİL ZEYTİN 291-350 10KG;1;1;1;TN;;;;1775;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;7 OZ KARTON  BARDAK*3000AD;1;1;1;Paket;;;;1390;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÇAMAŞIR FİLESİ;1;1;1;Adet;;;;48;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;8-B KÖPÜK KAP HAMBURGER;1;1;1;Adet;;;;375;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ALIMUNYUM 2 GÖZLÜ KASE+KAPAK;1;1;1;Adet;;;;697;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ALIMINYUM KASE 1500 GR+ KAPAK;1;1;1;Adet;;;;596;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ATOM KURU BIBER ACI  TÜM;1;1;1;Kilogram;;;;625;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SIVI EL SABUNU 5LT;1;1;1;CA;;;;143;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KURU MAYA 100 GR-KOLI PAKMAYA;1;1;1;Paket;;;;1190;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;HARUN BEYAZ İNCİ MİSKET MOZERELLA 3 KG;1;1;1;Adet;;;;1075;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DÖKME KARBONAT KG;1;1;1;Kilogram;;;;39;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ADISYON FIŞI 10 LU;1;1;1;Adet;;;;296;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;IKRAM SETI 5*1 SET;1;1;1;Adet;;;;760;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;COLORADO KETÇAP P.P 10GR 600 AD;1;1;1;Paket;;;;494;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;COLORADO MAYONEZ P.P 9GR 600AD;1;1;1;Paket;;;;596;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;8-B KÖPÜK KAP;1;1;1;Adet;;;;290;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ISLAK KOLANYALI MENDIL KOLI 1000 ADET;1;1;1;Adet;;;;430;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KNORR BULYON 5 KG DANA;1;1;1;Adet;;;;1840;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;KLORAK;1;1;1;Adet;;;;586;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;VENTURA MATİK (Endüstriyel Bul.Mak.Deterjanı)25 KG.;1;1;1;CA;;;;922,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;VENTURA RİNSE (End.Bul.Mak.Parlatıcı/Durul.Mad.)21KG.;1;1;1;CA;;;;928,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARLI;VENTURA CLOR Çamaşır Suyu(Klorlu Ağartma veTem.Mad.)20 KG.;1;1;1;CA;;;;484;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TARHUN OTU;0,5;1;0,5;Kilogram;;;;395;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ATAŞLAR OSM. PRINÇ;75;1;75;Kilogram;;;;6450;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 2 fatura / 17.02.2026, 03.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;JAPON  KÜRDAN;50;1;50;Adet;;;;1450;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;AMERİKAN  KAPSÜL;48;1;48;Kutu;;;;1290,72;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;BIOGURME / FLENE %20 YAĞLI KREMA 1LT;36;1;36;Adet;;;;3456;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KALIN BULGUR;25;1;25;Kilogram;;;;745;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DERMOSON ÜSTÜ  FASULYE 8,5MM;25;1;25;Kilogram;;;;1725;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;İRİ NOHUT MEKSIKA 10 MM;25;1;25;Kilogram;;;;2350;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KARIŞTIRICI;24;1;24;Adet;;;;1344;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FINEFOOD ISPANAK 10 KG;20;1;20;Kilogram;;;;1350;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;AMOY SOYA SOSU 750 ML (900 GR);12;1;12;Adet;;;;1656;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PARA BANDI;12;1;12;Adet;;;;228;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KESKINKAYA TEREYAĞ 1000 GR;12;1;12;Kilogram;;;;6900;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NAYLON TORBA;10;1;10;PA;;;;790;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ARBELLA ARPA DÖKME 5KG;10;1;10;Kilogram;;;;378;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PUDRA ŞEKERİ DÖKME 5 KG;10;1;10;Kilogram;;;;630;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;DEMKO DOĞRANMIŞ DOM.5KG;6;1;6;Adet;;;;1764;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;FINDIK KIRIK;5;1;5;Kilogram;;;;4375;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TOZ BİBER;5;1;5;Kilogram;;;;1100;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;2000GR SIZDIRMAZ KAP;4;1;4;Adet;;;;2520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NAR TEKLI SARMA ŞEKER 4 KG;4;1;4;Paket;;;;1036;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;ÇAYKUR RİZE TURIST ÇAY KOLI;3;1;3;Paket;;;;8310;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;NAYLON TORBA BÜYÜK;3;1;3;PA;;;;237;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;SERA STRETCH FİLM 45*300;3;1;3;Adet;;;;1008;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;KARTON ÇORBA KASE 16 0Z;2;1;2;Paket;;;;1920;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PLAST TABAKA HIŞIR KASAP KAĞIDI 2,5 KG;2;1;2;Adet;;;;792;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;PLASTİK KOVA ÇIÇEK KARIŞIK SEBZE TÜRLÜ TURŞU;2;1;2;Adet;;;;1288;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;TRAKYAĞ A.YAĞI 18LT;2;1;2;TN;;;;3260;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;500 GR CAM KİRAZ ŞEKERLEME;2;1;2;Adet;;;;496;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARLI;MAHLEP;1;1;1;Kilogram;;;;990;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;CINARTEPE;GEDIK PL. KOKT. SOSİS (1KG*8);40;1;40;Kilogram;;;;5032;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 2 fatura / 17.01.2026, 24.03.2026
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;CINARTEPE;DON PS CITIR BONFILE PARCALARI (500GR*8);24;1;24;Adet;;;;3000;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;KARTON KUMPİR 100'LÜ;900;1;900;Adet;;;;3661;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 2 fatura / 14.01.2026, 27.02.2026 | NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 7 fatura / 06.01.2026, 14.01.2026, 22.01.2026, 05.02.2026, 12.02.2026, 26.02.2026, 12.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;PEKMEZCI SIGARA BÖREĞI(KALEM);20;1;20;Kilogram;;;;2380;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;HARUN DILIM KAŞAR  PEYNİRİ;18;1;18;Kilogram;;;;5562;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);16;1;16;Adet;;;;5248;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;PLASTIK ÇATAL;15;1;15;Adet;;;;735;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;MİCROFİBER BEZ;10;1;10;Adet;;;;384;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;(FRİTÖZ YAĞ) TURYAĞ 18 LT;6;1;6;Adet;;;;10050;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;OVA UN 5 KG;6;1;6;Adet;;;;966;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;FROZEN PIPET;5;1;5;Adet;;;;119;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;MUAYENE ELDİVENİ SİYAH NİTRİL L-M;4;1;4;PA;;;;672;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;3;1;3;Adet;;;;477;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;GENEL TEMİZLİK 5 KG.;3;1;3;Adet;;;;567;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;ZEYTIN 30 GR POŞET MİNİ;2;1;2;Paket;;;;560;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.MİDYUM;2;1;2;Adet;;;;292;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. MİDYUM;2;1;2;Adet;;;;292;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;60 CM PLASTİK APARAT NEMLİ TAKIM SET;2;1;2;Adet;;;;496;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;NEMLİ MOP 60 CM;2;1;2;Adet;;;;256;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;İÇTEN ÇEKMELİ HAVLU  6 LI;2;1;2;Paket;;;;996;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;DOMESTOS;2;1;2;CA;;;;426;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;PRİL;2;1;2;Adet;;;;426;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;ÜLKER TEREMYAĞ 2,5KG ADET;1;1;1;Adet;;;;256;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. LARGE;1;1;1;Adet;;;;146;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;COLORADO KETÇAP P.P 10GR 600 AD;1;1;1;Paket;;;;494;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;COLORADO MAYONEZ P.P 9GR 600AD;1;1;1;Paket;;;;596;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;MİNİ--CEM SİYAH ZEYTİN  PİKNİK VAKUM 20GR 96 LI;1;1;1;Paket;;;;445;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;NAYLON TORBA;1;1;1;PA;;;;79;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;AGRON TUVALET KAĞIDI 3 LÜ*24AD;1;1;1;Paket;;;;490;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;CINARTEPE;KURU MAYA 100 GR-KOLI PAKMAYA;1;1;1;Paket;;;;1390;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;CINARTEPE;DİSPENCER HAVLU İDEAL;1;1;1;Paket;;;;469;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;CINARTEPE;HISAR TÜRK KAH. FOLYO 18X500G;23;1;23;Adet;ISK:%13;18×500 g;5 AD;7600,35;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 3 fatura / 04.02.2026, 10.02.2026, 24.03.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;CINARTEPE;NESTLE CAPUCCINOCREAMER 12x1Kg;3;1;3;Adet;;;3 AD;1930,07;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;CINARTEPE;NESTLE SICAK ÇIKOLATA 12x1Kg;3;1;3;Adet;;;3 AD;1368,64;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;CINARTEPE;NESCAFE INTENSE 12x500g;3;1;3;Adet;;12×500 g;3 AD;3083,51;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SANEK GIDA SAN VE TIC A.S 2022;GUZELYALI;TOST EKMEĞİ 1000 GR;35;1;35;PA;;;;3415,82;;;#DEĞER!;#DEĞER!;#DEĞER!;SANEK GIDA SAN VE TIC A.S 2022 / 11 fatura / 07.01.2026, 14.01.2026, 21.01.2026, 28.01.2026, 31.01.2026, 14.02.2026, 21.02.2026, 28.02.2026, 07.03.2026, 14.03.2026, 21.03.2026
+SANEK GIDA SAN VE TIC A.S 2022;GUZELYALI;SANDVİÇ EKMEĞİ Büfe Tip 6*65 GR;7;1;7;PA;;;;336,62;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;HISAR TÜRK KAH. FOLYO 18X500G;72;1;72;Adet;ISK:%13;18×500 g;36 AD;23792,4;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 11 fatura / 09.01.2026, 19.01.2026, 27.01.2026, 09.02.2026, 17.02.2026, 02.03.2026, 09.03.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;HISAR TÜRK KAH. FOLYO 18X500G;36;1;36;Adet;ISK:%5;18×500 g;36 AD;11896,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;NESTLE SICAK ÇIKOLATA 12x1Kg;14;1;14;Adet;;;1 AD;6028,85;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;NESTLE CAPUCCINOCREAMER 12x1Kg;13;1;13;Adet;;;4 AD;8363,62;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;NESCAFE INTENSE 12x500g;8;1;8;Adet;;12×500 g;4 AD;7953,72;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;NESCAFE CAPPUCINO VANL.12x1KG;4;1;4;Adet;;;1 AD;2687,19;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;NESTLE KAKAO 4x1kg;1;1;1;Adet;ISK:%10;;1 AD;964,46;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;ABACI;HISAR TÜRK KAH. FOLYO 18X500G;1;1;1;KL;ISK:%13;18×500 g;1 KL;5948,1;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;GUZELYALI;DON PS CITIR BONFILE PARCALARI (500GR*8);213;1;213;Adet;;;;27025;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 8 fatura / 08.01.2026, 14.01.2026, 02.02.2026, 04.02.2026, 10.02.2026, 19.02.2026, 17.03.2026
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;GUZELYALI;GEDIK PL. KOKT. SOSİS (1KG*8);40;1;40;Kilogram;;;;4848;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;GUZELYALI;GDK UZUN SOSIS 1000 GR;8;1;8;Kilogram;;;;928;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;KARTON KUMPİR 100'LÜ;600;1;600;Adet;;;;2524;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 11 fatura / 07.01.2026, 14.01.2026, 22.01.2026, 28.01.2026, 05.02.2026, 11.02.2026, 18.02.2026, 25.02.2026, 04.03.2026, 11.03.2026, 18.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;7 OZ BARDAK;300;1;300;Adet;;;;165;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;PEKMEZCI SIGARA BÖREĞI(KALEM);20;1;20;Kilogram;;;;2380;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;(FRİTÖZ YAĞ) TURYAĞ 18 LT;17;1;17;Adet;;;;28675;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. SMOLL;17;1;17;Adet;;;;2473;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;HARUN DILIM KAŞAR  PEYNİRİ;14;1;14;Kilogram;;;;4446;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);8;1;8;Adet;;;;2624;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. LARGE;5;1;5;Adet;;;;730;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;PLASTIK ÇATAL;4;1;4;Adet;;;;196;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;FROZEN PIPET;4;1;4;Adet;;;;95,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;COLORADO KETÇAP P.P 10GR 600 AD;3;1;3;Paket;;;;1507;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;IÇTEN ÇEKMELI HAVLU;3;1;3;Paket;;;;1275;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;NAYLON TORBA;3;1;3;PA;;;;237;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;PLASTIK KAŞIK TATLI;3;1;3;Adet;;;;147;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;KARIŞTIRICI;3;1;3;Adet;;;;168;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;COLORADO MAYONEZ P.P 9GR 600AD;2;1;2;Paket;;;;1192;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;NAR TEKLI SARMA ŞEKER 4 KG;2;1;2;Paket;;;;518;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;AYRAN 200 MLT;2;1;2;Paket;;;;322;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;HEINZ KETÇAP 460 GR;2;1;2;Adet;;;;142;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;DOMESTOS 3,5 KG;2;1;2;Adet;;;;338;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;BULŞ.MAK.KIREÇ ÇÖZ 5 LT;2;1;2;Adet;;;;558;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;PINAR KETÇAP BÜFE 800GR;2;1;2;Adet;;;;112;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;PLASTIK KAŞIK LÜKS SÜP KAŞIK;2;1;2;Adet;;;;118;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;BULAŞIK ELDİVENİ BEYBI;2;1;2;Adet;;;;58;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;SELPAK MARATEM DİSPENSER   PEÇETE;1;1;1;Paket;;;;575;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;PLASTIK KAŞIK;1;1;1;Adet;;;;49;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;ÇÖP TORBASI BATTAL BOY 20 Lİ;1;1;1;Adet;;;;489;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;GUZELYALI;GREEN BLUE CAJUN BAHARATI 1000GR;1;1;1;Adet;;;;207,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;GUZELYALI;HISAR TÜRK KAH. FOLYO 18X500G;8;1;8;Adet;ISK:%13;18×500 g;4 AD;2643,6;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 3 fatura / 05.01.2026, 23.02.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;GUZELYALI;NESTLE CAPUCCINOCREAMER 12x1Kg;1;1;1;Adet;;;1 AD;643,36;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;CINARTEPE;COCA-COLA KUTU 330ML 1X24 DYS;4;24;96;Kutu;;;;2574,528;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 1 fatura / 24.03.2026
+IZMIR-KONAK-SIMSEK;CINARTEPE;CAPPY VISNELI KUTU 330MLDYS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;CINARTEPE;FT KAVUN-CILEK KTU330ML 1X12DYS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;CINARTEPE;FT KARPUZ KUTU 330ML REMIX DYS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;CINARTEPE;CAPPY KRSIK SLEEK KUTU330ML VIS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;CINARTEPE;FAN POR.KUTU 330ML C+ (RCG)DYS;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;CINARTEPE;CAPPY ATOM SLEEK KUTU 330 MLDYS;1;12;12;Kutu;;;;321,816;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;AYAKUSTU ;NESTLE CAPUCCINOCREAMER 12x1Kg;1;1;1;Adet;;;1 AD;643,36;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 1 fatura / 27.01.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;AYAKUSTU ;NESTLE SICAK ÇIKOLATA 12x1Kg;1;1;1;Adet;;;1 AD;426,37;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;AYAKUSTU ;NESCAFE INTENSE 12x500g;1;1;1;Adet;;12×500 g;1 AD;960,59;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SANEK GIDA SAN VE TIC A.S 2022;ATILLA;TOST EKMEĞİ 1000 GR;120;1;120;PA;;;;11955,44;;;#DEĞER!;#DEĞER!;#DEĞER!;SANEK GIDA SAN VE TIC A.S 2022 / 8 fatura / 14.01.2026, 21.01.2026, 28.01.2026, 07.02.2026, 14.02.2026, 21.02.2026, 07.03.2026, 14.03.2026
+SANEK GIDA SAN VE TIC A.S 2022;ATILLA;SANDVİÇ EKMEĞİ Büfe Tip 6*65 GR;11;1;11;PA;;;;509,9;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SANEK GIDA SAN VE TIC A.S 2022;CINARLI;ROLL EKMEĞİ Sade 40 GR;4320;1;4320;Adet;;;;19693,02;;;#DEĞER!;#DEĞER!;#DEĞER!;SANEK GIDA SAN VE TIC A.S 2022 / 12 fatura / 07.01.2026, 14.01.2026, 21.01.2026, 28.01.2026, 31.01.2026, 07.02.2026, 14.02.2026, 21.02.2026, 28.02.2026, 07.03.2026, 14.03.2026, 21.03.2026
+SANEK GIDA SAN VE TIC A.S 2022;CINARLI;ROLL EKMEĞİ Kepekli 40 GR;4320;1;4320;Adet;;;;19693,02;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SANEK GIDA SAN VE TIC A.S 2022;CINARLI;HAMBURGER EKMEĞİ Büfe Tip 6*85 GR;70;1;70;PA;;;;3861,38;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SANEK GIDA SAN VE TIC A.S 2022;CINARLI;TOST EKMEĞİ 1000 GR;62;1;62;PA;;;;6108,91;;;#DEĞER!;#DEĞER!;#DEĞER!;
+SANEK GIDA SAN VE TIC A.S 2022;CINARLI;SANDVİÇ EKMEĞİ 10*100 GR;38;1;38;PA;;;;3876,23;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SANEK GIDA SAN VE TIC A.S 2022;SONKURT;TOST EKMEĞİ 1000 GR;102;1;102;PA;;;;10366,33;;;#DEĞER!;#DEĞER!;#DEĞER!;SANEK GIDA SAN VE TIC A.S 2022 / 9 fatura / 07.01.2026, 14.01.2026, 21.01.2026, 07.02.2026, 14.02.2026, 21.02.2026, 28.02.2026, 07.03.2026, 14.03.2026
+SANEK GIDA SAN VE TIC A.S 2022;SONKURT;SANDVİÇ EKMEĞİ Büfe Tip 6*65 GR;18;1;18;PA;;;;950,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;KARATAŞ;DOMESTOS 3,5 KG.;3;1;3;CA;;;;639;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 1 fatura / 07.01.2026
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;KARATAŞ;GENEL TEMİZLİK 5 KG.;2;1;2;Adet;;;;378;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;PEKMEZCI SIGARA BÖREĞI(KALEM);250;1;250;Kilogram;;;;29750;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 5 fatura / 08.01.2026, 17.01.2026, 30.01.2026, 16.02.2026, 25.03.2026 | NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 15 fatura / 02.01.2026, 09.01.2026, 14.01.2026, 20.01.2026, 28.01.2026, 03.02.2026, 10.02.2026, 18.02.2026, 24.02.2026, 28.02.2026, 05.03.2026, 10.03.2026, 17.03.2026, 24.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;HARUN DILIM KAŞAR  PEYNİRİ;225;1;225;Kilogram;;;;68985;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;AYRAN 200 MLT;75;1;75;Paket;;;;13110;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);64;1;64;Adet;;;;21952;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;POS RULOSU;56;1;56;Adet;;;;4144;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;TERMAL POS RULOSU;50;1;50;Adet;;;;5400;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;(FRİTÖZ YAĞ) TURYAĞ 18 LT;42;1;42;Adet;;;;71155;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;NAR TEKLI SARMA ŞEKER 4 KG;38;1;38;Paket;;;;9842;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;31;1;31;Adet;;;;4622;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;COLORADO KETÇAP P.P 10GR 600 AD;30;1;30;Paket;;;;14995;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;COLORADO MAYONEZ P.P 9GR 600AD;28;1;28;Paket;;;;16976;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;ASPEROX SARI GÜÇ;27;1;27;Adet;;;;2646;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;ASPEROX MAVİ GÜÇ;27;1;27;Adet;;;;2646;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;KARIŞTIRICI;24;1;24;Adet;;;;1344;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;PLASTIK KAŞIK TATLI;20;1;20;Adet;;;;980;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;KÜL TABLASI;20;1;20;Adet;;;;316;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;ISLAK KOLANYALI MENDIL KOLI 1000 ADET;17;1;17;Adet;;;;6978;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;GREEN BLUE CAJUN BAHARATI 1000GR;16;1;16;Adet;;;;3320;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;DOMESTOS;16;1;16;CA;;;;3492;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;İÇTEN ÇEKMELİ HAVLU  6 LI;14;1;14;Paket;;;;6972;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;24*24 PEÇETE;13;1;13;Paket;;;;5954;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. LARGE;12;1;12;Adet;;;;1832;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;NIĞDE GAZOZ;9;1;9;Paket;;;;3526;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;NAYLON TORBA;8;1;8;PA;;;;632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;ÜLKER TEREMYAĞ 2,5KG ADET;7;1;7;Adet;;;;1857;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;MİCROFİBER BEZ;6;1;6;Adet;;;;230,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;BULAŞIK ELDİVENİ M;5;1;5;Adet;;;;204;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;RAİD SİNEK SAVAR KOKUSUZ;5;1;5;Adet;;;;940;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;CAMSİL SPREY;4;1;4;Adet;;;;159,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;LAVABO  AÇICI  1 KG.;4;1;4;Adet;;;;998,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;SERA STRETCH FİLM 45*300;3;1;3;Adet;;;;1008;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;VENTURA FRESH M (Genel Temizlik Mad.)20 KG.;3;1;3;CA;;;;1794;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;7 OZ KARTON  BARDAK*3000AD;2;1;2;Paket;;;;2580;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;NAR KESME ŞEKER 750GR*20AD;2;1;2;Paket;;;;1580;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. MİDYUN;2;1;2;Adet;;;;292;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;SOPHO ----CAJUN BAHARATI 650 GR(LE MENTO);2;1;2;Adet;;;;396;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;VİLEDA HAVLU YEDEK UÇ;2;1;2;Adet;;;;196;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;YER SİL 55 CM SAPLI;2;1;2;Adet;;;;346;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;BULAŞIK TELİ TOP TEL;2;1;2;Adet;;;;104;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;BULAŞIK ELDİVENİ;2;1;2;Adet;;;;78;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;4 OZ BARDAK;1;1;1;Adet;;;;844;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ABACI;PIŞIRME KAĞIDI--YAĞLI KAĞIT;1;1;1;Adet;;;;198;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;ÇÖP TORBASI JUMBO 80*110 SİYAH;1;1;1;Paket;;;;617;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ABACI;VENTURA CONTRA (Bul.Mak.Kireç Tem.Mad.)20 Kg.;1;1;1;CA;;;;781;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;MERKEZ;NEMLİ MOP 60 CM;10;1;10;Adet;;;;1480;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 1 fatura / 12.03.2026
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;SONKURT;HISAR TÜRK KAH. FOLYO 18X500G;18;1;18;Adet;ISK:%13;18×500 g;18 AD;5948,1;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 3 fatura / 09.02.2026, 23.02.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;SONKURT;NESCAFE SÜTLÜ 12x1kg;6;1;6;Adet;;;4 AD;3856,78;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;SONKURT;NESTLE CAPUCCINOCREAMER 12x1Kg;2;1;2;Adet;;;2 AD;1286,71;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;SONKURT;NESTLE SICAK ÇIKOLATA 12x1Kg;2;1;2;Adet;;;2 AD;852,74;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;ABACI;DAMLA PET500 KOYCEGIZ YD20 DYS;110;24;2640;Kutu;;;;10290,336;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 8 fatura / 08.01.2026, 15.01.2026, 23.01.2026, 29.01.2026, 05.02.2026, 19.02.2026, 26.02.2026, 12.03.2026
+IZMIR-KONAK-SIMSEK;ABACI;COCA-COLA KUTU 330ML 1X24 DYS;26;24;624;Kutu;;;;16734,432;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;DAMLA MN.SADE OWB S200 DYS;21;24;504;Kutu;;;;3617,46;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;FT SEFT.KT330ML 1X12 REMIX2 DYS;17;12;204;Kutu;;;;5470,872;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;FT MAN-ANNS KUTU330ML REMIX DYS;17;12;204;Kutu;;;;5470,872;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;FT KAVUN-CILEK KTU330ML 1X12DYS;13;12;156;Kutu;;;;4183,608;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;FAN POR.KUTU 330ML C+ (RCG)DYS;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;CC ZERO SUGAR KUTU 330ML DYS;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;COCA-COLA KUTU 330ML1X24 FIFA26;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;ISKONTO UR.-SP CAN330;-11;1;-11;Kutu;;;;-147,499;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;ISKNTZ FN POR KUTU 330ML;-12;1;-12;Kutu;;;;-160,908;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;ISKNTZ CC SEKERSIZ KUTU330ML;-60;1;-60;Kutu;;;;-1448,172;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ABACI;ISKONTO UR.ISK-CCL CAN330;-84;1;-84;Kutu;;;;-4547,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;ADILE;DAMLA PET500 KOYCEGIZ YD20 DYS;2;24;48;Kutu;;;;227,746176;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 1 fatura / 31.01.2026
+IZMIR-KONAK-SIMSEK;ADILE;CAPPY SFTLI SLEEK KUTU330ML VIS;1;12;12;Kutu;;;;384,71004;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ADILE;CAPPY VISNELI KUTU 330MLDYS;1;12;12;Kutu;;;;384,71004;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;GUZELYALI;DAMLA PET500 KOYCEGIZ YD20 DYS;16;24;384;Kutu;;;;1528,5312;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 4 fatura / 08.01.2026, 29.01.2026, 05.02.2026, 19.02.2026
+IZMIR-KONAK-SIMSEK;GUZELYALI;DAMLA PET500MLX24 THD KYC;10;24;240;Kutu;;;;907,872;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;GUZELYALI;COCA-COLA KUTU 330ML 1X24 DYS;3;24;72;Kutu;;;;1930,896;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;GUZELYALI;CC ZERO SUGAR KUTU 330ML DYS;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;GUZELYALI;FT KAVUN-CILEK KTU330ML 1X12DYS;3;12;36;Kutu;;;;965,448;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;ATILLA;DAMLA PET500MLX24 THD KYC;40;24;960;Kutu;;;;3631,488;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 4 fatura / 16.01.2026, 30.01.2026, 20.02.2026, 13.03.2026
+IZMIR-KONAK-SIMSEK;ATILLA;DAMLA PET500 KOYCEGIZ YD20 DYS;31;24;744;Kutu;;;;2829,5904;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;DAMLA MN.SADE OWB S200 DYS;25;24;600;Kutu;;;;4306,5;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;DAM MN.CLK-KRPZOWB2001X24YS DYS;9;24;216;Kutu;;;;2029,104;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;COCA-COLA KUTU 330ML 1X24 DYS;7;24;168;Kutu;;;;4505,424;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;FT KARPUZ KUTU 330ML REMIX DYS;10;12;120;Kutu;;;;3218,16;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;FT SEFT.KT330ML 1X12 REMIX2 DYS;10;12;120;Kutu;;;;3218,16;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;CAPPY SFTLI SLEEK KUTU330ML VIS;8;12;96;Kutu;;;;2574,528;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;DAM MN.ELM OWB200ML 1X24 YS DYS;4;24;96;Kutu;;;;901,824;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;FT MAN-ANNS KUTU330ML REMIX DYS;7;12;84;Kutu;;;;2252,712;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;DAMLA MN.LIMON OWB S200 4X6DYS;2;24;48;Kutu;;;;450,912;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;FT LIMON KUTU 330ML RMX2 DYS;3;12;36;Kutu;;;;965,448;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;CAPPY KRSIK SLEEK KUTU330ML VIS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;FT KAVUN-CILEK KTU330ML 1X12DYS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;ATILLA;CCZS 1X24 330 ML FIFA26;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+IZMIR-KONAK-SIMSEK;SONKURT;DAMLA PET500 KOYCEGIZ YD20 DYS;15;24;360;Kutu;;;;1589,616;;;#DEĞER!;#DEĞER!;#DEĞER!;IZMIR-KONAK-SIMSEK / 3 fatura / 31.01.2026, 28.02.2026, 14.03.2026
+IZMIR-KONAK-SIMSEK;SONKURT;DAMLA MN.SADE OWB S200 DYS;6;24;144;Kutu;;;;1033,56;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;COCA-COLA KUTU 330ML 1X24 DYS;3;24;72;Kutu;;;;1930,896;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;FT SEFT.KT330ML 1X12 REMIX2 DYS;5;12;60;Kutu;;;;1609,08;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;FT KAVUN-CILEK KTU330ML 1X12DYS;4;12;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;FT MAN-ANNS KUTU330ML REMIX DYS;4;12;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;COCA-COLA KUTU 330ML1X24 FIFA26;2;24;48;Kutu;;;;1287,264;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;DAM MN.ELM OWB200ML 1X24 YS DYS;2;24;48;Kutu;;;;450,912;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;DAM MN.CLK-KRPZOWB2001X24YS DYS;2;24;48;Kutu;;;;450,912;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;FT LIMON KUTU 330ML RMX2 DYS;3;12;36;Kutu;;;;965,448;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;CC ZERO SUGAR KUTU 330ML DYS;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;FAN POR.KUTU 330ML C+ (RCG)DYS;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;SPR KUTU330ML 1X24 2022 DYS;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;CAPPY SFTLI SLEEK KUTU330ML VIS;2;12;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;CCZS 1X24 330 ML FIFA26;1;24;24;Kutu;;;;643,632;;;#DEĞER!;#DEĞER!;#DEĞER!;
+IZMIR-KONAK-SIMSEK;SONKURT;DAM MN.LIMON OWB200-1X24 YS DYS;1;24;24;Kutu;;;;225,456;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;TOROS;GEDIK PL. KOKT. SOSİS (1KG*8);72;1;72;Kilogram;;;;8776;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 5 fatura / 14.01.2026, 21.01.2026, 04.02.2026, 17.02.2026, 03.03.2026
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;TOROS;DON PS CITIR BONFILE PARCALARI (500GR*8);64;1;64;Adet;;;;8400;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+GÜLTEPE LPG VE SU PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ;TOROS;19 LT DAMACANA SU;53;1;53;Adet;;;;6297,46;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 3 fatura / 07.01.2026, 18.02.2026, 18.03.2026 | GÜLTEPE LPG VE SU PAZARLAMA SANAYİ VE TİCARET LİMİTED ŞİRKETİ / 2 fatura / 31.01.2026, 11.02.2026 | NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 10 fatura / 06.01.2026, 14.01.2026, 22.01.2026, 29.01.2026, 05.02.2026, 12.02.2026, 19.02.2026, 26.02.2026, 04.03.2026, 18.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;PEKMEZCI SIGARA BÖREĞI(KALEM);40;1;40;Kilogram;;;;4760;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;PLASTIK ÇATAL;40;1;40;Adet;;;;1960;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);24;1;24;Adet;;;;8016;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;(FRİTÖZ YAĞ) TURYAĞ 18 LT;14;1;14;Adet;;;;23260;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;OVA UN 5 KG;10;1;10;Adet;;;;1610;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;AYRAN 200 MLT;10;1;10;Paket;;;;1748;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;MİCROFİBER BEZ;10;1;10;Adet;;;;384;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;KARIŞTIRICI;9;1;9;Adet;;;;504;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;NAYLON TORBA;9;1;9;PA;;;;748;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;HARUN DILIM KAŞAR  PEYNİRİ;9;1;9;Kilogram;;;;2601;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;7;1;7;Adet;;;;1001;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;NAR TEKLI SARMA ŞEKER 4 KG;6;1;6;Paket;;;;1554;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;CİF SPREY TÜM YÜZEYLER 1000ML;6;1;6;Adet;;;;702;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;COLORADO KETÇAP P.P 10GR 600 AD;5;1;5;Paket;;;;2495;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;SOPHO ----CAJUN BAHARATI 650 GR(LE MENTO);4;1;4;Adet;;;;792;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;COLORADO MAYONEZ P.P 9GR 600AD;4;1;4;Paket;;;;2432;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;FROZEN PIPET;4;1;4;Adet;;;;95,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. LARGE;4;1;4;Adet;;;;630;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;İÇTEN ÇEKMELİ HAVLU  6 LI;4;1;4;Paket;;;;2019,6;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK. MİDYUM;3;1;3;Adet;;;;484;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;ZEYTIN 30 GR POŞET MİNİ;2;1;2;Paket;;;;560;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;NIĞDE GAZOZ;2;1;2;Paket;;;;779;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;DİSPENCER PEÇETE İDEAL;2;1;2;Paket;;;;787,2;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;CİF KREM 750 ML (1050 GR.);2;1;2;Adet;;;;156;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;SIVI SABUN APARATI;1;1;1;Adet;;;;139;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;SERA STRETCH FİLM 45*300;1;1;1;Adet;;;;336;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;PIŞIRME KAĞIDI--YAĞLI KAĞIT;1;1;1;Adet;;;;198;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;TRAKYAĞ A.YAĞI 1 LT;1;1;1;Adet;;;;104;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;DOMESTOS 3,5 KG;1;1;1;Adet;;;;169;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;ÜLKER TEREMYAĞ 2,5KG ADET;1;1;1;Adet;;;;269;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;MİNİ--CEM SİYAH ZEYTİN  PİKNİK VAKUM 20GR 96 LI;1;1;1;Paket;;;;445;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;7 OZ KARTON  BARDAK*3000AD;1;1;1;Paket;;;;1390;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;VENTURA MATİK (Endüstriyel Bul.Mak.Deterjanı)25 KG.;1;1;1;CA;;;;922,8;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;DOMESTOS 3,5 KG.;1;1;1;CA;;;;213;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;VENTURA RİNSE (End.Bul.Mak.Parlatıcı/Durul.Mad.)21KG.;1;1;1;CA;;;;928,4;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;TOROS;PRİL;1;1;1;Adet;;;;213;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;TOROS;NAR KESME ŞEKER 750GR*20AD;0,5;1;0,5;Paket;;;;395;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;TOROS;HISAR TÜRK KAH. FOLYO 18X500G;28;1;28;Adet;ISK:%13;18×500 g;18 AD;9252,6;;;#DEĞER!;#DEĞER!;#DEĞER!;Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S. / 5 fatura / 13.01.2026, 27.01.2026, 10.02.2026, 03.03.2026
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;TOROS;NESTLE SICAK ÇIKOLATA 12x1Kg;4;1;4;Adet;;;2 AD;1705,48;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;TOROS;NESCAFE SÜTLÜ 12x1kg;3;1;3;Adet;;;1 AD;1928,39;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Aytas Gida ve Ihtiyaç Maddeleri Tarim Ticaret ve Sanayi A.S.;TOROS;NESCAFE INTENSE 12x500g;2;1;2;Adet;;12×500 g;2 AD;1921,19;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PEKMEZCI SIGARA BÖREĞI(KALEM);10;1;10;Kilogram;;;;1190;;;#DEĞER!;#DEĞER!;#DEĞER!;AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ. / 2 fatura / 07.01.2026, 25.03.2026 | NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 2 fatura / 10.01.2026, 31.01.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;HARUN DILIM KAŞAR  PEYNİRİ;9;1;9;Kilogram;;;;2961;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);8;1;8;Adet;;;;2528;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;(FRİTÖZ YAĞ) TURYAĞ 18 LT;5;1;5;Adet;;;;8220;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PLASTIK ÇATAL;5;1;5;Adet;;;;245;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;HEINZ HARDAL MILD 445 GR;4;1;4;Adet;;;;592;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;AYRAN 200 MLT;4;1;4;Paket;;;;644;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ATILLA;ASPEROX SARI GÜÇ;4;1;4;Adet;;;;392;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;KESME ŞEKER ADET;3;1;3;Adet;;;;117;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;PLASTIK KAŞIK;3;1;3;Adet;;;;147;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ATILLA;DOMESTOS;2;1;2;CA;;;;447;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;SERA STRETCH FİLM 45*300;1;1;1;Adet;;;;336;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;COLORADO KETÇAP P.P 10GR 600 AD;1;1;1;Paket;;;;494;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;ATILLA;COLORADO MAYONEZ P.P 9GR 600AD;1;1;1;Paket;;;;596;;;#DEĞER!;#DEĞER!;#DEĞER!;
+AL-FI TEMİZLİK ÜRÜNLER SAN TİC. LTD.ŞTİ.;ATILLA;DİSPENCER PEÇETE İDEAL;1;1;1;Paket;;;;432;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ.;Yalnız İki Bin Dört Yüz Kırk   TL Sıfır Kuruştur.;12 KG GAZ;2;1;2;Adet;;;;2000;;;#DEĞER!;#DEĞER!;#DEĞER!;GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ. / 1 fatura / 03.01.2026
+GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ.;Yalnız İki Bin Dört Yüz Kırk   TL Sıfır Kuruştur.;19 LT DAMACAN SU;2;1;2;Adet;;;;237,6237624;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ.;Yalnız Üç Yüz Altmış   TL Sıfır Kuruştur.;19 LT DAMACAN SU;3;1;3;Adet;;;;356,4356435;;;#DEĞER!;#DEĞER!;#DEĞER!;GÜLTEPE LPG VE SU PAZARLAMA SAN. VE TİC.LTD.ŞTİ. / 1 fatura / 28.01.2026
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ;SONKURT;SÜPERFRESH KLASİK PATATES 9*9 5*2,5 KG;5;1;5;Adet;;;;4975;;;#DEĞER!;#DEĞER!;#DEĞER!;MISSFOOD GOURMET GIDA TEDARİK VE TİCARET LİMİTED ŞİRKETİ / 1 fatura / 26.03.2026
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;SONKURT;DON PS CITIR BONFILE PARCALARI (500GR*8);280;1;280;Adet;;;;38600;;;#DEĞER!;#DEĞER!;#DEĞER!;SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG / 9 fatura / 02.01.2026, 14.01.2026, 04.02.2026, 17.02.2026, 19.02.2026, 27.02.2026, 05.03.2026, 13.03.2026, 25.03.2026
+SADIKAGA GIDA SADIK  BAHATTIN KIZILDAG;SONKURT;GEDIK PL. KOKT. SOSİS (1KG*8);88;1;88;Kilogram;;;;11176;;;#DEĞER!;#DEĞER!;#DEĞER!;
+Tedarikçi (VKN Klasör);Şube / Sevk;Malzeme Adı;Koli;Koli İçi Adet;Toplam Adet (Alınan);Birim;İskonto;Paket (gramaj);Miktar (etiket);Toplam Tutar (₺);Satılan Miktar;Sayılan Adet;Fark (Alınan − Satılan);Durum;Sayım farkı (Sayılan − Alınan);Tedarikçi Kaynak Özeti (Sağlama)
+;;;;;;;;;;;;;;;;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;KARTON KUMPİR 100'LÜ;1200;1;1200;Adet;;;;5148;;;#DEĞER!;#DEĞER!;#DEĞER!;NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ. / 7 fatura / 03.01.2026, 20.01.2026, 10.02.2026, 17.02.2026, 24.02.2026, 07.03.2026, 17.03.2026
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;PEKMEZCI SIGARA BÖREĞI(KALEM);40;1;40;Kilogram;;;;4760;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;HARUN DILIM KAŞAR  PEYNİRİ;27;1;27;Kilogram;;;;8523;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;AYRAN 200 MLT;16;1;16;Paket;;;;2875;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;SİYAH HASPET MUAYENE ELDİVENİ 100 LÜ*20 PK.;14;1;14;Adet;;;;2016;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;NAYLON TORBA;10;1;10;PA;;;;790;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;PINAR MAYONEZ 700 GR;10;1;10;Adet;;;;660;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;HEINZ HARDAL MILD 445 GR;10;1;10;Adet;;;;1480;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;(FRİTÖZ YAĞ) TURYAĞ 18 LT;9;1;9;Adet;;;;15615;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;KESME ŞEKER ADET;8;1;8;Adet;;;;312;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;TBT-JUMBO-DEMLIK 30 GR OF (30ADET);8;1;8;Adet;;;;2864;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;ÜLKER TEREMYAĞ 2,5KG ADET;6;1;6;Adet;;;;1575;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;PLASTIK ÇATAL;6;1;6;Adet;;;;294;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;KARIŞTIRICI;6;1;6;Adet;;;;336;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;COLORADO KETÇAP P.P 10GR 600 AD;5;1;5;Paket;;;;2520;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;NAR TEKLI SARMA ŞEKER 4 KG;5;1;5;Paket;;;;1295;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;FROZEN PIPET;5;1;5;Adet;;;;119;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;KÜL TABLASI;5;1;5;Adet;;;;79;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;COLORADO MAYONEZ P.P 9GR 600AD;4;1;4;Paket;;;;2432;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;7 OZ KARTON  BARDAK*3000AD;1;1;1;Paket;;;;1390;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;4 OZ BARDAK;1;1;1;Adet;;;;979;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;8 OZ BARDAK KOLİ 2000 ADET;1;1;1;Adet;;;;1875;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;33-B KÖPÜK TABAK;1;1;1;Adet;;;;61;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;PEÇETE 100 LÜ;1;1;1;Adet;;;;390;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;YERSİLECEĞİ PLASTİK BÜYÜK;1;1;1;Adet;;;;49;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;YERSİLECEĞİ PLASTİK UFAK;1;1;1;Adet;;;;39;;;#DEĞER!;#DEĞER!;#DEĞER!;
+NURGÜN KARDEŞLER GIDA SAN. VE TİC. LTD. ŞTİ.;SONKURT;ISLAK KOLANYALI MENDIL KOLI 1000 ADET;1;1;1;Adet;;;;430;;;#DEĞER!;#DEĞER!;#DEĞER!;
+ALT TOPLAM;YÜCESONKURT;;;;;;;;;58906;;;;;;
+;;;;;;;;;;;;;;;;

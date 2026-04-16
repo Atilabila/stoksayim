@@ -1,0 +1,13 @@
+{
+  "app_url": "https://stoksayim.vercel.app",
+  "created_at": "20260318_192117",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "steps": [
+    "00_login_land",
+    "01_admin_after_login"
+  ],
+  "note": "Slayt üretimi için index.md + png'ler kullanılır."
+}
