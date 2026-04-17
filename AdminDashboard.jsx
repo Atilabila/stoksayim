@@ -156,17 +156,37 @@ async function parseTransferPdf(file) {
         toRaw = String(lines[0]).trim();
     }
 
-    // Ürün satırları: "ST00301 MAGNOLİA 1,000 1" gibi.
-    // Bazı PDF'lerde sonda sıra no olmayabilir; bu yüzden opsiyonel.
+    // Ürün satırları: PDF'lerde bazen tek satır, bazen parçalı çıkar.
+    // Önce satır bazlı, olmadı tüm metinden global regex ile yakala.
     const items = [];
+    const seen = new Set();
+    const pushItem = (stokKodu, stokAdi, qty) => {
+        const sk = String(stokKodu || '').trim().toUpperCase();
+        const sa = String(stokAdi || '').trim();
+        const q = Number(qty);
+        if (!sk || !sa || !Number.isFinite(q) || q <= 0) return;
+        const key = `${sk}|||${sa}|||${q}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        items.push({ stokKodu: sk, stokAdi: sa, qty: q });
+    };
+
     for (const l of lines) {
-        const m = l.match(/^(ST\d{4,})\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:\s+\d+)?\s*$/);
+        const m = l.match(/^(?:\d+\s+)?(ST\d{4,})\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:\s+\d+)?\s*$/);
         if (!m) continue;
-        const stokKodu = m[1];
-        const stokAdi = String(m[2] || '').trim();
-        const qty = parseTrQuantityToNumber(m[3]);
-        if (!stokKodu || !stokAdi || qty == null) continue;
-        items.push({ stokKodu, stokAdi, qty });
+        pushItem(m[1], m[2], parseTrQuantityToNumber(m[3]));
+    }
+
+    if (items.length === 0) {
+        // Global fallback: STxxxxx <name> <qty> desenini tüm metinde ara
+        const re = /(?:^|[\n\r])(?:\d+\s+)?(ST\d{4,})\s+([^\n\r]+?)\s+(\d+(?:[.,]\d+)?)(?:\s+\d+)?(?=$|[\n\r])/g;
+        let m;
+        while ((m = re.exec(joined)) !== null) {
+            // Satırda başlık vb. olmasın diye kısa filtre
+            const name = String(m[2] || '').trim();
+            if (!name || /Sıra\s+No|Stok\s+Kodu|Stok\s+Adı|Miktar/i.test(name)) continue;
+            pushItem(m[1], name, parseTrQuantityToNumber(m[3]));
+        }
     }
 
     return {
@@ -3667,6 +3687,10 @@ export default function AdminDashboard({ onLogout }) {
             const unknownBranches = new Map(); // raw -> { raw, suggestedId }
             const unknownProducts = new Map(); // stokKodu -> { stokKodu, name, suggestedProductId }
 
+            let parsedOk = 0;
+            let parsedEmpty = 0;
+            let parsedErr = 0;
+
             for (let i = 0; i < files.length; i++) {
                 const f = files[i];
                 let parsed = null;
@@ -3674,9 +3698,17 @@ export default function AdminDashboard({ onLogout }) {
                     parsed = await parseTransferPdf(f);
                 } catch (err) {
                     console.error('parseTransferPdf error:', f?.name, err);
+                    parsedErr++;
                     continue;
                 }
-                if (!parsed || !parsed.items || parsed.items.length === 0) continue;
+                if (!parsed || !parsed.items) { parsedErr++; continue; }
+                if (parsed.items.length === 0) {
+                    parsedEmpty++;
+                    // İlk 2 örneği debug için logla
+                    if (parsedEmpty <= 2) console.warn('Sevk PDF items=0:', f?.name, parsed);
+                    continue;
+                }
+                parsedOk++;
 
                 const fromId = tryResolveBranchId(parsed.fromRaw);
                 const toId = tryResolveBranchId(parsed.toRaw);
@@ -3735,7 +3767,11 @@ export default function AdminDashboard({ onLogout }) {
             });
             setTransferPreviewOpen(true);
 
-            toast.success(`Sevk PDF okundu: ${files.length} dosya, ${rows.length} satır.`);
+            if (rows.length === 0) {
+                toast.error(`Sevk PDF bulundu ama satır çıkarılamadı. (ok:${parsedOk} boş:${parsedEmpty} hata:${parsedErr})`);
+            } else {
+                toast.success(`Sevk PDF okundu: ${files.length} dosya, ${rows.length} satır. (ok:${parsedOk} boş:${parsedEmpty} hata:${parsedErr})`);
+            }
         } catch (err) {
             toast.error('Sevk klasörü okunamadı: ' + (err?.message || String(err)));
         } finally {
