@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import {
     Download, RefreshCw, TrendingDown, DollarSign, Wallet,
@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Cartes
 import toast, { Toaster } from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/build/pdf.mjs';
 
 /** Aynı satırdaki şube sayımlarında medyana göre belirgin sapma (en az 2 dolu şube, spread > 0). */
 function getOutlierBranchIdsForRow(byBranch, branchesSorted) {
@@ -58,6 +59,106 @@ function formatIstanbulCountTimes(c) {
  * SCLogger «Başarılı Satış Ürün Toplamları» — PDF’ten kopyalanan satır: ÜRÜN_ADI adet tutar (örn. 98.160,00)
  */
 const SALES_UNDO_MAX = 15;
+
+// PDF.js worker (Vite/ESM uyumlu)
+try {
+    GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+} catch {
+    // Bazı ortamlarda URL çözümleme farklı olabilir; workerSrc set edilemezse pdfjs yine de çalışabilir.
+}
+
+function parseTrQuantityToNumber(raw) {
+    const s = String(raw ?? '').trim();
+    if (!s) return null;
+    // Örnek: "24,000" -> 24 ; "0,500" -> 0.5
+    // Bu pdf formatında genelde 3 basamak sabit ondalık var.
+    const n = Number(s.replace(/\./g, '').replace(',', '.'));
+    return Number.isFinite(n) ? n : null;
+}
+
+function parseTrDateToIsoDate(raw) {
+    const s = String(raw ?? '').trim();
+    // 2.03.2026 veya 02.03.2026
+    const m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+    if (!m) return null;
+    const dd = m[1].padStart(2, '0');
+    const mm = m[2].padStart(2, '0');
+    const yyyy = m[3];
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+async function extractPdfTextLines(file) {
+    const buf = await file.arrayBuffer();
+    const pdf = await getDocument({ data: buf }).promise;
+    const lines = [];
+    for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const tc = await page.getTextContent();
+        const items = (tc.items || []).map((it) => String(it.str || '')).filter(Boolean);
+        // Çoğu irsaliyede zaten satır düzeninde geliyor; yine de normalize edelim
+        items.forEach((t) => {
+            const norm = String(t).replace(/\u00A0/g, ' ').trim();
+            if (norm) lines.push(norm);
+        });
+    }
+    return lines;
+}
+
+/**
+ * Sevk irsaliyesi PDF -> { fromRaw, toRaw, evrakNo, transferDateIso, items[] }
+ * items: { stokKodu, stokAdi, qty }
+ */
+async function parseTransferPdf(file) {
+    const lines = await extractPdfTextLines(file);
+    const joined = lines.join('\n');
+
+    // Evrak No: TRI00068 benzeri
+    const evrakNo = (joined.match(/\bTRI\d{4,}\b/) || [null])[0];
+
+    // Tarih: ilk geçen dd.mm.yyyy
+    const transferDateIso = parseTrDateToIsoDate(lines.find((l) => /\d{1,2}\.\d{1,2}\.\d{4}/.test(l)) || '') || null;
+
+    // Gönderen/Hedef şube: satır içi patternler
+    let fromRaw = null;
+    let toRaw = null;
+
+    for (let i = 0; i < lines.length; i++) {
+        const l = lines[i];
+        if (l.includes('Gönderen Şube')) {
+            // "CINARLI Gönderen Şube"
+            fromRaw = l.replace('Gönderen Şube', '').replace(':', '').trim() || fromRaw;
+        }
+        if (l === 'Hedef Şube' && lines[i + 1]) {
+            // Bazı PDF'lerde başlık var, değer bir sonraki satırda
+            toRaw = String(lines[i + 1]).replace(':', '').trim() || toRaw;
+        }
+    }
+    // Bazı PDF'lerde hedef şube sayfanın ilk satırında olur (örnek: ADILE)
+    if (!toRaw && lines[0] && !/TRANSFER|İRSALİYE|Sıra No/i.test(lines[0])) {
+        toRaw = String(lines[0]).trim();
+    }
+
+    // Ürün satırları: "ST00301 MAGNOLİA 1,000 1" ya da "ST00301 MAGNOLİA 1,000\t1"
+    const items = [];
+    for (const l of lines) {
+        const m = l.match(/^(ST\d{4,})\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+\d+\s*$/);
+        if (!m) continue;
+        const stokKodu = m[1];
+        const stokAdi = String(m[2] || '').trim();
+        const qty = parseTrQuantityToNumber(m[3]);
+        if (!stokKodu || !stokAdi || qty == null) continue;
+        items.push({ stokKodu, stokAdi, qty });
+    }
+
+    return {
+        sourcePdfName: file.name,
+        fromRaw,
+        toRaw,
+        evrakNo,
+        transferDateIso,
+        items,
+    };
+}
 
 function parseScLoggerSalesLine(line) {
     const t = String(line || '').trim();
@@ -261,6 +362,12 @@ export default function AdminDashboard({ onLogout }) {
     const [salesPreviewOpen, setSalesPreviewOpen] = useState(false);
     const [salesPreview, setSalesPreview] = useState(null);
     const [salesPreviewApplying, setSalesPreviewApplying] = useState(false);
+    /** Sevk irsaliyesi (PDF) import önizleme */
+    const [transferPreviewOpen, setTransferPreviewOpen] = useState(false);
+    const [transferPreview, setTransferPreview] = useState(null);
+    const [transferImporting, setTransferImporting] = useState(false);
+    const [branchTransferMap, setBranchTransferMap] = useState({});
+    const [branchTransfers, setBranchTransfers] = useState([]);
     /** Reçete düşümü branch_stocks geri alma yedeği */
     const [stockApplyUndoStack, setStockApplyUndoStack] = useState([]);
     /** Excel export kategori bölme modalı */
@@ -365,6 +472,32 @@ export default function AdminDashboard({ onLogout }) {
             .replace(/ö/g, 'o')
             .replace(/ş/g, 's')
             .replace(/ü/g, 'u');
+    };
+
+    const normalizeBranchNameLoose = (value) => {
+        // Şube adlarında boşluk/bitişik farkları için: "YÜCE SONKURT" vs "YÜCESONKURT"
+        return asciiFoldKey(value).replace(/\s+/g, '');
+    };
+
+    const tryResolveBranchId = (rawName) => {
+        const raw = String(rawName || '').trim();
+        if (!raw) return null;
+        if (branchTransferMap[raw]) return branchTransferMap[raw];
+        const k1 = asciiFoldKey(raw);
+        const k2 = normalizeBranchNameLoose(raw);
+        // exact fold
+        let found = branches.find((b) => asciiFoldKey(b.branch_name) === k1);
+        if (found) return found.id;
+        // loose fold (no spaces)
+        found = branches.find((b) => normalizeBranchNameLoose(b.branch_name) === k2);
+        if (found) return found.id;
+        // contains
+        found = branches.find((b) => {
+            const bn1 = asciiFoldKey(b.branch_name);
+            const bn2 = normalizeBranchNameLoose(b.branch_name);
+            return bn1.includes(k1) || k1.includes(bn1) || bn2.includes(k2) || k2.includes(bn2);
+        });
+        return found ? found.id : null;
     };
 
     // "312,5" ve "312.5" gibi değerleri güvenli biçimde parse eder.
@@ -508,6 +641,30 @@ export default function AdminDashboard({ onLogout }) {
                 if (r.sale_product_id && r.target_product_id) map[r.sale_product_id] = r.target_product_id;
             });
             setSalesRecipeMap(map);
+        }
+
+        // --- Branch transfers + branch name map: DB'den yükle (aktif dönem bazlı) ---
+        if (activePeriodId) {
+            const { data: btData, error: btErr } = await supabase
+                .from('branch_transfers')
+                .select('id, from_branch_id, to_branch_id, product_id, quantity, transfer_date, evrak_no, period_id, source_pdf_name, created_at')
+                .eq('period_id', activePeriodId);
+            if (!btErr && btData) setBranchTransfers(btData);
+            else setBranchTransfers([]);
+        } else {
+            setBranchTransfers([]);
+        }
+        {
+            const { data: bmData, error: bmErr } = await supabase
+                .from('branch_transfer_branch_map')
+                .select('raw_name, branch_id');
+            if (!bmErr && bmData) {
+                const map = {};
+                bmData.forEach((r) => { map[r.raw_name] = r.branch_id; });
+                setBranchTransferMap(map);
+            } else {
+                setBranchTransferMap({});
+            }
         }
 
         setIsLoading(false);
@@ -1390,16 +1547,34 @@ export default function AdminDashboard({ onLogout }) {
                 });
             });
 
+            // 1.5) Sevk (şubeler arası transfer) haritası — aktif dönem
+            const transferInByKey = new Map(); // branch|product -> qty (to)
+            const transferOutByKey = new Map(); // branch|product -> qty (from)
+            (branchTransfers || []).forEach((t) => {
+                if (branchFilter && String(t.from_branch_id) !== String(branchFilter) && String(t.to_branch_id) !== String(branchFilter)) return;
+                const pid = String(t.product_id);
+                const qty = Number(t.quantity) || 0;
+                if (!pid || !Number.isFinite(qty) || qty <= 0) return;
+                const kIn = `${t.to_branch_id}|${pid}`;
+                const kOut = `${t.from_branch_id}|${pid}`;
+                transferInByKey.set(kIn, (transferInByKey.get(kIn) || 0) + qty);
+                transferOutByKey.set(kOut, (transferOutByKey.get(kOut) || 0) + qty);
+            });
+
             // 2) Yardımcı: stok snapshot (açılış + tedarik - tüketim)
             const getSnapshot = (branchId, productId) => {
                 const key = `${branchId}|${productId}`;
                 const purchaseNum = Number(manualPurchaseByKey[key] || 0) || 0;
                 const consumptionNum = Number(consumptionByKey.get(key) || 0) || 0;
+                const transferIn = Number(transferInByKey.get(key) || 0) || 0;
+                const transferOut = Number(transferOutByKey.get(key) || 0) || 0;
                 const p = products.find((x) => String(x.id) === String(productId));
                 const currentProductStock = Number(p?.current_stock) || 0;
                 const currentSys = branchStockMap.has(key) ? Number(branchStockMap.get(key)) || 0 : currentProductStock;
-                const opening = currentSys - purchaseNum + consumptionNum;
-                return { key, purchaseNum, consumptionNum, opening, currentSys };
+                // currentSys = opening + purchase + transferIn - transferOut - consumption
+                // opening = currentSys - purchase - transferIn + transferOut + consumption
+                const opening = currentSys - purchaseNum - transferIn + transferOut + consumptionNum;
+                return { key, purchaseNum, consumptionNum, transferIn, transferOut, opening, currentSys };
             };
 
             // 3) Mutabakat satırları: sayılanlar + reçeteden/tedarikten etkilenen ek ürünler
@@ -1421,6 +1596,8 @@ export default function AdminDashboard({ onLogout }) {
             const extraKeySet = new Set();
             consumptionByKey.forEach((_, k) => { if (!countedKeySet.has(k)) extraKeySet.add(k); });
             Object.keys(manualPurchaseByKey).forEach((k) => { if (!countedKeySet.has(k)) extraKeySet.add(k); });
+            transferInByKey.forEach((_, k) => { if (!countedKeySet.has(k)) extraKeySet.add(k); });
+            transferOutByKey.forEach((_, k) => { if (!countedKeySet.has(k)) extraKeySet.add(k); });
 
             extraKeySet.forEach((k) => {
                 const [bid, pid] = k.split('|');
@@ -1486,6 +1663,8 @@ export default function AdminDashboard({ onLogout }) {
                 'Ürün Adı',
                 'Açılış Stok',
                 'Tedarik (Manuel)',
+                'Gelen Transfer',
+                'Giden Transfer',
                 'Reçete Tüketimi',
                 'Teorik Kalan',
                 'Sayılan Stok',
@@ -1494,7 +1673,7 @@ export default function AdminDashboard({ onLogout }) {
                 'Toplam Fark TL',
                 'Durum',
             ];
-            const mutWidths = [16, 20, 14, 42, 14, 16, 16, 14, 14, 18, 16, 16, 18];
+            const mutWidths = [16, 20, 14, 42, 14, 16, 14, 14, 16, 14, 14, 18, 16, 16, 18];
 
 // Mükerrer ürün kaldırma: aynı şube+ürün varsa reçete tüketimi olanı tut
             const mutRowDedup = new Map();
@@ -1541,30 +1720,31 @@ export default function AdminDashboard({ onLogout }) {
                     excelRow.getCell(4).value = p?.product_name || '(ürün bulunamadı)';
                     excelRow.getCell(5).value = snap.opening;
                     excelRow.getCell(6).value = snap.purchaseNum;
-                    excelRow.getCell(7).value = snap.consumptionNum;
-                    excelRow.getCell(8).value = { formula: `E${rowIndex}+F${rowIndex}-G${rowIndex}` };
-                    excelRow.getCell(9).value = r.counted != null && Number.isFinite(r.counted) ? r.counted : 0;
-                    excelRow.getCell(10).value = r.counted != null && Number.isFinite(r.counted) ? { formula: `I${rowIndex}-H${rowIndex}` } : { formula: `0-H${rowIndex}` };
-                    excelRow.getCell(11).value = unitCost || 0;
-                    excelRow.getCell(12).value =
-                        { formula: `J${rowIndex}*K${rowIndex}` };
-                    excelRow.getCell(13).value = statusText;
+                    excelRow.getCell(7).value = snap.transferIn;
+                    excelRow.getCell(8).value = snap.transferOut;
+                    excelRow.getCell(9).value = snap.consumptionNum;
+                    excelRow.getCell(10).value = { formula: `E${rowIndex}+F${rowIndex}+G${rowIndex}-H${rowIndex}-I${rowIndex}` };
+                    excelRow.getCell(11).value = r.counted != null && Number.isFinite(r.counted) ? r.counted : 0;
+                    excelRow.getCell(12).value = r.counted != null && Number.isFinite(r.counted) ? { formula: `K${rowIndex}-J${rowIndex}` } : { formula: `0-J${rowIndex}` };
+                    excelRow.getCell(13).value = unitCost || 0;
+                    excelRow.getCell(14).value = { formula: `L${rowIndex}*M${rowIndex}` };
+                    excelRow.getCell(15).value = statusText;
     
-                    for (let c = 1; c <= 13; c++) {
+                    for (let c = 1; c <= 15; c++) {
                         const cell = excelRow.getCell(c);
                         cell.border = thinBorder;
                         cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
-                        cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10, 11, 12].includes(c) ? 'right' : 'left' };
-                        if ([5, 6, 7, 8, 9, 10].includes(c)) cell.numFmt = '#,##0.00';
-                        if ([11, 12].includes(c)) cell.numFmt = '#,##0.00';
+                        cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14].includes(c) ? 'right' : 'left' };
+                        if ([5, 6, 7, 8, 9, 10, 11, 12].includes(c)) cell.numFmt = '#,##0.00';
+                        if ([13, 14].includes(c)) cell.numFmt = '#,##0.00';
                     }
                 });
                 const mutLastRow = mutStartRow + rowsToRender.length - 1;
                 const mutTotalRow = wsMut.getRow(mutLastRow + 1);
                 mutTotalRow.getCell(1).value = 'TOPLAM';
-                mutTotalRow.getCell(12).value = rowsToRender.length ? { formula: `SUM(L${mutStartRow}:L${mutLastRow})` } : 0;
-                mutTotalRow.getCell(12).numFmt = '#,##0.00';
-                for (let c = 1; c <= 13; c++) {
+                mutTotalRow.getCell(14).value = rowsToRender.length ? { formula: `SUM(N${mutStartRow}:N${mutLastRow})` } : 0;
+                mutTotalRow.getCell(14).numFmt = '#,##0.00';
+                for (let c = 1; c <= 15; c++) {
                     const cell = mutTotalRow.getCell(c);
                     cell.border = thinBorder;
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
@@ -1572,26 +1752,26 @@ export default function AdminDashboard({ onLogout }) {
                 }
     
                 // Mutabakat: filtre + zebra + pozitif/negatif renklendirme (kâr/zarar)
-                wsMut.autoFilter = 'A1:M1';
+                wsMut.autoFilter = 'A1:O1';
                 const mutZebraFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
                 for (let r = mutStartRow; r <= mutLastRow; r++) {
                     if (r % 2 === 0) {
                         const row = wsMut.getRow(r);
-                        for (let c = 1; c <= 13; c++) {
+                        for (let c = 1; c <= 15; c++) {
                             // Sonuç kolonları (Fark / TL) koşullu biçimlendirme ile boyanacak
-                            if (c === 10 || c === 12) continue;
+                            if (c === 12 || c === 14) continue;
                             row.getCell(c).fill = mutZebraFill;
                         }
                     }
                 }
                 if (typeof wsMut.addConditionalFormatting === 'function' && rowsToRender.length) {
-                    // Fark (J) ve Toplam Fark TL (L): Negatif=kırmızı, Pozitif=yeşil
+                    // Fark (L) ve Toplam Fark TL (N): Negatif=kırmızı, Pozitif=yeşil
                     wsMut.addConditionalFormatting({
-                        ref: `J${mutStartRow}:J${mutLastRow}`,
+                        ref: `L${mutStartRow}:L${mutLastRow}`,
                         rules: [
                             {
                                 type: 'expression',
-                                formulae: [`J${mutStartRow}<0`],
+                                formulae: [`L${mutStartRow}<0`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
                                     font: { color: { argb: 'FFB91C1C' }, bold: true },
@@ -1599,7 +1779,7 @@ export default function AdminDashboard({ onLogout }) {
                             },
                             {
                                 type: 'expression',
-                                formulae: [`J${mutStartRow}>0`],
+                                formulae: [`L${mutStartRow}>0`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
                                     font: { color: { argb: 'FF15803D' }, bold: true },
@@ -1608,11 +1788,11 @@ export default function AdminDashboard({ onLogout }) {
                         ],
                     });
                     wsMut.addConditionalFormatting({
-                        ref: `L${mutStartRow}:L${mutLastRow + 1}`,
+                        ref: `N${mutStartRow}:N${mutLastRow + 1}`,
                         rules: [
                             {
                                 type: 'expression',
-                                formulae: [`L${mutStartRow}<0`],
+                                formulae: [`N${mutStartRow}<0`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
                                     font: { color: { argb: 'FF9F1239' }, bold: true },
@@ -1620,7 +1800,7 @@ export default function AdminDashboard({ onLogout }) {
                             },
                             {
                                 type: 'expression',
-                                formulae: [`L${mutStartRow}>0`],
+                                formulae: [`N${mutStartRow}>0`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
                                     font: { color: { argb: 'FF166534' }, bold: true },
@@ -1640,6 +1820,8 @@ export default function AdminDashboard({ onLogout }) {
                 'Stok Kodu',
                 'Ürün Adı',
                 'Tedarik (Manuel)',
+                'Gelen Transfer',
+                'Giden Transfer',
                 'Reçete Tüketimi',
                 'Sayılan',
                 'İmpliye Açılış',
@@ -1647,7 +1829,7 @@ export default function AdminDashboard({ onLogout }) {
                 'Stok Değeri TL',
                 'Durum',
             ];
-            const firstWidths = [16, 18, 14, 42, 16, 16, 14, 18, 16, 18, 22];
+            const firstWidths = [16, 18, 14, 42, 16, 14, 14, 16, 14, 18, 16, 18, 22];
 
             const renderFirstPeriodSheet = (sheetName, rowsToRender) => {
                 if (!rowsToRender || !rowsToRender.length) return;
@@ -1668,24 +1850,26 @@ export default function AdminDashboard({ onLogout }) {
                     row.getCell(3).value = p?.stok_kodu || '';
                     row.getCell(4).value = p?.product_name || '(ürün bulunamadı)';
                     row.getCell(5).value = snap.purchaseNum;
-                    row.getCell(6).value = snap.consumptionNum;
-                    row.getCell(7).value = countedVal;
-                    // İmpliye Açılış = Sayılan (G) + Reçete Tüketimi (F) − Tedarik (E)
-                    row.getCell(8).value = { formula: `G${rowIndex}+F${rowIndex}-E${rowIndex}` };
-                    row.getCell(9).value = unitCost || 0;
+                    row.getCell(6).value = snap.transferIn;
+                    row.getCell(7).value = snap.transferOut;
+                    row.getCell(8).value = snap.consumptionNum;
+                    row.getCell(9).value = countedVal;
+                    // İmpliye Açılış = Sayılan + Tüketim + GidenTransfer − GelenTransfer − Tedarik
+                    row.getCell(10).value = { formula: `I${rowIndex}+H${rowIndex}+G${rowIndex}-F${rowIndex}-E${rowIndex}` };
+                    row.getCell(11).value = unitCost || 0;
                     // Stok Değeri TL = Sayılan × Birim Maliyet
-                    row.getCell(10).value = { formula: `G${rowIndex}*I${rowIndex}` };
+                    row.getCell(12).value = { formula: `I${rowIndex}*K${rowIndex}` };
                     // Durum: formül ile metin üret
-                    row.getCell(11).value = {
-                        formula: `IF(H${rowIndex}<0,"Anomali - Negatif",IF(H${rowIndex}=0,"Tam Tutarlı",IF(H${rowIndex}>(E${rowIndex}+F${rowIndex})*3,"Yüksek Devir Şüphesi","Tutarlı")))`,
+                    row.getCell(13).value = {
+                        formula: `IF(J${rowIndex}<0,"Anomali - Negatif",IF(J${rowIndex}=0,"Tam Tutarlı",IF(J${rowIndex}>(E${rowIndex}+F${rowIndex}+G${rowIndex}+H${rowIndex})*3,"Yüksek Devir Şüphesi","Tutarlı")))`,
                     };
 
-                    for (let c = 1; c <= 11; c++) {
+                    for (let c = 1; c <= 13; c++) {
                         const cell = row.getCell(c);
                         cell.border = thinBorder;
                         cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
-                        cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10].includes(c) ? 'right' : 'left' };
-                        if ([5, 6, 7, 8, 9, 10].includes(c)) cell.numFmt = '#,##0.00';
+                        cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10, 11, 12].includes(c) ? 'right' : 'left' };
+                        if ([5, 6, 7, 8, 9, 10, 11, 12].includes(c)) cell.numFmt = '#,##0.00';
                     }
                 });
                 const lastRow = startRow + rowsToRender.length - 1;
@@ -1695,36 +1879,38 @@ export default function AdminDashboard({ onLogout }) {
                 totalRow.getCell(6).value = rowsToRender.length ? { formula: `SUM(F${startRow}:F${lastRow})` } : 0;
                 totalRow.getCell(7).value = rowsToRender.length ? { formula: `SUM(G${startRow}:G${lastRow})` } : 0;
                 totalRow.getCell(8).value = rowsToRender.length ? { formula: `SUM(H${startRow}:H${lastRow})` } : 0;
+                totalRow.getCell(9).value = rowsToRender.length ? { formula: `SUM(I${startRow}:I${lastRow})` } : 0;
                 totalRow.getCell(10).value = rowsToRender.length ? { formula: `SUM(J${startRow}:J${lastRow})` } : 0;
-                [5, 6, 7, 8, 10].forEach((c) => { totalRow.getCell(c).numFmt = '#,##0.00'; });
-                for (let c = 1; c <= 11; c++) {
+                totalRow.getCell(12).value = rowsToRender.length ? { formula: `SUM(L${startRow}:L${lastRow})` } : 0;
+                [5, 6, 7, 8, 9, 10, 12].forEach((c) => { totalRow.getCell(c).numFmt = '#,##0.00'; });
+                for (let c = 1; c <= 13; c++) {
                     const cell = totalRow.getCell(c);
                     cell.border = thinBorder;
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
                     cell.font = { ...(cell.font || {}), bold: true, name: 'Arial', color: { argb: 'FF78350F' } };
                 }
 
-                wsF.autoFilter = 'A1:K1';
+                wsF.autoFilter = 'A1:M1';
                 // Zebra
                 const zebraFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
                 for (let r = startRow; r <= lastRow; r++) {
                     if (r % 2 === 0) {
                         const row = wsF.getRow(r);
-                        for (let c = 1; c <= 11; c++) {
-                            if (c === 8 || c === 11) continue; // durum ve impliye açılış koşullu formatlı
+                        for (let c = 1; c <= 13; c++) {
+                            if (c === 10 || c === 13) continue; // durum ve impliye açılış koşullu formatlı
                             row.getCell(c).fill = zebraFill;
                         }
                     }
                 }
 
                 if (typeof wsF.addConditionalFormatting === 'function' && rowsToRender.length) {
-                    // İmpliye Açılış (H): negatif = kırmızı, >3×(E+F) = sarı, >=0 = yeşil
+                    // İmpliye Açılış (J): negatif = kırmızı, >3×(E+F+G+H) = sarı, >=0 = yeşil
                     wsF.addConditionalFormatting({
-                        ref: `H${startRow}:H${lastRow}`,
+                        ref: `J${startRow}:J${lastRow}`,
                         rules: [
                             {
                                 type: 'expression',
-                                formulae: [`H${startRow}<0`],
+                                formulae: [`J${startRow}<0`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
                                     font: { color: { argb: 'FFB91C1C' }, bold: true },
@@ -1732,7 +1918,7 @@ export default function AdminDashboard({ onLogout }) {
                             },
                             {
                                 type: 'expression',
-                                formulae: [`H${startRow}>(E${startRow}+F${startRow})*3`],
+                                formulae: [`J${startRow}>(E${startRow}+F${startRow}+G${startRow}+H${startRow})*3`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } },
                                     font: { color: { argb: 'FFB45309' }, bold: true },
@@ -1740,7 +1926,7 @@ export default function AdminDashboard({ onLogout }) {
                             },
                             {
                                 type: 'expression',
-                                formulae: [`H${startRow}>=0`],
+                                formulae: [`J${startRow}>=0`],
                                 style: {
                                     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
                                     font: { color: { argb: 'FF166534' }, bold: true },
@@ -1748,9 +1934,9 @@ export default function AdminDashboard({ onLogout }) {
                             },
                         ],
                     });
-                    // Durum (K): metne göre renklendir
+                    // Durum (M): metne göre renklendir
                     wsF.addConditionalFormatting({
-                        ref: `K${startRow}:K${lastRow}`,
+                        ref: `M${startRow}:M${lastRow}`,
                         rules: [
                             {
                                 type: 'containsText',
@@ -2625,6 +2811,176 @@ export default function AdminDashboard({ onLogout }) {
         return { created, failed, total: list.length };
     }, [recipeRawRowsCache, products]);
 
+    const applyTransferPreview = useCallback(async () => {
+        if (!transferPreview) return;
+        const activePeriod = periods.find((p) => p.is_active);
+        if (!activePeriod) {
+            toast.error('Aktif dönem yok. Önce aktif dönemi seçin.');
+            return;
+        }
+        setTransferImporting(true);
+        try {
+            const { rows, branchDecisions, productDecisions } = transferPreview;
+
+            // 1) Şube map kayıtlarını hazırla (raw_name -> branch_id)
+            const branchMapRows = [];
+            Object.entries(branchDecisions || {}).forEach(([raw, bid]) => {
+                if (!raw) return;
+                if (!bid) return;
+                branchMapRows.push({ raw_name: raw, branch_id: bid, updated_at: new Date().toISOString() });
+            });
+            if (branchMapRows.length > 0) {
+                const { error } = await supabase
+                    .from('branch_transfer_branch_map')
+                    .upsert(branchMapRows, { onConflict: 'raw_name' });
+                if (error) console.error('branch_transfer_branch_map upsert err:', error);
+            }
+
+            // 2) Ürün create/upsert
+            const toCreate = [];
+            Object.entries(productDecisions || {}).forEach(([stokKodu, dec]) => {
+                if (!stokKodu) return;
+                if (!dec || dec.action !== 'create') return;
+                const code = String(dec.stok_kodu || stokKodu).trim().toUpperCase();
+                if (!code) return;
+                toCreate.push({
+                    stok_kodu: code,
+                    product_name: String(dec.name || code).trim() || code,
+                    unit: 'Adet',
+                    purchase_price: 0,
+                    current_stock: 0,
+                    is_active: true,
+                });
+            });
+            const codeToProduct = new Map();
+            if (toCreate.length > 0) {
+                for (let i = 0; i < toCreate.length; i += 500) {
+                    const chunk = toCreate.slice(i, i + 500);
+                    const { data, error } = await supabase
+                        .from('products')
+                        .upsert(chunk, { onConflict: 'stok_kodu' })
+                        .select('id, stok_kodu');
+                    if (error) {
+                        console.error('transfer products upsert err:', error);
+                        continue;
+                    }
+                    (data || []).forEach((p) => codeToProduct.set(String(p.stok_kodu || '').toUpperCase(), p));
+                }
+            }
+
+            // 3) Transfer satırlarını finalle: branch + product çöz
+            const finalized = [];
+            for (const r of rows) {
+                const fromId = r.fromBranchId || branchDecisions?.[r.fromRaw] || null;
+                const toId = r.toBranchId || branchDecisions?.[r.toRaw] || null;
+                if (!fromId || !toId) continue;
+                if (fromId === toId) continue;
+                if (!r.stokKodu) continue;
+
+                let productId = r.productId || null;
+                const pDec = productDecisions?.[r.stokKodu];
+                if (!productId) {
+                    if (pDec?.action === 'skip') continue;
+                    if (pDec?.action === 'map-to' && pDec.mapProductId) productId = pDec.mapProductId;
+                    if (pDec?.action === 'create') {
+                        const p = codeToProduct.get(String(pDec.stok_kodu || r.stokKodu).toUpperCase());
+                        if (p?.id) productId = p.id;
+                    }
+                }
+                if (!productId) continue;
+                const qty = Number(r.qty) || 0;
+                if (!Number.isFinite(qty) || qty <= 0) continue;
+
+                finalized.push({
+                    from_branch_id: fromId,
+                    to_branch_id: toId,
+                    product_id: productId,
+                    quantity: qty,
+                    transfer_date: r.transferDateIso || new Date().toISOString().slice(0, 10),
+                    evrak_no: r.evrakNo,
+                    period_id: activePeriod.id,
+                    source_pdf_name: r.sourcePdfName || null,
+                });
+            }
+
+            if (finalized.length === 0) {
+                toast.error('Kaydedilecek sevk satırı bulunamadı (şube/ürün eşlemesini kontrol edin).');
+                return;
+            }
+
+            // 4) branch_transfers upsert (duplicate'leri yakalamak için)
+            let inserted = 0;
+            for (let i = 0; i < finalized.length; i += 500) {
+                const chunk = finalized.slice(i, i + 500);
+                const { data, error } = await supabase
+                    .from('branch_transfers')
+                    .upsert(chunk, { onConflict: 'evrak_no,product_id' })
+                    .select('id');
+                if (error) {
+                    console.error('branch_transfers upsert err:', error);
+                    continue;
+                }
+                inserted += (data || []).length;
+            }
+
+            // 5) manual_supplies’a çift taraflı delta uygula (from negatif, to pozitif)
+            const deltaByKey = new Map(); // `${branchId}|${productId}` -> delta
+            finalized.forEach((t) => {
+                const kOut = `${t.from_branch_id}|${t.product_id}`;
+                const kIn = `${t.to_branch_id}|${t.product_id}`;
+                deltaByKey.set(kOut, (deltaByKey.get(kOut) || 0) - Number(t.quantity));
+                deltaByKey.set(kIn, (deltaByKey.get(kIn) || 0) + Number(t.quantity));
+            });
+
+            const impactedBranches = Array.from(new Set(Array.from(deltaByKey.keys()).map((k) => k.split('|')[0])));
+            const impactedProducts = Array.from(new Set(Array.from(deltaByKey.keys()).map((k) => k.split('|')[1])));
+
+            const existing = new Map();
+            if (impactedBranches.length > 0 && impactedProducts.length > 0) {
+                const { data: msData, error: msErr } = await supabase
+                    .from('manual_supplies')
+                    .select('branch_id, product_id, quantity')
+                    .eq('period_id', activePeriod.id)
+                    .in('branch_id', impactedBranches)
+                    .in('product_id', impactedProducts);
+                if (!msErr && msData) {
+                    msData.forEach((r) => existing.set(`${r.branch_id}|${r.product_id}`, Number(r.quantity) || 0));
+                }
+            }
+
+            const upserts = [];
+            deltaByKey.forEach((delta, key) => {
+                const [bid, pid] = key.split('|');
+                const prevQty = existing.get(key) || 0;
+                const nextQty = prevQty + Number(delta);
+                upserts.push({
+                    branch_id: bid,
+                    product_id: pid,
+                    period_id: activePeriod.id,
+                    quantity: nextQty,
+                    updated_at: new Date().toISOString(),
+                });
+            });
+
+            for (let i = 0; i < upserts.length; i += 500) {
+                const chunk = upserts.slice(i, i + 500);
+                const { error } = await supabase
+                    .from('manual_supplies')
+                    .upsert(chunk, { onConflict: 'branch_id,product_id,period_id' });
+                if (error) console.error('manual_supplies upsert err:', error);
+            }
+
+            await fetchData();
+            toast.success(`Sevk kaydedildi: ${inserted} transfer satırı işlendi (manual_supplies çift yön yansıtıldı).`);
+            setTransferPreviewOpen(false);
+            setTransferPreview(null);
+        } catch (err) {
+            toast.error('Sevk kayıt hatası: ' + (err?.message || String(err)));
+        } finally {
+            setTransferImporting(false);
+        }
+    }, [transferPreview, periods, fetchData]);
+
     /**
      * Satış önizleme modalında verilen kararları uygula:
      *  - 'create' olanları Supabase'e insert eder
@@ -3050,6 +3406,25 @@ export default function AdminDashboard({ onLogout }) {
             };
 
             // ---- Parse + Classify: Preview modalı açılacak, kaydetmek için onay bekleyecek ----
+            // Şubeye tedarik edilmiş ürünleri hazırla (eşleme için güçlü sinyal)
+            const productById = new Map(products.map((p) => [String(p.id), p]));
+            const supplyQtyByProductId = new Map(); // pid -> qty
+            const supplyByCode = new Map();   // stok_kodu(upper) -> product
+            const supplyByNameNorm = new Map(); // normalizeText(name) -> product
+            Object.keys(manualPurchaseByKey).forEach((k) => {
+                const [bid, pid] = k.split('|');
+                if (bid !== selectedBranchId) return;
+                const qty = Number(manualPurchaseByKey[k]) || 0;
+                if (qty <= 0) return;
+                supplyQtyByProductId.set(pid, (supplyQtyByProductId.get(pid) || 0) + qty);
+                const p = productById.get(pid);
+                if (!p) return;
+                const code = String(p.stok_kodu || '').trim().toUpperCase();
+                const nameNorm = normalizeText(p.product_name || '');
+                if (code && !supplyByCode.has(code)) supplyByCode.set(code, p);
+                if (nameNorm && !supplyByNameNorm.has(nameNorm)) supplyByNameNorm.set(nameNorm, p);
+            });
+
             // Reçete cache'ini hazırla (öneriler için)
             const recipeByCode = new Map();
             const recipeByNameNorm = new Map();
@@ -3099,9 +3474,62 @@ export default function AdminDashboard({ onLogout }) {
                     }
                 }
 
-                // Öneri (reçeteden veya sistem içinden)
+                // Tedarik cross-check: Eşleşen ürün bu şubeye tedarik edildi mi?
+                let supplyQty = 0;
+                if (product && supplyQtyByProductId.has(String(product.id))) {
+                    supplyQty = supplyQtyByProductId.get(String(product.id)) || 0;
+                    // Zayıf eşleşme (isim bazlı) + tedarik doğrulaması = güven artışı
+                    if (confidence < 90 && supplyQty > 0) {
+                        confidence = Math.max(confidence, 85);
+                        matchMethod = matchMethod ? `${matchMethod} + Tedarik` : 'Tedarik';
+                    }
+                }
+
+                // Öneri (öncelik: 1) Tedarik, 2) Reçete)
                 let suggestion = null;
+                let supplySuggestion = null; // → action: 'map-to' (ürün zaten sistemde)
                 if (!product) {
+                    // 1) Tedarik — bu şubede fiilen var olan ürünler arasında ara
+                    if (skUpper && supplyByCode.has(skUpper)) {
+                        const p = supplyByCode.get(skUpper);
+                        supplySuggestion = {
+                            source: 'supply',
+                            productId: p.id,
+                            code: p.stok_kodu || '',
+                            name: p.product_name || '',
+                            qty: supplyQtyByProductId.get(String(p.id)) || 0,
+                            matchKind: 'Stok kodu',
+                        };
+                    } else if (nmRaw) {
+                        const nk = normalizeText(nmRaw);
+                        if (supplyByNameNorm.has(nk)) {
+                            const p = supplyByNameNorm.get(nk);
+                            supplySuggestion = {
+                                source: 'supply',
+                                productId: p.id,
+                                code: p.stok_kodu || '',
+                                name: p.product_name || '',
+                                qty: supplyQtyByProductId.get(String(p.id)) || 0,
+                                matchKind: 'Tam isim',
+                            };
+                        } else {
+                            // Kısmi isim — tedarik içinde içerik taraması
+                            for (const [supNorm, p] of supplyByNameNorm) {
+                                if (supNorm.includes(nk) || nk.includes(supNorm)) {
+                                    supplySuggestion = {
+                                        source: 'supply',
+                                        productId: p.id,
+                                        code: p.stok_kodu || '',
+                                        name: p.product_name || '',
+                                        qty: supplyQtyByProductId.get(String(p.id)) || 0,
+                                        matchKind: 'Kısmi isim',
+                                    };
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // 2) Reçete — tedarik yoksa reçeteye bak
                     if (skUpper && recipeByCode.has(skUpper)) {
                         suggestion = { source: 'recipe', ...recipeByCode.get(skUpper) };
                     } else if (nmRaw) {
@@ -3123,6 +3551,8 @@ export default function AdminDashboard({ onLogout }) {
                     matchMethod,
                     reason: reason || null,
                     suggestion,
+                    supplySuggestion,
+                    supplyQty,
                 });
             }
 
@@ -3140,12 +3570,17 @@ export default function AdminDashboard({ onLogout }) {
                 r.duplicateCount = arr ? arr.length : 1;
             });
 
-            // Varsayılan kararlar: eşleşen → keep, eksik + öneri varsa → create, eksik önerisiz → skip
+            // Varsayılan kararlar:
+            //  - eşleşen → keep (conf ≥ 90 otomatik, düşükse review-keep)
+            //  - eksik + tedarik önerisi → map-to (ürün zaten sistemde, sadece isim farklı)
+            //  - eksik + reçete önerisi → create (yeni ürün oluştur)
+            //  - eksik önerisiz → skip
             const defaultDecisions = {};
             classified.forEach((r) => {
                 if (r.product) {
-                    // confidence >= 90 → otomatik onay, düşükse review
                     defaultDecisions[r.idx] = { action: r.confidence >= 90 ? 'keep' : 'review-keep', mapProductId: r.product.id };
+                } else if (r.supplySuggestion) {
+                    defaultDecisions[r.idx] = { action: 'map-to', mapProductId: r.supplySuggestion.productId };
                 } else if (r.suggestion) {
                     defaultDecisions[r.idx] = { action: 'create', stok_kodu: r.suggestion.code, name: r.suggestion.name };
                 } else {
@@ -3154,14 +3589,30 @@ export default function AdminDashboard({ onLogout }) {
             });
 
             const bn = branches.find((b) => b.id === selectedBranchId)?.branch_name || '';
+            // Modal için tedarik listesini hazırla (dropdown + bulk actions için)
+            const supplyList = Array.from(supplyQtyByProductId.entries())
+                .map(([pid, qty]) => {
+                    const p = productById.get(String(pid));
+                    if (!p) return null;
+                    return {
+                        productId: p.id,
+                        stok_kodu: p.stok_kodu || '',
+                        product_name: p.product_name || '',
+                        qty,
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => (b.qty || 0) - (a.qty || 0));
+
             setSalesPreview({
                 fileName: file.name,
                 branchId: selectedBranchId,
                 branchName: bn,
                 rows: classified,
                 decisions: defaultDecisions,
-                activeTab: 'missing', // en önemli sekme default: eksikler
+                activeTab: 'missing',
                 searchText: '',
+                supplyList,
             });
             setSalesPreviewOpen(true);
             return; // Kaydetme işi modal onayına bağlı
@@ -3169,6 +3620,107 @@ export default function AdminDashboard({ onLogout }) {
             toast.error('Satış dosyası okunamadı: ' + (err?.message || String(err)));
         } finally {
             setSalesImporting(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleTransferFolderSelect = async (e) => {
+        const files = Array.from(e?.target?.files || []).filter((f) => (f.name || '').toLowerCase().endsWith('.pdf'));
+        if (!files.length) return;
+        const activePeriod = periods.find((p) => p.is_active);
+        if (!activePeriod) {
+            toast.error('Önce aktif sayım dönemi olmalı (counting_periods.is_active).');
+            e.target.value = '';
+            return;
+        }
+        setTransferImporting(true);
+        try {
+            // Dosyaları name/path’e göre sıralayıp deterministik ilerleyelim
+            files.sort((a, b) => (a.webkitRelativePath || a.name).localeCompare((b.webkitRelativePath || b.name), 'tr'));
+
+            const productByStok = new Map();
+            products.forEach((p) => {
+                const sk = String(p.stok_kodu || '').trim().toUpperCase();
+                if (sk) productByStok.set(sk, p);
+            });
+
+            const rows = [];
+            const unknownBranches = new Map(); // raw -> { raw, suggestedId }
+            const unknownProducts = new Map(); // stokKodu -> { stokKodu, name, suggestedProductId }
+
+            for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+                let parsed = null;
+                try {
+                    parsed = await parseTransferPdf(f);
+                } catch (err) {
+                    console.error('parseTransferPdf error:', f?.name, err);
+                    continue;
+                }
+                if (!parsed || !parsed.items || parsed.items.length === 0) continue;
+
+                const fromId = tryResolveBranchId(parsed.fromRaw);
+                const toId = tryResolveBranchId(parsed.toRaw);
+
+                if (!fromId && parsed.fromRaw) {
+                    if (!unknownBranches.has(parsed.fromRaw)) unknownBranches.set(parsed.fromRaw, { raw: parsed.fromRaw, suggestedId: null });
+                }
+                if (!toId && parsed.toRaw) {
+                    if (!unknownBranches.has(parsed.toRaw)) unknownBranches.set(parsed.toRaw, { raw: parsed.toRaw, suggestedId: null });
+                }
+
+                parsed.items.forEach((it) => {
+                    const sk = String(it.stokKodu || '').trim().toUpperCase();
+                    const p = sk ? productByStok.get(sk) : null;
+                    if (!p && sk) {
+                        if (!unknownProducts.has(sk)) unknownProducts.set(sk, { stokKodu: sk, name: it.stokAdi || sk, suggestedProductId: null });
+                    }
+                    rows.push({
+                        id: `${parsed.evrakNo || 'NOEVRAK'}|${parsed.transferDateIso || 'NODATE'}|${parsed.fromRaw || ''}|${parsed.toRaw || ''}|${sk}`,
+                        sourcePdfName: parsed.sourcePdfName,
+                        evrakNo: parsed.evrakNo || null,
+                        transferDateIso: parsed.transferDateIso || null,
+                        fromRaw: parsed.fromRaw || '',
+                        toRaw: parsed.toRaw || '',
+                        fromBranchId: fromId || null,
+                        toBranchId: toId || null,
+                        stokKodu: sk,
+                        stokAdi: it.stokAdi || '',
+                        qty: Number(it.qty) || 0,
+                        productId: p?.id || null,
+                    });
+                });
+            }
+
+            const branchDecisions = {};
+            unknownBranches.forEach((v) => {
+                // öneri: loose normalize ile en yakın branch'i ilk bulduğumuz gibi verelim
+                const sug = tryResolveBranchId(v.raw);
+                branchDecisions[v.raw] = sug || '';
+            });
+            const productDecisions = {};
+            unknownProducts.forEach((v) => {
+                productDecisions[v.stokKodu] = { action: 'create', stok_kodu: v.stokKodu, name: v.name };
+            });
+
+            setTransferPreview({
+                folderLabel: (files[0]?.webkitRelativePath || files[0]?.name || '').split('/')[0] || '',
+                periodId: activePeriod.id,
+                periodName: activePeriod.period_name,
+                files: files.map((f) => ({ name: f.name, path: f.webkitRelativePath || f.name })),
+                rows,
+                branchDecisions,
+                productDecisions,
+                activeTab: 'summary', // summary | branches | products | rows
+                searchText: '',
+            });
+            setTransferPreviewOpen(true);
+
+            toast.success(`Sevk PDF okundu: ${files.length} dosya, ${rows.length} satır.`);
+        } catch (err) {
+            toast.error('Sevk klasörü okunamadı: ' + (err?.message || String(err)));
+        } finally {
+            setTransferImporting(false);
             e.target.value = '';
         }
     };
@@ -5256,6 +5808,336 @@ export default function AdminDashboard({ onLogout }) {
         <div className="min-h-screen bg-izbel-dark text-white font-sans selection:bg-blue-900 selection:text-white pb-20">
             <Toaster position="top-right" />
             {approvalFullscreenModal}
+            {transferPreviewOpen && transferPreview && (() => {
+                const rows = transferPreview.rows || [];
+                const branchDecisions = transferPreview.branchDecisions || {};
+                const productDecisions = transferPreview.productDecisions || {};
+                const activeTab = transferPreview.activeTab || 'summary';
+                const searchText = (transferPreview.searchText || '').trim().toLowerCase();
+
+                const uniqueBranchRaw = Array.from(new Set(rows.flatMap((r) => [r.fromRaw, r.toRaw]).filter(Boolean)));
+                const unresolvedBranch = uniqueBranchRaw.filter((n) => !tryResolveBranchId(n) && !branchDecisions[n]);
+
+                const uniqueProducts = Array.from(new Set(rows.map((r) => r.stokKodu).filter(Boolean)));
+                const unresolvedProducts = uniqueProducts.filter((sk) => {
+                    const anyResolved = rows.some((r) => r.stokKodu === sk && r.productId);
+                    if (anyResolved) return false;
+                    const dec = productDecisions[sk];
+                    if (!dec) return true;
+                    if (dec.action === 'skip') return false;
+                    if (dec.action === 'map-to' && dec.mapProductId) return false;
+                    if (dec.action === 'create' && dec.stok_kodu) return false;
+                    return true;
+                });
+
+                const resolvedRowCount = rows.filter((r) => {
+                    const fromId = r.fromBranchId || branchDecisions[r.fromRaw];
+                    const toId = r.toBranchId || branchDecisions[r.toRaw];
+                    if (!fromId || !toId || fromId === toId) return false;
+                    if (!r.stokKodu) return false;
+                    if (r.productId) return true;
+                    const dec = productDecisions[r.stokKodu];
+                    if (!dec) return false;
+                    if (dec.action === 'skip') return false;
+                    if (dec.action === 'map-to' && dec.mapProductId) return true;
+                    if (dec.action === 'create' && (dec.stok_kodu || r.stokKodu)) return true;
+                    return false;
+                }).length;
+
+                const visibleRows = (() => {
+                    const base = rows;
+                    if (!searchText) return base;
+                    return base.filter((r) => {
+                        const hay = `${r.fromRaw} ${r.toRaw} ${r.stokKodu} ${r.stokAdi} ${r.evrakNo} ${r.sourcePdfName}`.toLowerCase();
+                        return searchText.split(' ').filter(Boolean).every((w) => hay.includes(w));
+                    });
+                })();
+
+                const setBranchDecision = (raw, bid) => {
+                    setTransferPreview((prev) => {
+                        if (!prev) return prev;
+                        return { ...prev, branchDecisions: { ...(prev.branchDecisions || {}), [raw]: bid } };
+                    });
+                };
+                const setProductDecision = (stokKodu, patch) => {
+                    setTransferPreview((prev) => {
+                        if (!prev) return prev;
+                        const cur = (prev.productDecisions || {})[stokKodu] || {};
+                        return {
+                            ...prev,
+                            productDecisions: {
+                                ...(prev.productDecisions || {}),
+                                [stokKodu]: { ...cur, ...patch },
+                            },
+                        };
+                    });
+                };
+
+                return (
+                    <div className="fixed inset-0 z-[255] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="bg-izbel-card w-full max-w-[1200px] max-h-[94vh] rounded-[1.5rem] border border-cyan-500/30 shadow-2xl overflow-hidden flex flex-col">
+                            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-lg font-black text-white">Sevk İrsaliyesi (PDF) — Önizleme & Onay</h3>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Dönem: <span className="text-cyan-300 font-bold">{transferPreview.periodName}</span> ·
+                                        Dosya: <span className="font-mono text-cyan-200">{transferPreview.files?.length || 0}</span> ·
+                                        Satır: <span className="font-mono text-white">{rows.length}</span>
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => { setTransferPreviewOpen(false); setTransferPreview(null); }}
+                                    className="text-gray-400 hover:text-white text-2xl leading-none"
+                                >×</button>
+                            </div>
+
+                            <div className="px-5 py-3 border-b border-white/10 grid grid-cols-2 md:grid-cols-5 gap-2 bg-black/20">
+                                <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-cyan-300">PDF</div>
+                                    <div className="text-xl font-black text-cyan-200">{transferPreview.files?.length || 0}</div>
+                                </div>
+                                <div className="bg-white/5 border border-white/10 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-gray-300">Sevk Satırı</div>
+                                    <div className="text-xl font-black text-white">{rows.length}</div>
+                                </div>
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-amber-300">Şube Eşleme Bekliyor</div>
+                                    <div className="text-xl font-black text-amber-200">{unresolvedBranch.length}</div>
+                                </div>
+                                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-red-300">Ürün Eşleme Bekliyor</div>
+                                    <div className="text-xl font-black text-red-200">{unresolvedProducts.length}</div>
+                                </div>
+                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-emerald-300">Hazır Satır</div>
+                                    <div className="text-xl font-black text-emerald-200">{resolvedRowCount}</div>
+                                </div>
+                            </div>
+
+                            <div className="px-5 pt-3 border-b border-white/10 flex items-end gap-1 bg-black/10">
+                                {[
+                                    { key: 'summary', label: 'Özet' },
+                                    { key: 'branches', label: `Şube Eşleme (${unresolvedBranch.length})` },
+                                    { key: 'products', label: `Ürün Eşleme (${unresolvedProducts.length})` },
+                                    { key: 'rows', label: `Satırlar (${rows.length})` },
+                                ].map((t) => (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => setTransferPreview((prev) => ({ ...prev, activeTab: t.key }))}
+                                        className={`px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${activeTab === t.key ? 'border-cyan-500/60 text-cyan-200 bg-white/5' : 'border-transparent text-gray-400 hover:text-white'}`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                ))}
+                                <div className="ml-auto flex items-center gap-2 pb-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Ara: şube / stok / evrak..."
+                                        value={transferPreview.searchText || ''}
+                                        onChange={(e) => setTransferPreview((prev) => ({ ...prev, searchText: e.target.value }))}
+                                        className="text-xs bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white placeholder-gray-500 w-56"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto px-5 py-4">
+                                {activeTab === 'summary' && (
+                                    <div className="space-y-3">
+                                        <div className="bg-black/30 border border-white/10 rounded-xl p-4">
+                                            <div className="text-sm font-black text-white mb-2">Ne yapacak?</div>
+                                            <ul className="text-xs text-gray-300 space-y-1">
+                                                <li>- Her satır için: Gönderen şubeden <b>eksi</b>, hedef şubeye <b>artı</b> yansıtır.</li>
+                                                <li>- Kaydedilen sevkler `branch_transfers` tablosunda izlenir.</li>
+                                                <li>- Aynı zamanda `manual_supplies` tablosuna çift yön delta uygulanır (raporlara yansır).</li>
+                                            </ul>
+                                        </div>
+                                        <div className="bg-black/30 border border-white/10 rounded-xl p-4">
+                                            <div className="text-sm font-black text-white mb-2">Dosyalar (ilk 50)</div>
+                                            <div className="text-xs text-gray-400 max-h-56 overflow-y-auto space-y-1 font-mono">
+                                                {(transferPreview.files || []).slice(0, 50).map((f) => (
+                                                    <div key={f.path}>{f.path}</div>
+                                                ))}
+                                                {(transferPreview.files || []).length > 50 && (
+                                                    <div className="text-gray-500">... ve {(transferPreview.files || []).length - 50} dosya daha</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'branches' && (
+                                    <div className="space-y-2">
+                                        {uniqueBranchRaw.length === 0 ? (
+                                            <div className="text-center text-gray-500 py-10">Şube verisi bulunamadı.</div>
+                                        ) : (
+                                            uniqueBranchRaw.map((raw) => {
+                                                const resolved = tryResolveBranchId(raw);
+                                                const selected = branchDecisions[raw] || '';
+                                                return (
+                                                    <div key={raw} className="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center gap-3">
+                                                        <div className="flex-1 min-w-[260px]">
+                                                            <div className="text-xs text-gray-400">PDF şube adı</div>
+                                                            <div className="text-sm font-black text-white">{raw}</div>
+                                                        </div>
+                                                        <div className="w-[520px]">
+                                                            {resolved ? (
+                                                                <div className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2">
+                                                                    Otomatik tanındı: <b>{branches.find((b) => b.id === resolved)?.branch_name || resolved}</b>
+                                                                </div>
+                                                            ) : (
+                                                                <select
+                                                                    value={selected}
+                                                                    onChange={(e) => setBranchDecision(raw, e.target.value)}
+                                                                    className="w-full text-xs bg-black/40 border border-white/10 rounded px-3 py-2 text-white"
+                                                                >
+                                                                    <option value="">-- Şube seç --</option>
+                                                                    {branches.map((b) => (
+                                                                        <option key={b.id} value={b.id}>{b.branch_name}</option>
+                                                                    ))}
+                                                                </select>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                )}
+
+                                {activeTab === 'products' && (
+                                    <div className="space-y-2">
+                                        {uniqueProducts.length === 0 ? (
+                                            <div className="text-center text-gray-500 py-10">Ürün satırı yok.</div>
+                                        ) : (
+                                            uniqueProducts.map((sk) => {
+                                                const anyResolved = rows.some((r) => r.stokKodu === sk && r.productId);
+                                                const dec = productDecisions[sk] || { action: anyResolved ? 'keep' : 'create', stok_kodu: sk, name: rows.find((r) => r.stokKodu === sk)?.stokAdi || sk };
+                                                return (
+                                                    <div key={sk} className="bg-black/30 border border-white/10 rounded-xl p-3">
+                                                        <div className="flex items-start gap-3 flex-wrap">
+                                                            <div className="flex-1 min-w-[260px]">
+                                                                <div className="text-xs text-gray-400">Stok Kodu</div>
+                                                                <div className="text-sm font-black text-white font-mono">{sk}</div>
+                                                                <div className="text-xs text-gray-300 mt-1 truncate">{rows.find((r) => r.stokKodu === sk)?.stokAdi || ''}</div>
+                                                            </div>
+                                                            <div className="w-full md:w-[520px] bg-black/40 border border-white/10 rounded-lg p-2">
+                                                                <div className="flex gap-1 mb-2">
+                                                                    <button
+                                                                        onClick={() => setProductDecision(sk, { action: 'create', stok_kodu: sk, name: dec.name || rows.find((r) => r.stokKodu === sk)?.stokAdi || sk })}
+                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'create' ? 'bg-blue-500/30 text-blue-200 border border-blue-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                    >➕ Yeni</button>
+                                                                    <button
+                                                                        onClick={() => setProductDecision(sk, { action: 'map-to', mapProductId: dec.mapProductId || '' })}
+                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'map-to' ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                    >🔗 Eşle</button>
+                                                                    <button
+                                                                        onClick={() => setProductDecision(sk, { action: 'skip' })}
+                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'skip' ? 'bg-gray-500/30 text-gray-200 border border-gray-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                    >⏭ Atla</button>
+                                                                </div>
+
+                                                                {dec.action === 'create' && (
+                                                                    <div className="flex gap-1">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={dec.stok_kodu || sk}
+                                                                            onChange={(e) => setProductDecision(sk, { stok_kodu: e.target.value })}
+                                                                            className="flex-1 text-[11px] font-mono bg-black/40 border border-white/10 rounded px-2 py-1 text-blue-200"
+                                                                            placeholder="Stok kodu"
+                                                                        />
+                                                                        <input
+                                                                            type="text"
+                                                                            value={dec.name || ''}
+                                                                            onChange={(e) => setProductDecision(sk, { name: e.target.value })}
+                                                                            className="flex-[2] text-[11px] bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
+                                                                            placeholder="Ürün adı"
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                                {dec.action === 'map-to' && (
+                                                                    <select
+                                                                        value={dec.mapProductId || ''}
+                                                                        onChange={(e) => setProductDecision(sk, { mapProductId: e.target.value })}
+                                                                        className="w-full text-xs bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
+                                                                    >
+                                                                        <option value="">-- Ürün seç --</option>
+                                                                        {products.slice(0, 2000).map((p) => (
+                                                                            <option key={p.id} value={p.id}>{p.stok_kodu ? `[${p.stok_kodu}] ` : ''}{p.product_name}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                )}
+                                                                {dec.action === 'skip' && (
+                                                                    <div className="text-[10px] text-gray-400">Bu stok kodu sevklerde yok sayılır (transfer satırları atlanır).</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                )}
+
+                                {activeTab === 'rows' && (
+                                    <div className="space-y-2">
+                                        {visibleRows.slice(0, 800).map((r) => {
+                                            const fromId = r.fromBranchId || branchDecisions[r.fromRaw];
+                                            const toId = r.toBranchId || branchDecisions[r.toRaw];
+                                            const pDec = productDecisions[r.stokKodu];
+                                            const prodOk = !!r.productId || (pDec && ((pDec.action === 'map-to' && pDec.mapProductId) || pDec.action === 'create' || pDec.action === 'skip'));
+                                            const branchOk = !!fromId && !!toId && fromId !== toId;
+                                            const ready = branchOk && prodOk && (pDec?.action !== 'skip');
+                                            return (
+                                                <div key={r.id} className="bg-black/30 border border-white/10 rounded-xl p-3">
+                                                    <div className="flex items-start gap-3 flex-wrap">
+                                                        <div className="flex-1 min-w-[260px]">
+                                                            <div className="text-[10px] text-gray-500 font-mono">{r.sourcePdfName} · {r.evrakNo || '—'} · {r.transferDateIso || '—'}</div>
+                                                            <div className="text-sm font-bold text-white">
+                                                                {r.fromRaw} → {r.toRaw}
+                                                            </div>
+                                                            <div className="text-xs text-gray-300">
+                                                                <span className="font-mono text-cyan-200">{r.stokKodu}</span> · {r.stokAdi} · <b className="text-white">{Number(r.qty).toLocaleString('tr-TR')}</b>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {ready ? (
+                                                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md border bg-emerald-500/15 text-emerald-200 border-emerald-500/40">✅ Hazır</span>
+                                                            ) : (
+                                                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md border bg-amber-500/15 text-amber-200 border-amber-500/40">⚠ Bekliyor</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {visibleRows.length > 800 && (
+                                            <div className="text-center text-[11px] text-gray-500 py-2">
+                                                İlk 800 satır gösteriliyor ({visibleRows.length} toplam). Daha fazlası için arama kullanın.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="px-5 py-3 border-t border-white/10 bg-black/30 flex items-center gap-3 flex-wrap">
+                                <div className="text-xs text-gray-400 flex-1">
+                                    Kaydetmeden önce: Şube/ürün eşlemeleri tamamlanmalı. Hazır satır: <b className="text-emerald-300">{resolvedRowCount}</b>
+                                </div>
+                                <button
+                                    onClick={() => { setTransferPreviewOpen(false); setTransferPreview(null); }}
+                                    disabled={transferImporting}
+                                    className="text-xs font-bold uppercase text-gray-300 border border-white/20 hover:bg-white/10 rounded-lg px-4 py-2 disabled:opacity-50"
+                                >Vazgeç</button>
+                                <button
+                                    onClick={applyTransferPreview}
+                                    disabled={transferImporting || resolvedRowCount === 0}
+                                    className="text-xs font-black uppercase tracking-widest text-white bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 rounded-lg px-6 py-2 disabled:opacity-50"
+                                >{transferImporting ? 'Kaydediliyor...' : 'Onayla & Sevkleri Kaydet'}</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
             {salesPreviewOpen && salesPreview && (() => {
                 const rows = salesPreview.rows || [];
                 const decisions = salesPreview.decisions || {};
@@ -5339,7 +6221,7 @@ export default function AdminDashboard({ onLogout }) {
                             </div>
 
                             {/* Özet Kartları */}
-                            <div className="px-5 py-3 border-b border-white/10 grid grid-cols-2 md:grid-cols-5 gap-2 bg-black/20">
+                            <div className="px-5 py-3 border-b border-white/10 grid grid-cols-2 md:grid-cols-6 gap-2 bg-black/20">
                                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2">
                                     <div className="text-[10px] uppercase tracking-wider text-emerald-300">✅ Tam Eşleşen</div>
                                     <div className="text-xl font-black text-emerald-200">{matchedRows.length}</div>
@@ -5351,6 +6233,10 @@ export default function AdminDashboard({ onLogout }) {
                                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2">
                                     <div className="text-[10px] uppercase tracking-wider text-red-300">🔴 Eksik</div>
                                     <div className="text-xl font-black text-red-200">{missingRows.length}</div>
+                                </div>
+                                <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-2" title="Bu şubeye tedarik edilmiş ürünler — eşleme önerilerinin kaynağı">
+                                    <div className="text-[10px] uppercase tracking-wider text-cyan-300">🚚 Şubede Tedarikli</div>
+                                    <div className="text-xl font-black text-cyan-200">{(salesPreview.supplyList || []).length}</div>
                                 </div>
                                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-2">
                                     <div className="text-[10px] uppercase tracking-wider text-blue-300">Yeni Oluştur</div>
@@ -5393,13 +6279,30 @@ export default function AdminDashboard({ onLogout }) {
                                 {activeTab === 'missing' && (
                                     <>
                                         <button
+                                            onClick={() => {
+                                                setSalesPreview((prev) => {
+                                                    if (!prev) return prev;
+                                                    const next = { ...prev.decisions };
+                                                    prev.rows.forEach((r) => {
+                                                        if (!r.product && r.supplySuggestion) {
+                                                            next[r.idx] = { action: 'map-to', mapProductId: r.supplySuggestion.productId };
+                                                        }
+                                                    });
+                                                    return { ...prev, decisions: next };
+                                                });
+                                            }}
+                                            className="text-[11px] font-bold uppercase tracking-wider text-cyan-100 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 rounded-md px-3 py-1"
+                                        >
+                                            🚚 Tedarikteki Ürünlere Eşle ({missingRows.filter((r) => r.supplySuggestion).length})
+                                        </button>
+                                        <button
                                             onClick={() => bulkSetDecisions(
                                                 (r) => !r.product && r.suggestion,
                                                 { action: 'create' },
                                             )}
                                             className="text-[11px] font-bold uppercase tracking-wider text-blue-200 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 rounded-md px-3 py-1"
                                         >
-                                            Reçetede Önerisi Olanları Oluştur ({missingRows.filter((r) => r.suggestion).length})
+                                            Reçetede Önerisi Olanları Oluştur ({missingRows.filter((r) => r.suggestion && !r.supplySuggestion).length})
                                         </button>
                                         <button
                                             onClick={() => bulkSetDecisions(
@@ -5474,10 +6377,18 @@ export default function AdminDashboard({ onLogout }) {
 
                                                         {/* Güven / Durum */}
                                                         {r.product && (
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                                 <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md border ${confBadge(r.confidence)}`}>
                                                                     %{r.confidence} {r.matchMethod}
                                                                 </span>
+                                                                {r.supplyQty > 0 && (
+                                                                    <span
+                                                                        className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md border bg-cyan-500/15 text-cyan-200 border-cyan-500/40"
+                                                                        title={`Bu şubeye ${r.supplyQty} adet tedarik edildi — eşleşme doğrulandı.`}
+                                                                    >
+                                                                        🚚 Tedarik: {Number(r.supplyQty).toLocaleString('tr-TR')}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         )}
 
@@ -5515,6 +6426,20 @@ export default function AdminDashboard({ onLogout }) {
                                                             )}
                                                             {action === 'create' && (
                                                                 <div className="space-y-1">
+                                                                    {r.supplySuggestion && (
+                                                                        <div className="text-[10px] text-cyan-200 bg-cyan-500/10 border border-cyan-500/40 rounded px-2 py-1 flex items-start gap-2">
+                                                                            <span>🚚</span>
+                                                                            <span className="flex-1">
+                                                                                <b>Tedarikte bu ürün var</b> ({r.supplySuggestion.matchKind} ile bulundu): <span className="font-mono">{r.supplySuggestion.code}</span> — {r.supplySuggestion.name} · <b>{Number(r.supplySuggestion.qty).toLocaleString('tr-TR')} adet tedarik</b>
+                                                                                <button
+                                                                                    onClick={() => setDecision(r.idx, { action: 'map-to', mapProductId: r.supplySuggestion.productId })}
+                                                                                    className="ml-2 text-[10px] font-bold uppercase text-cyan-100 bg-cyan-600/40 hover:bg-cyan-600/60 border border-cyan-400/40 rounded px-2 py-0.5"
+                                                                                >
+                                                                                    Buna Eşle
+                                                                                </button>
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
                                                                     {r.suggestion && (
                                                                         <div className="text-[10px] text-blue-300 bg-blue-500/10 border border-blue-500/30 rounded px-2 py-1">
                                                                             💡 Reçeteden öneri: <span className="font-mono">{r.suggestion.code}</span> — {r.suggestion.name} <span className="uppercase text-blue-400">({r.suggestion.kind})</span>
@@ -5541,17 +6466,33 @@ export default function AdminDashboard({ onLogout }) {
                                                             )}
                                                             {action === 'map-to' && (
                                                                 <div className="space-y-1">
+                                                                    {r.supplySuggestion && (
+                                                                        <div className="text-[10px] text-cyan-200 bg-cyan-500/10 border border-cyan-500/40 rounded px-2 py-1">
+                                                                            🚚 <b>Tedarikte bulunan:</b> <span className="font-mono">{r.supplySuggestion.code}</span> — {r.supplySuggestion.name} · {Number(r.supplySuggestion.qty).toLocaleString('tr-TR')} adet
+                                                                        </div>
+                                                                    )}
                                                                     <select
                                                                         value={dec.mapProductId || ''}
                                                                         onChange={(e) => setDecision(r.idx, { mapProductId: e.target.value || null })}
                                                                         className="w-full text-xs bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
                                                                     >
                                                                         <option value="">-- Mevcut ürün seç --</option>
-                                                                        {products.slice(0, 2000).map((p) => (
-                                                                            <option key={p.id} value={p.id}>
-                                                                                {p.stok_kodu ? `[${p.stok_kodu}] ` : ''}{p.product_name}
-                                                                            </option>
-                                                                        ))}
+                                                                        {(salesPreview.supplyList || []).length > 0 && (
+                                                                            <optgroup label="🚚 Bu şubeye tedarik edilenler (öncelikli)">
+                                                                                {(salesPreview.supplyList || []).map((s) => (
+                                                                                    <option key={`sup-${s.productId}`} value={s.productId}>
+                                                                                        {s.stok_kodu ? `[${s.stok_kodu}] ` : ''}{s.product_name} (tedarik: {Number(s.qty).toLocaleString('tr-TR')})
+                                                                                    </option>
+                                                                                ))}
+                                                                            </optgroup>
+                                                                        )}
+                                                                        <optgroup label="Tüm Ürünler">
+                                                                            {products.slice(0, 2000).map((p) => (
+                                                                                <option key={p.id} value={p.id}>
+                                                                                    {p.stok_kodu ? `[${p.stok_kodu}] ` : ''}{p.product_name}
+                                                                                </option>
+                                                                            ))}
+                                                                        </optgroup>
                                                                     </select>
                                                                     <div className="text-[10px] text-purple-300">
                                                                         🧠 Bu eşleme kaydedilir; bir sonraki satışta "{r.name}" otomatik bu ürüne bağlanır.
@@ -8684,6 +9625,24 @@ export default function AdminDashboard({ onLogout }) {
                                     <strong>subeduzeltilmis tedarik.csv</strong> dosyasını yükleyin → �?ubeleri ve ürünleri sistem ile eşleştirin → Tek tıkla tüm şubelere stok aktarın.
                                     <br/>Aynı şube + aynı malzeme satırları <span className="text-fuchsia-300 font-bold">otomatik toplanır</span>.
                                 </p>
+                                <div className="mt-5 flex items-center gap-3 flex-wrap">
+                                    <label className="text-xs font-black uppercase tracking-widest text-white bg-cyan-600/30 hover:bg-cyan-600/40 border border-cyan-500/40 rounded-xl px-4 py-3 cursor-pointer">
+                                        Sevk İrsaliyesi Yükle (PDF Klasörü)
+                                        <input
+                                            type="file"
+                                            webkitdirectory="true"
+                                            directory="true"
+                                            multiple
+                                            accept=".pdf"
+                                            onChange={handleTransferFolderSelect}
+                                            disabled={transferImporting}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    <div className="text-xs text-gray-400">
+                                        Sevkler için <b className="text-white">önizleme</b> açılır; onaylamadan DB’ye yazmaz.
+                                    </div>
+                                </div>
                             </div>
 
                             {/* ADIM GÖSTERGESI */}
