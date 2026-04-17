@@ -257,6 +257,10 @@ export default function AdminDashboard({ onLogout }) {
     const [salesUndoStack, setSalesUndoStack] = useState([]);
     const [salesImporting, setSalesImporting] = useState(false);
     const [scLoggerPaste, setScLoggerPaste] = useState('');
+    /** Satış içe aktarma önizleme (interaktif onay) */
+    const [salesPreviewOpen, setSalesPreviewOpen] = useState(false);
+    const [salesPreview, setSalesPreview] = useState(null);
+    const [salesPreviewApplying, setSalesPreviewApplying] = useState(false);
     /** Reçete düşümü branch_stocks geri alma yedeği */
     const [stockApplyUndoStack, setStockApplyUndoStack] = useState([]);
     /** Excel export kategori bölme modalı */
@@ -2621,6 +2625,122 @@ export default function AdminDashboard({ onLogout }) {
         return { created, failed, total: list.length };
     }, [recipeRawRowsCache, products]);
 
+    /**
+     * Satış önizleme modalında verilen kararları uygula:
+     *  - 'create' olanları Supabase'e insert eder
+     *  - 'map-to' olanları pos_product_map'a kaydeder (kalıcı öğrenme)
+     *  - 'keep' olanları mevcut ürüne bağlar
+     *  - 'skip' atlanır
+     * Sonra satış miktarlarını salesQtyByKey'e ekler.
+     */
+    const applySalesPreview = useCallback(async () => {
+        if (!salesPreview) return;
+        setSalesPreviewApplying(true);
+        try {
+            const { rows, decisions, branchId, branchName } = salesPreview;
+
+            // 1) Oluşturulacak yeni ürünleri topla
+            const createPayload = new Map();
+            Object.entries(decisions).forEach(([idxStr, dec]) => {
+                if (dec?.action !== 'create') return;
+                const idx = Number(idxStr);
+                const r = rows[idx];
+                if (!r) return;
+                const code = String(dec.stok_kodu || r.stok_kodu || '').trim().toUpperCase();
+                if (!code) return;
+                if (createPayload.has(code)) return;
+                createPayload.set(code, {
+                    stok_kodu: code,
+                    product_name: String(dec.name || r.name || code).trim() || code,
+                    unit: 'Adet',
+                    purchase_price: 0,
+                    current_stock: 0,
+                    is_active: true,
+                });
+            });
+
+            const codeToNewProduct = new Map();
+            if (createPayload.size > 0) {
+                const arr = Array.from(createPayload.values());
+                for (let i = 0; i < arr.length; i += 500) {
+                    const chunk = arr.slice(i, i + 500);
+                    const { data, error } = await supabase
+                        .from('products')
+                        .upsert(chunk, { onConflict: 'stok_kodu' })
+                        .select('id, stok_kodu, product_name, barcode, unit, purchase_price, category, is_active');
+                    if (error) {
+                        console.error('sales-preview create err:', error);
+                        continue;
+                    }
+                    (data || []).forEach((p) => {
+                        codeToNewProduct.set(String(p.stok_kodu || '').toUpperCase(), p);
+                    });
+                }
+            }
+
+            // 2) Manuel eşlemeleri (pos_product_map) kaydet — pos_product_name üzerinden
+            const posMapRows = [];
+            Object.entries(decisions).forEach(([idxStr, dec]) => {
+                if (dec?.action !== 'map-to') return;
+                const idx = Number(idxStr);
+                const r = rows[idx];
+                if (!r || !r.name || !dec.mapProductId) return;
+                posMapRows.push({
+                    pos_product_name: r.name,
+                    product_id: dec.mapProductId,
+                    updated_at: new Date().toISOString(),
+                });
+            });
+            if (posMapRows.length > 0) {
+                const { error } = await supabase
+                    .from('pos_product_map')
+                    .upsert(posMapRows, { onConflict: 'pos_product_name' });
+                if (error) console.error('pos_product_map upsert err:', error);
+            }
+
+            // 3) Satış miktarlarını hesapla
+            pushSalesUndoSnapshot();
+            const merge = { ...salesQtyByKeyRef.current };
+            let applied = 0;
+            let skipped = 0;
+            let created = 0;
+            let mapped = 0;
+
+            rows.forEach((r) => {
+                const dec = decisions[r.idx];
+                if (!dec || dec.action === 'skip') { skipped++; return; }
+                let pid = null;
+                if (dec.action === 'keep' || dec.action === 'review-keep') {
+                    pid = dec.mapProductId || r.product?.id;
+                } else if (dec.action === 'map-to') {
+                    pid = dec.mapProductId;
+                    if (pid) mapped++;
+                } else if (dec.action === 'create') {
+                    const code = String(dec.stok_kodu || r.stok_kodu || '').trim().toUpperCase();
+                    const p = codeToNewProduct.get(code);
+                    if (p) { pid = p.id; created++; }
+                }
+                if (!pid) { skipped++; return; }
+                const k = `${branchId}|${pid}`;
+                merge[k] = (Number(merge[k]) || 0) + Number(r.qty || 0);
+                applied++;
+            });
+
+            setSalesQtyByKey(merge);
+            if (created > 0 || mapped > 0) await fetchData();
+
+            toast.success(
+                `Satış uygulandı (${branchName}): ${applied} satır işlendi | ${created} yeni ürün | ${mapped} eşleme | ${skipped} atlandı.`,
+            );
+            setSalesPreviewOpen(false);
+            setSalesPreview(null);
+        } catch (err) {
+            toast.error('Satış uygulama hatası: ' + (err?.message || String(err)));
+        } finally {
+            setSalesPreviewApplying(false);
+        }
+    }, [salesPreview, pushSalesUndoSnapshot, setSalesQtyByKey, fetchData]);
+
     const salesRecipeAllForBranch = useMemo(() => {
         if (selectedBranchId === 'ALL') return [];
         const productById = new Map(products.map((p) => [p.id, p]));
@@ -2929,123 +3049,122 @@ export default function AdminDashboard({ onLogout }) {
                 return parseFlexibleNumber(v);
             };
 
-            // ---- 1. TUR: Mevcut products ile eşleştirmeyi dene, eşleşmeyen (stok_kodu, isim) setini topla ----
-            const unmatchedByCode = new Map();   // stok_kodu(upper) -> name
-            const unmatchedByName = new Map();   // normalizeText(name) -> name(orijinal)
+            // ---- Parse + Classify: Preview modalı açılacak, kaydetmek için onay bekleyecek ----
+            // Reçete cache'ini hazırla (öneriler için)
+            const recipeByCode = new Map();
+            const recipeByNameNorm = new Map();
+            (recipeRawRowsCache || []).forEach((r) => {
+                const refs = [
+                    { code: r.recipe_stok_kodu, name: r.recipe_name, kind: 'Mamul' },
+                    { code: r.ingredient_stok_kodu, name: r.ingredient_name, kind: 'Hammadde' },
+                ];
+                refs.forEach((rf) => {
+                    const c = String(rf.code || '').trim().toUpperCase();
+                    const n = String(rf.name || '').trim();
+                    if (c && n) {
+                        if (!recipeByCode.has(c)) recipeByCode.set(c, { code: c, name: n, kind: rf.kind });
+                        const nk = normalizeText(n);
+                        if (nk && !recipeByNameNorm.has(nk)) recipeByNameNorm.set(nk, { code: c, name: n, kind: rf.kind });
+                    }
+                });
+            });
+
+            // Her satırı sınıflandır
+            const classified = [];
             for (let i = 1; i < rows.length; i++) {
                 const cells = rows[i];
                 if (!cells || !cells.length) continue;
                 const qty = parseQty(cells[colQty]);
                 if (qty == null) continue;
-                const { product } = resolveRow(cells);
-                if (product) continue;
-                const sk = colStok >= 0 ? String(cells[colStok] ?? '').trim().toUpperCase() : '';
-                const nm = colUrun >= 0 ? String(cells[colUrun] ?? '').trim() : '';
-                if (sk && !unmatchedByCode.has(sk)) unmatchedByCode.set(sk, nm || sk);
-                if (nm) unmatchedByName.set(normalizeText(nm), nm);
-            }
-
-            // ---- 2. TUR: Reçete raw cache ile akıllı fallback — eksik ürünleri otomatik aç ----
-            let autoCreatedCount = 0;
-            if ((unmatchedByCode.size > 0 || unmatchedByName.size > 0) && recipeRawRowsCache.length > 0) {
-                // Reçete raw cache: stok_kodu + name eşleşmelerini al
-                const recipeByCode = new Map();
-                const recipeByNameNorm = new Map();
-                recipeRawRowsCache.forEach((r) => {
-                    const refs = [
-                        { code: r.recipe_stok_kodu, name: r.recipe_name },
-                        { code: r.ingredient_stok_kodu, name: r.ingredient_name },
-                    ];
-                    refs.forEach((rf) => {
-                        const c = String(rf.code || '').trim().toUpperCase();
-                        const n = String(rf.name || '').trim();
-                        if (c && n) {
-                            if (!recipeByCode.has(c)) recipeByCode.set(c, n);
-                            const nk = normalizeText(n);
-                            if (nk && !recipeByNameNorm.has(nk)) recipeByNameNorm.set(nk, { code: c, name: n });
-                        }
-                    });
-                });
-
-                const toCreate = new Map();
-                // (a) Stok kodu bazlı — satış CSV'deki kod reçete raw'da varsa
-                unmatchedByCode.forEach((nm, code) => {
-                    if (recipeByCode.has(code)) {
-                        toCreate.set(code, { stok_kodu: code, product_name: recipeByCode.get(code) || nm || code });
-                    }
-                });
-                // (b) İsim bazlı — satış CSV'deki ad reçete raw'da bir mamul/hammadde ise
-                unmatchedByName.forEach((origName, normName) => {
-                    const hit = recipeByNameNorm.get(normName);
-                    if (hit && !toCreate.has(hit.code)) {
-                        toCreate.set(hit.code, { stok_kodu: hit.code, product_name: hit.name });
-                    }
-                });
-
-                if (toCreate.size > 0) {
-                    const payload = Array.from(toCreate.values()).map((p) => ({
-                        stok_kodu: p.stok_kodu,
-                        product_name: p.product_name,
-                        unit: 'Adet',
-                        purchase_price: 0,
-                        current_stock: 0,
-                        is_active: true,
-                    }));
-                    for (let i = 0; i < payload.length; i += 500) {
-                        const chunk = payload.slice(i, i + 500);
-                        const { data, error } = await supabase
-                            .from('products')
-                            .upsert(chunk, { onConflict: 'stok_kodu' })
-                            .select('id, stok_kodu, product_name, barcode, unit, purchase_price, category, is_active');
-                        if (error) {
-                            console.error('auto-create from recipe error:', error);
-                            continue;
-                        }
-                        (data || []).forEach((p) => {
-                            // Local map'leri güncelle ki bu döngüde eşleşme bulunsun
-                            const sk = String(p.stok_kodu || '').trim().toUpperCase();
-                            if (sk) productByStokUpper.set(sk, p);
-                            const nk = normalizeText(p.product_name);
-                            if (nk) {
-                                if (!productsByNorm.has(nk)) productsByNorm.set(nk, []);
-                                productsByNorm.get(nk).push(p);
-                            }
-                            autoCreatedCount++;
-                        });
-                    }
-                }
-            }
-
-            // ---- 3. TUR: Eşleştirmeyi tekrar çalıştır (şimdi yeni ürünler de cache'te) ----
-            let matched = 0;
-            let skipped = 0;
-            let ambiguous = 0;
-            pushSalesUndoSnapshot();
-            const merge = { ...salesQtyByKeyRef.current };
-
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i];
-                if (!cells || !cells.length) continue;
-                const qty = parseQty(cells[colQty]);
-                if (qty == null) continue;
+                const skRaw = colStok >= 0 ? String(cells[colStok] ?? '').trim() : '';
+                const skUpper = skRaw.toUpperCase();
+                const bcRaw = colBarkod >= 0 ? String(cells[colBarkod] ?? '').trim() : '';
+                const nmRaw = colUrun >= 0 ? String(cells[colUrun] ?? '').trim() : '';
                 const { product, reason } = resolveRow(cells);
-                if (!product) {
-                    if (reason === 'ambiguous_name' || reason === 'ambiguous_partial' || reason === 'ambiguous_stok' || reason === 'ambiguous_barcode') ambiguous++;
-                    else skipped++;
-                    continue;
+
+                // Güven skoru + eşleşme metodu tespit et
+                let confidence = 0;
+                let matchMethod = '';
+                if (product) {
+                    if (skUpper && String(product.stok_kodu || '').toUpperCase() === skUpper) {
+                        confidence = 100; matchMethod = 'Stok kodu';
+                    } else if (bcRaw && normalizeBarcodeCsv(product.barcode) === normalizeBarcodeCsv(bcRaw)) {
+                        confidence = 95; matchMethod = 'Barkod';
+                    } else if (nmRaw && normalizeText(product.product_name) === normalizeText(nmRaw)) {
+                        confidence = 90; matchMethod = 'Tam isim';
+                    } else if (nmRaw && posManualMap[nmRaw]) {
+                        confidence = 100; matchMethod = 'Manuel kayıt (POS map)';
+                    } else {
+                        confidence = 70; matchMethod = 'Kısmi isim';
+                    }
                 }
-                const k = `${selectedBranchId}|${product.id}`;
-                merge[k] = (Number(merge[k]) || 0) + qty;
-                matched++;
+
+                // Öneri (reçeteden veya sistem içinden)
+                let suggestion = null;
+                if (!product) {
+                    if (skUpper && recipeByCode.has(skUpper)) {
+                        suggestion = { source: 'recipe', ...recipeByCode.get(skUpper) };
+                    } else if (nmRaw) {
+                        const nk = normalizeText(nmRaw);
+                        const hit = recipeByNameNorm.get(nk);
+                        if (hit) suggestion = { source: 'recipe', ...hit };
+                    }
+                }
+
+                classified.push({
+                    idx: classified.length,
+                    rowNum: i + 1,
+                    stok_kodu: skRaw,
+                    barcode: bcRaw,
+                    name: nmRaw,
+                    qty,
+                    product: product || null,
+                    confidence,
+                    matchMethod,
+                    reason: reason || null,
+                    suggestion,
+                });
             }
 
-            setSalesQtyByKey(merge);
+            // Aynı satır/ürün için CSV'de mükerrer tespit (stok_kodu bazında)
+            const dupMap = new Map();
+            classified.forEach((r) => {
+                const k = r.stok_kodu ? `C:${r.stok_kodu.toUpperCase()}` : (r.name ? `N:${normalizeText(r.name)}` : '');
+                if (!k) return;
+                if (!dupMap.has(k)) dupMap.set(k, []);
+                dupMap.get(k).push(r.idx);
+            });
+            classified.forEach((r) => {
+                const k = r.stok_kodu ? `C:${r.stok_kodu.toUpperCase()}` : (r.name ? `N:${normalizeText(r.name)}` : '');
+                const arr = k ? dupMap.get(k) : null;
+                r.duplicateCount = arr ? arr.length : 1;
+            });
+
+            // Varsayılan kararlar: eşleşen → keep, eksik + öneri varsa → create, eksik önerisiz → skip
+            const defaultDecisions = {};
+            classified.forEach((r) => {
+                if (r.product) {
+                    // confidence >= 90 → otomatik onay, düşükse review
+                    defaultDecisions[r.idx] = { action: r.confidence >= 90 ? 'keep' : 'review-keep', mapProductId: r.product.id };
+                } else if (r.suggestion) {
+                    defaultDecisions[r.idx] = { action: 'create', stok_kodu: r.suggestion.code, name: r.suggestion.name };
+                } else {
+                    defaultDecisions[r.idx] = { action: 'skip' };
+                }
+            });
+
             const bn = branches.find((b) => b.id === selectedBranchId)?.branch_name || '';
-            const autoMsg = autoCreatedCount > 0 ? ` — reçeteden ${autoCreatedCount} yeni ürün otomatik eklendi` : '';
-            toast.success(
-                `Satış içe aktarıldı (${bn}): ${matched} satır eşleşti, ${skipped} atlandı, ${ambiguous} belirsiz.${autoMsg}`,
-            );
-            if (autoCreatedCount > 0) await fetchData();
+            setSalesPreview({
+                fileName: file.name,
+                branchId: selectedBranchId,
+                branchName: bn,
+                rows: classified,
+                decisions: defaultDecisions,
+                activeTab: 'missing', // en önemli sekme default: eksikler
+                searchText: '',
+            });
+            setSalesPreviewOpen(true);
+            return; // Kaydetme işi modal onayına bağlı
         } catch (err) {
             toast.error('Satış dosyası okunamadı: ' + (err?.message || String(err)));
         } finally {
@@ -5137,6 +5256,350 @@ export default function AdminDashboard({ onLogout }) {
         <div className="min-h-screen bg-izbel-dark text-white font-sans selection:bg-blue-900 selection:text-white pb-20">
             <Toaster position="top-right" />
             {approvalFullscreenModal}
+            {salesPreviewOpen && salesPreview && (() => {
+                const rows = salesPreview.rows || [];
+                const decisions = salesPreview.decisions || {};
+                const activeTab = salesPreview.activeTab || 'missing';
+                const searchText = (salesPreview.searchText || '').trim().toLowerCase();
+
+                const setDecision = (idx, patch) => {
+                    setSalesPreview((prev) => {
+                        if (!prev) return prev;
+                        const cur = prev.decisions[idx] || {};
+                        return { ...prev, decisions: { ...prev.decisions, [idx]: { ...cur, ...patch } } };
+                    });
+                };
+                const bulkSetDecisions = (filterFn, patch) => {
+                    setSalesPreview((prev) => {
+                        if (!prev) return prev;
+                        const next = { ...prev.decisions };
+                        prev.rows.forEach((r) => {
+                            if (filterFn(r)) {
+                                next[r.idx] = { ...(next[r.idx] || {}), ...patch };
+                            }
+                        });
+                        return { ...prev, decisions: next };
+                    });
+                };
+
+                // Sekmelere göre satırları ayır
+                const matchedRows = rows.filter((r) => r.product && r.confidence >= 90);
+                const reviewRows = rows.filter((r) => r.product && r.confidence < 90);
+                const missingRows = rows.filter((r) => !r.product);
+
+                const tabRows = activeTab === 'matched' ? matchedRows
+                    : activeTab === 'review' ? reviewRows
+                    : missingRows;
+
+                const visibleRows = !searchText ? tabRows : tabRows.filter((r) => {
+                    const s = searchText;
+                    return (
+                        (r.name || '').toLowerCase().includes(s)
+                        || (r.stok_kodu || '').toLowerCase().includes(s)
+                        || (r.product?.product_name || '').toLowerCase().includes(s)
+                    );
+                });
+
+                // Özet rakamlar
+                const counts = {
+                    keep: Object.values(decisions).filter((d) => d?.action === 'keep' || d?.action === 'review-keep').length,
+                    create: Object.values(decisions).filter((d) => d?.action === 'create').length,
+                    mapTo: Object.values(decisions).filter((d) => d?.action === 'map-to').length,
+                    skip: Object.values(decisions).filter((d) => d?.action === 'skip').length,
+                };
+                const totalQty = rows.reduce((s, r) => {
+                    const d = decisions[r.idx];
+                    if (!d || d.action === 'skip') return s;
+                    return s + (Number(r.qty) || 0);
+                }, 0);
+
+                const confBadge = (c) => {
+                    if (c >= 100) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+                    if (c >= 90) return 'bg-green-500/20 text-green-300 border-green-500/40';
+                    if (c >= 70) return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+                    return 'bg-red-500/20 text-red-300 border-red-500/40';
+                };
+
+                return (
+                    <div className="fixed inset-0 z-[260] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="bg-izbel-card w-full max-w-[1200px] max-h-[94vh] rounded-[1.5rem] border border-blue-500/30 shadow-2xl overflow-hidden flex flex-col">
+                            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-lg font-black text-white">Satış İçe Aktarma - Önizleme & Onay</h3>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Dosya: <span className="font-mono text-blue-300">{salesPreview.fileName}</span> |
+                                        Şube: <span className="text-blue-300 font-bold">{salesPreview.branchName}</span> |
+                                        Toplam <span className="text-white font-bold">{rows.length}</span> satır
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => { setSalesPreviewOpen(false); setSalesPreview(null); }}
+                                    className="text-gray-400 hover:text-white text-2xl leading-none"
+                                >×</button>
+                            </div>
+
+                            {/* Özet Kartları */}
+                            <div className="px-5 py-3 border-b border-white/10 grid grid-cols-2 md:grid-cols-5 gap-2 bg-black/20">
+                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-emerald-300">✅ Tam Eşleşen</div>
+                                    <div className="text-xl font-black text-emerald-200">{matchedRows.length}</div>
+                                </div>
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-amber-300">⚠ Gözden Geçir</div>
+                                    <div className="text-xl font-black text-amber-200">{reviewRows.length}</div>
+                                </div>
+                                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-red-300">🔴 Eksik</div>
+                                    <div className="text-xl font-black text-red-200">{missingRows.length}</div>
+                                </div>
+                                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-blue-300">Yeni Oluştur</div>
+                                    <div className="text-xl font-black text-blue-200">{counts.create}</div>
+                                </div>
+                                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-2">
+                                    <div className="text-[10px] uppercase tracking-wider text-purple-300">Toplam Miktar</div>
+                                    <div className="text-xl font-black text-purple-200">{totalQty.toLocaleString('tr-TR')}</div>
+                                </div>
+                            </div>
+
+                            {/* Sekmeler */}
+                            <div className="px-5 pt-3 border-b border-white/10 flex items-end gap-1 bg-black/10">
+                                {[
+                                    { key: 'missing', label: `🔴 Eksik (${missingRows.length})`, cls: 'border-red-500/60 text-red-200' },
+                                    { key: 'review', label: `⚠ Gözden Geçir (${reviewRows.length})`, cls: 'border-amber-500/60 text-amber-200' },
+                                    { key: 'matched', label: `✅ Tam Eşleşen (${matchedRows.length})`, cls: 'border-emerald-500/60 text-emerald-200' },
+                                ].map((t) => (
+                                    <button
+                                        key={t.key}
+                                        onClick={() => setSalesPreview((prev) => ({ ...prev, activeTab: t.key }))}
+                                        className={`px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${activeTab === t.key ? t.cls + ' bg-white/5' : 'border-transparent text-gray-400 hover:text-white'}`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                ))}
+                                <div className="ml-auto flex items-center gap-2 pb-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Ara: isim / stok kodu..."
+                                        value={salesPreview.searchText || ''}
+                                        onChange={(e) => setSalesPreview((prev) => ({ ...prev, searchText: e.target.value }))}
+                                        className="text-xs bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white placeholder-gray-500 w-56"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Toplu Eylemler */}
+                            <div className="px-5 py-2 border-b border-white/10 bg-black/10 flex flex-wrap items-center gap-2">
+                                {activeTab === 'missing' && (
+                                    <>
+                                        <button
+                                            onClick={() => bulkSetDecisions(
+                                                (r) => !r.product && r.suggestion,
+                                                { action: 'create' },
+                                            )}
+                                            className="text-[11px] font-bold uppercase tracking-wider text-blue-200 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 rounded-md px-3 py-1"
+                                        >
+                                            Reçetede Önerisi Olanları Oluştur ({missingRows.filter((r) => r.suggestion).length})
+                                        </button>
+                                        <button
+                                            onClick={() => bulkSetDecisions(
+                                                (r) => !r.product && !r.suggestion,
+                                                { action: 'create', stok_kodu: '', name: '' },
+                                            )}
+                                            className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-md px-3 py-1"
+                                        >
+                                            Önerisi Olmayanları da Oluştur (CSV adı ile)
+                                        </button>
+                                        <button
+                                            onClick={() => bulkSetDecisions((r) => !r.product, { action: 'skip' })}
+                                            className="text-[11px] font-bold uppercase tracking-wider text-gray-300 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/40 rounded-md px-3 py-1"
+                                        >
+                                            Tümünü Atla
+                                        </button>
+                                    </>
+                                )}
+                                {activeTab === 'review' && (
+                                    <>
+                                        <button
+                                            onClick={() => bulkSetDecisions((r) => r.product && r.confidence < 90, { action: 'keep' })}
+                                            className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-md px-3 py-1"
+                                        >
+                                            Tümünü Onayla (Mevcut Eşleşmeyi Koru)
+                                        </button>
+                                        <button
+                                            onClick={() => bulkSetDecisions((r) => r.product && r.confidence < 90, { action: 'skip' })}
+                                            className="text-[11px] font-bold uppercase tracking-wider text-gray-300 bg-gray-500/20 hover:bg-gray-500/30 border border-gray-500/40 rounded-md px-3 py-1"
+                                        >
+                                            Tümünü Atla
+                                        </button>
+                                    </>
+                                )}
+                                <div className="ml-auto text-[11px] text-gray-400">
+                                    {visibleRows.length} satır görüntüleniyor
+                                </div>
+                            </div>
+
+                            {/* Liste */}
+                            <div className="flex-1 overflow-y-auto px-5 py-3">
+                                {visibleRows.length === 0 ? (
+                                    <div className="text-center text-gray-500 py-10">Bu sekmede satır yok.</div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {visibleRows.slice(0, 500).map((r) => {
+                                            const dec = decisions[r.idx] || {};
+                                            const action = dec.action || 'skip';
+                                            return (
+                                                <div key={r.idx} className="bg-black/30 border border-white/10 rounded-xl p-3">
+                                                    <div className="flex items-start gap-3 flex-wrap">
+                                                        {/* CSV Tarafı */}
+                                                        <div className="flex-1 min-w-[260px]">
+                                                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                                <span className="text-[10px] uppercase tracking-wider text-gray-500">Satır {r.rowNum}</span>
+                                                                {r.stok_kodu && (
+                                                                    <span className="text-xs font-mono bg-white/10 px-1.5 py-0.5 rounded text-blue-200">{r.stok_kodu}</span>
+                                                                )}
+                                                                <span className="text-xs text-gray-400">×</span>
+                                                                <span className="text-sm font-bold text-white">{Number(r.qty).toLocaleString('tr-TR')} adet</span>
+                                                                {r.duplicateCount > 1 && (
+                                                                    <span className="text-[10px] bg-orange-500/20 text-orange-300 border border-orange-500/40 rounded px-1.5">
+                                                                        CSV'de {r.duplicateCount}× tekrar
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-sm text-white truncate">{r.name || '(İsimsiz)'}</div>
+                                                            {r.barcode && (
+                                                                <div className="text-[10px] text-gray-500 font-mono">Barkod: {r.barcode}</div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Güven / Durum */}
+                                                        {r.product && (
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md border ${confBadge(r.confidence)}`}>
+                                                                    %{r.confidence} {r.matchMethod}
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Karar Alanı */}
+                                                        <div className="w-full md:w-[420px] bg-black/40 border border-white/10 rounded-lg p-2">
+                                                            {/* Action Segmented */}
+                                                            <div className="flex gap-1 mb-2">
+                                                                {r.product && (
+                                                                    <button
+                                                                        onClick={() => setDecision(r.idx, { action: 'keep', mapProductId: r.product.id })}
+                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${action === 'keep' || action === 'review-keep' ? 'bg-emerald-500/30 text-emerald-200 border border-emerald-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                    >Onayla</button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => setDecision(r.idx, { action: 'create', stok_kodu: dec.stok_kodu || r.suggestion?.code || r.stok_kodu || '', name: dec.name || r.suggestion?.name || r.name || '' })}
+                                                                    className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${action === 'create' ? 'bg-blue-500/30 text-blue-200 border border-blue-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                >➕ Yeni Ekle</button>
+                                                                <button
+                                                                    onClick={() => setDecision(r.idx, { action: 'map-to', mapProductId: dec.mapProductId || r.product?.id || null })}
+                                                                    className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${action === 'map-to' ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                >🔗 Eşle</button>
+                                                                <button
+                                                                    onClick={() => setDecision(r.idx, { action: 'skip' })}
+                                                                    className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${action === 'skip' ? 'bg-gray-500/30 text-gray-200 border border-gray-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                >⏭ Atla</button>
+                                                            </div>
+
+                                                            {/* Action Detayları */}
+                                                            {(action === 'keep' || action === 'review-keep') && r.product && (
+                                                                <div className="text-xs">
+                                                                    <div className="text-gray-400">Eşlendi:</div>
+                                                                    <div className="text-emerald-300 font-bold truncate">{r.product.product_name}</div>
+                                                                    <div className="text-[10px] font-mono text-gray-500">{r.product.stok_kodu || '—'}</div>
+                                                                </div>
+                                                            )}
+                                                            {action === 'create' && (
+                                                                <div className="space-y-1">
+                                                                    {r.suggestion && (
+                                                                        <div className="text-[10px] text-blue-300 bg-blue-500/10 border border-blue-500/30 rounded px-2 py-1">
+                                                                            💡 Reçeteden öneri: <span className="font-mono">{r.suggestion.code}</span> — {r.suggestion.name} <span className="uppercase text-blue-400">({r.suggestion.kind})</span>
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="flex gap-1">
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="Stok kodu"
+                                                                            value={dec.stok_kodu || ''}
+                                                                            onChange={(e) => setDecision(r.idx, { stok_kodu: e.target.value })}
+                                                                            className="flex-1 text-[11px] font-mono bg-black/40 border border-white/10 rounded px-2 py-1 text-blue-200"
+                                                                        />
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="Ürün adı"
+                                                                            value={dec.name || ''}
+                                                                            onChange={(e) => setDecision(r.idx, { name: e.target.value })}
+                                                                            className="flex-[2] text-[11px] bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="text-[10px] text-gray-500">Yeni ürün varsayılan: Birim=Adet, Maliyet=0 TL. Sonra güncellenebilir.</div>
+                                                                </div>
+                                                            )}
+                                                            {action === 'map-to' && (
+                                                                <div className="space-y-1">
+                                                                    <select
+                                                                        value={dec.mapProductId || ''}
+                                                                        onChange={(e) => setDecision(r.idx, { mapProductId: e.target.value || null })}
+                                                                        className="w-full text-xs bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
+                                                                    >
+                                                                        <option value="">-- Mevcut ürün seç --</option>
+                                                                        {products.slice(0, 2000).map((p) => (
+                                                                            <option key={p.id} value={p.id}>
+                                                                                {p.stok_kodu ? `[${p.stok_kodu}] ` : ''}{p.product_name}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <div className="text-[10px] text-purple-300">
+                                                                        🧠 Bu eşleme kaydedilir; bir sonraki satışta "{r.name}" otomatik bu ürüne bağlanır.
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {action === 'skip' && (
+                                                                <div className="text-[10px] text-gray-400">Bu satır satış toplamına dahil edilmez.</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {visibleRows.length > 500 && (
+                                            <div className="text-center text-[11px] text-gray-500 py-2">
+                                                İlk 500 satır gösteriliyor. Daha fazlası için arama kullanın ({visibleRows.length} toplam).
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Alt Bar */}
+                            <div className="px-5 py-3 border-t border-white/10 bg-black/30 flex items-center gap-3 flex-wrap">
+                                <div className="text-xs text-gray-400 flex-1 flex flex-wrap gap-x-4 gap-y-1">
+                                    <span>✓ <b className="text-emerald-300">{counts.keep}</b> onay</span>
+                                    <span>➕ <b className="text-blue-300">{counts.create}</b> yeni</span>
+                                    <span>🔗 <b className="text-purple-300">{counts.mapTo}</b> eşleme</span>
+                                    <span>⏭ <b className="text-gray-300">{counts.skip}</b> atla</span>
+                                    <span className="text-gray-500">|</span>
+                                    <span>Toplam miktar: <b className="text-white">{totalQty.toLocaleString('tr-TR')}</b></span>
+                                </div>
+                                <button
+                                    onClick={() => { setSalesPreviewOpen(false); setSalesPreview(null); }}
+                                    disabled={salesPreviewApplying}
+                                    className="text-xs font-bold uppercase text-gray-300 border border-white/20 hover:bg-white/10 rounded-lg px-4 py-2 disabled:opacity-50"
+                                >Vazgeç</button>
+                                <button
+                                    onClick={applySalesPreview}
+                                    disabled={salesPreviewApplying}
+                                    className="text-xs font-black uppercase tracking-widest text-white bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 rounded-lg px-6 py-2 disabled:opacity-50"
+                                >{salesPreviewApplying ? 'Kaydediliyor...' : 'Onayla & Satışı Kaydet'}</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
             {showExportCategoriesModal && (
                 <div className="fixed inset-0 z-[240] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-izbel-card w-full max-w-5xl max-h-[92vh] rounded-[1.5rem] border border-emerald-500/30 shadow-2xl overflow-hidden flex flex-col">
