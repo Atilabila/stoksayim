@@ -496,6 +496,8 @@ export default function AdminDashboard({ onLogout }) {
     const [exportCategoryProductSearch, setExportCategoryProductSearch] = useState('');
     const [expandedCategoryId, setExpandedCategoryId] = useState(null);
     const [onlyRecipeProducts, setOnlyRecipeProducts] = useState(false);
+    /** Export modalında seçili ürün dışındaki satırlar "Diğer" sayfasına yazılmasın */
+    const [excludeUncategorized, setExcludeUncategorized] = useState(false);
     /** İlk Sayım Modu: aktifse İmpliye Açılış + Anomali sheet üretir, varyans hesaplamaz */
     const [firstPeriodMode, setFirstPeriodMode] = useState(false);
     /** Manuel alım (tedarik) girdileri: key branch|product -> quantity */
@@ -886,6 +888,22 @@ export default function AdminDashboard({ onLogout }) {
         });
         return s;
     }, [recipeItems]);
+
+    /**
+     * Tedarik edilen ürün id'leri — seçili şubeye (ya da şube 'ALL' ise herhangi bir şubeye)
+     * tedarik CSV / manual_supplies yoluyla miktar > 0 olarak gelenler.
+     */
+    const suppliedProductIdSet = useMemo(() => {
+        const s = new Set();
+        Object.keys(manualPurchaseByKey || {}).forEach((k) => {
+            const qty = Number(manualPurchaseByKey[k]) || 0;
+            if (qty <= 0) return;
+            const [bid, pid] = k.split('|');
+            if (selectedBranchId && selectedBranchId !== 'ALL' && bid !== selectedBranchId) return;
+            if (pid) s.add(String(pid));
+        });
+        return s;
+    }, [manualPurchaseByKey, selectedBranchId]);
 
     /** Reçete raw cache'ten gelen stok kodlarından hangileri sistemde yok? */
     const missingRecipeStokKodlari = useMemo(() => {
@@ -1601,7 +1619,7 @@ export default function AdminDashboard({ onLogout }) {
         XLSX.writeFile(wb, `izbel_sube_ozet_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
-    const exportProductCSV = (customCategories = null, firstPeriodModeArg = false) => {
+    const exportProductCSV = (customCategories = null, firstPeriodModeArg = false, excludeOtherArg = false) => {
         void (async () => {
             const branchFilter = selectedBranchId !== 'ALL' ? selectedBranchId : null;
             const asOf = new Date().toISOString().split('T')[0];
@@ -2198,8 +2216,10 @@ export default function AdminDashboard({ onLogout }) {
                     });
                     if (subset.length) renderer(cat.name.slice(0, 31), subset);
                 });
-                const leftovers = mutRows.filter((r) => !usedKeys.has(r.branchId + '|' + r.productId));
-                if (leftovers.length) renderer(otherSheetName, leftovers);
+                if (!excludeOtherArg) {
+                    const leftovers = mutRows.filter((r) => !usedKeys.has(r.branchId + '|' + r.productId));
+                    if (leftovers.length) renderer(otherSheetName, leftovers);
+                }
             } else {
                 renderer(defaultSheetName, mutRows);
             }
@@ -2982,27 +3002,48 @@ export default function AdminDashboard({ onLogout }) {
             }
 
             // 3) Transfer satırlarını finalle: branch + product çöz
+            // Aynı stok_kodu için daha önce çözümlenen productId'yi kullanabilmek için lookup oluştur
+            const stokToProductId = new Map();
+            rows.forEach((r) => {
+                if (r.productId && r.stokKodu && !stokToProductId.has(r.stokKodu)) {
+                    stokToProductId.set(r.stokKodu, r.productId);
+                }
+            });
+
+            const drop = { sameBranch: 0, noFrom: 0, noTo: 0, noStokKodu: 0, noProduct: 0, skipDec: 0, zeroQty: 0 };
+            const droppedSample = []; // ilk 10 düşen satırı logla
             const finalized = [];
             for (const r of rows) {
                 const fromId = r.fromBranchId || branchDecisions?.[r.fromRaw] || null;
                 const toId = r.toBranchId || branchDecisions?.[r.toRaw] || null;
-                if (!fromId || !toId) continue;
-                if (fromId === toId) continue;
-                if (!r.stokKodu) continue;
+                if (!fromId && !toId) { drop.noFrom++; drop.noTo++; if (droppedSample.length < 10) droppedSample.push({ r, reason: 'noBranch' }); continue; }
+                if (!fromId) { drop.noFrom++; if (droppedSample.length < 10) droppedSample.push({ r, reason: 'noFrom' }); continue; }
+                if (!toId) { drop.noTo++; if (droppedSample.length < 10) droppedSample.push({ r, reason: 'noTo' }); continue; }
+                if (fromId === toId) { drop.sameBranch++; if (droppedSample.length < 10) droppedSample.push({ r, reason: 'sameBranch' }); continue; }
+                if (!r.stokKodu) { drop.noStokKodu++; continue; }
 
                 let productId = r.productId || null;
                 const pDec = productDecisions?.[r.stokKodu];
                 if (!productId) {
-                    if (pDec?.action === 'skip') continue;
+                    if (pDec?.action === 'skip') { drop.skipDec++; continue; }
                     if (pDec?.action === 'map-to' && pDec.mapProductId) productId = pDec.mapProductId;
-                    if (pDec?.action === 'create') {
+                    else if (pDec?.action === 'create') {
                         const p = codeToProduct.get(String(pDec.stok_kodu || r.stokKodu).toUpperCase());
                         if (p?.id) productId = p.id;
                     }
+                    // 'keep' veya action yok → aynı stokKodu için başka satırda çözülmüş productId varsa onu kullan
+                    if (!productId) {
+                        const fallback = stokToProductId.get(r.stokKodu);
+                        if (fallback) productId = fallback;
+                    }
                 }
-                if (!productId) continue;
+                if (!productId) {
+                    drop.noProduct++;
+                    if (droppedSample.length < 10) droppedSample.push({ r, reason: 'noProduct' });
+                    continue;
+                }
                 const qty = Number(r.qty) || 0;
-                if (!Number.isFinite(qty) || qty <= 0) continue;
+                if (!Number.isFinite(qty) || qty <= 0) { drop.zeroQty++; continue; }
 
                 finalized.push({
                     from_branch_id: fromId,
@@ -3016,21 +3057,50 @@ export default function AdminDashboard({ onLogout }) {
                 });
             }
 
+            // Detay logları (kullanıcı konsolda görebilsin)
+            console.log('[Sevk] filtre özeti:', {
+                rows: rows.length,
+                finalized: finalized.length,
+                dropped: drop,
+                droppedSample: droppedSample.slice(0, 10).map((x) => ({ reason: x.reason, pdf: x.r.sourcePdfName, fromRaw: x.r.fromRaw, toRaw: x.r.toRaw, stokKodu: x.r.stokKodu })),
+            });
+
             if (finalized.length === 0) {
                 toast.error('Kaydedilecek sevk satırı bulunamadı (şube/ürün eşlemesini kontrol edin).');
                 return;
             }
 
-            // 4) branch_transfers upsert (duplicate'leri yakalamak için)
+            // 4) branch_transfers kaydı:
+            //    - evrak_no dolu olanlar için upsert (duplicate engelle)
+            //    - evrak_no boş olanlar için doğrudan insert
             let inserted = 0;
-            for (let i = 0; i < finalized.length; i += 500) {
-                const chunk = finalized.slice(i, i + 500);
+            const withEvrak = finalized.filter((t) => t && t.evrak_no);
+            const noEvrak = finalized.filter((t) => !t || !t.evrak_no);
+
+            for (let i = 0; i < withEvrak.length; i += 500) {
+                const chunk = withEvrak.slice(i, i + 500);
                 const { data, error } = await supabase
                     .from('branch_transfers')
-                    .upsert(chunk, { onConflict: 'evrak_no,product_id' })
+                    .upsert(chunk, { onConflict: 'evrak_no,product_id', ignoreDuplicates: false })
                     .select('id');
                 if (error) {
                     console.error('branch_transfers upsert err:', error);
+                    // Fallback: upsert başarısızsa satır satır insert dene
+                    for (const row of chunk) {
+                        const { error: insErr } = await supabase.from('branch_transfers').insert(row);
+                        if (!insErr) inserted++;
+                        else if (insErr.code !== '23505') console.warn('branch_transfers insert err:', insErr);
+                    }
+                    continue;
+                }
+                inserted += (data || []).length;
+            }
+
+            for (let i = 0; i < noEvrak.length; i += 500) {
+                const chunk = noEvrak.slice(i, i + 500);
+                const { data, error } = await supabase.from('branch_transfers').insert(chunk).select('id');
+                if (error) {
+                    console.error('branch_transfers insert err (no evrak):', error);
                     continue;
                 }
                 inserted += (data || []).length;
@@ -3084,7 +3154,15 @@ export default function AdminDashboard({ onLogout }) {
             }
 
             await fetchData();
-            toast.success(`Sevk kaydedildi: ${inserted} transfer satırı işlendi (manual_supplies çift yön yansıtıldı).`);
+            const dropParts = [];
+            if (drop.noFrom) dropParts.push(`${drop.noFrom} kaynak şube yok`);
+            if (drop.noTo) dropParts.push(`${drop.noTo} hedef şube yok`);
+            if (drop.sameBranch) dropParts.push(`${drop.sameBranch} aynı şube`);
+            if (drop.noProduct) dropParts.push(`${drop.noProduct} ürün eşlenemedi`);
+            if (drop.skipDec) dropParts.push(`${drop.skipDec} atlandı`);
+            if (drop.zeroQty) dropParts.push(`${drop.zeroQty} miktar 0`);
+            const dropMsg = dropParts.length ? ` · Düşenler: ${dropParts.join(', ')}` : '';
+            toast.success(`Sevk kaydedildi: ${inserted}/${rows.length} satır · ${finalized.length} final${dropMsg}`);
             setTransferPreviewOpen(false);
             setTransferPreview(null);
         } catch (err) {
@@ -6820,6 +6898,55 @@ export default function AdminDashboard({ onLogout }) {
                                 </div>
                             </label>
 
+                            <label className={`flex items-start gap-3 rounded-xl p-4 cursor-pointer transition-all ${excludeUncategorized ? 'bg-fuchsia-500/15 border border-fuchsia-500/50' : 'bg-white/[0.03] border border-white/10 hover:border-fuchsia-500/30'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={excludeUncategorized}
+                                    onChange={(e) => setExcludeUncategorized(e.target.checked)}
+                                    className="mt-1 accent-fuchsia-500 w-4 h-4"
+                                />
+                                <div className="flex-1">
+                                    <div className="font-black text-sm text-fuchsia-200 mb-1">
+                                        Sadece kategorideki ürünleri dahil et
+                                        {excludeUncategorized && (
+                                            <span className="ml-2 px-2 py-0.5 bg-fuchsia-500 text-white rounded-full text-[10px] font-bold tracking-wider">AÇIK</span>
+                                        )}
+                                    </div>
+                                    <div className="text-xs text-fuchsia-100/70 leading-relaxed">
+                                        İşaretli ise <b>"Diğer (Kategorisiz)"</b> sayfası üretilmez — Mutabakat sadece kategorilere eklediğiniz ürünlerden oluşur.
+                                        "🚚 Tedarikten Çek" butonuyla bu şubeye tedarik edilen ürünleri tek tıkla seçtikten sonra bunu açarsanız,
+                                        rapor sadece <b>şubeye gerçekten gelen ürünlerden</b> oluşur. Reçete tüketim formülleri yine doğru hesaplanır.
+                                    </div>
+                                </div>
+                            </label>
+
+                            {selectedBranchId !== 'ALL' && (
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center gap-3 flex-wrap">
+                                    <div className="flex-1 min-w-[200px] text-xs text-amber-100">
+                                        🚚 <b>"{branches.find((b) => b.id === selectedBranchId)?.branch_name}"</b> şubesine tedarik edilmiş <b>{suppliedProductIdSet.size}</b> ürün bulundu.
+                                        Tek tıkla yeni kategori oluşturup hepsini ekleyebilirsiniz.
+                                    </div>
+                                    <button
+                                        type="button"
+                                        disabled={suppliedProductIdSet.size === 0}
+                                        onClick={() => {
+                                            const bName = branches.find((b) => b.id === selectedBranchId)?.branch_name || 'Şube';
+                                            const id = 'cat_' + Date.now();
+                                            const ids = Array.from(suppliedProductIdSet);
+                                            setExportCategories((prev) => [
+                                                ...prev,
+                                                { id, name: `${bName} — Tedarikli`.slice(0, 31), productIds: ids },
+                                            ]);
+                                            setExpandedCategoryId(id);
+                                            toast.success(`"${bName} — Tedarikli" kategorisi ${ids.length} ürünle oluşturuldu.`);
+                                        }}
+                                        className="text-xs font-bold uppercase tracking-widest text-amber-100 bg-amber-600/40 hover:bg-amber-600/60 border border-amber-500/50 rounded-lg px-4 py-2 disabled:opacity-50"
+                                    >
+                                        🚚 Tedarikli Kategorisini Oluştur
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="flex items-center justify-between gap-2 flex-wrap">
                                 <div className="text-sm text-gray-300">
                                     <span className="font-bold text-white">{exportCategories.length}</span> kategori tanımlı
@@ -6982,6 +7109,29 @@ export default function AdminDashboard({ onLogout }) {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
+                                                                    const ids = Array.from(suppliedProductIdSet);
+                                                                    if (ids.length === 0) {
+                                                                        toast.info(selectedBranchId !== 'ALL' ? 'Bu şubeye tedarik edilmiş ürün bulunamadı.' : 'Tedarik edilmiş ürün bulunamadı.');
+                                                                        return;
+                                                                    }
+                                                                    setExportCategories((prev) =>
+                                                                        prev.map((c) => {
+                                                                            if (c.id !== cat.id) return c;
+                                                                            const merged = new Set([...(c.productIds || []).map(String), ...ids]);
+                                                                            return { ...c, productIds: Array.from(merged) };
+                                                                        }),
+                                                                    );
+                                                                    toast.success(`${ids.length} tedarikli ürün eklendi${selectedBranchId !== 'ALL' ? ` (${branches.find((b) => b.id === selectedBranchId)?.branch_name || 'şube'})` : ''}.`);
+                                                                }}
+                                                                className="text-xs font-bold text-amber-300 border border-amber-500/40 rounded-lg px-3 py-1.5"
+                                                                title={selectedBranchId !== 'ALL' ? 'Seçili şubeye tedarik edilmiş tüm ürünleri ekler' : 'Herhangi bir şubeye tedarik edilmiş tüm ürünleri ekler'}
+                                                                disabled={suppliedProductIdSet.size === 0}
+                                                            >
+                                                                🚚 Tedarikten Çek ({suppliedProductIdSet.size})
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
                                                                     setExportCategories((prev) =>
                                                                         prev.map((c) => (c.id === cat.id ? { ...c, productIds: [] } : c)),
                                                                     );
@@ -7061,7 +7211,7 @@ export default function AdminDashboard({ onLogout }) {
                                     onClick={() => {
                                         try { localStorage.setItem('exportCategories_v1', JSON.stringify(exportCategories)); } catch {}
                                         setShowExportCategoriesModal(false);
-                                        exportProductCSV(null, firstPeriodMode);
+                                        exportProductCSV(null, firstPeriodMode, false);
                                     }}
                                     className="text-xs font-bold uppercase tracking-widest text-gray-200 border border-white/10 hover:bg-white/5 rounded-lg px-4 py-2.5"
                                 >
@@ -7077,11 +7227,11 @@ export default function AdminDashboard({ onLogout }) {
                                         }
                                         try { localStorage.setItem('exportCategories_v1', JSON.stringify(exportCategories)); } catch {}
                                         setShowExportCategoriesModal(false);
-                                        exportProductCSV(valid, firstPeriodMode);
+                                        exportProductCSV(valid, firstPeriodMode, excludeUncategorized);
                                     }}
                                     className={`text-xs font-bold uppercase tracking-widest text-white rounded-lg px-4 py-2.5 flex items-center gap-2 ${firstPeriodMode ? 'bg-amber-600 hover:bg-amber-500' : 'bg-emerald-600 hover:bg-emerald-500'}`}
                                 >
-                                    {firstPeriodMode ? 'İlk Sayım İndir' : 'Bitir & İndir'} ({exportCategories.filter((c) => (c.productIds?.length || 0) > 0).length} sayfa)
+                                    {firstPeriodMode ? 'İlk Sayım İndir' : 'Bitir & İndir'} ({exportCategories.filter((c) => (c.productIds?.length || 0) > 0).length} sayfa{excludeUncategorized ? ' · Diğer yok' : ''})
                                 </button>
                             </div>
                         </div>

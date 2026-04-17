@@ -15,10 +15,21 @@ CREATE TABLE IF NOT EXISTS branch_transfers (
 );
 
 -- Aynı evrak+ürün tekrar yüklenirse duplicate sayıp atlayabilmek için.
--- evrak_no olmayan kayıtlar unique'e girmez.
-CREATE UNIQUE INDEX IF NOT EXISTS ux_branch_transfers_evrak_product
-  ON branch_transfers(evrak_no, product_id)
-  WHERE evrak_no IS NOT NULL;
+-- Not: partial index (WHERE ...) PostgREST upsert ON CONFLICT ile çalışmaz.
+-- Bu yüzden normal UNIQUE constraint; Postgres default NULLS DISTINCT olduğundan
+-- evrak_no NULL olan satırlar birbiriyle çakışmaz.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'ux_branch_transfers_evrak_product'
+      AND conrelid = 'branch_transfers'::regclass
+  ) THEN
+    ALTER TABLE branch_transfers
+      ADD CONSTRAINT ux_branch_transfers_evrak_product
+      UNIQUE (evrak_no, product_id);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_branch_transfers_period ON branch_transfers(period_id);
 CREATE INDEX IF NOT EXISTS idx_branch_transfers_from ON branch_transfers(from_branch_id, period_id);
