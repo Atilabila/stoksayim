@@ -94,12 +94,30 @@ async function extractPdfTextLines(file) {
     for (let p = 1; p <= pdf.numPages; p++) {
         const page = await pdf.getPage(p);
         const tc = await page.getTextContent();
-        const items = (tc.items || []).map((it) => String(it.str || '')).filter(Boolean);
-        // Çoğu irsaliyede zaten satır düzeninde geliyor; yine de normalize edelim
-        items.forEach((t) => {
-            const norm = String(t).replace(/\u00A0/g, ' ').trim();
-            if (norm) lines.push(norm);
-        });
+        // PDF.js çoğu zaman metni parça parça verir (kelime kelime).
+        // Bu yüzden Y koordinatına göre gruplayıp (satırlaştırıp) X sırasıyla birleştiriyoruz.
+        const rawItems = (tc.items || [])
+            .map((it) => ({
+                str: String(it.str || '').replace(/\u00A0/g, ' ').trim(),
+                x: Array.isArray(it.transform) ? Number(it.transform[4]) : 0,
+                y: Array.isArray(it.transform) ? Number(it.transform[5]) : 0,
+            }))
+            .filter((it) => it.str);
+
+        // y’yi toleransla bucket’la
+        const byY = new Map(); // yKey -> items[]
+        const yTol = 2; // aynı satır için tolerans
+        for (const it of rawItems) {
+            const yKey = Math.round(it.y / yTol) * yTol;
+            if (!byY.has(yKey)) byY.set(yKey, []);
+            byY.get(yKey).push(it);
+        }
+        const yKeys = Array.from(byY.keys()).sort((a, b) => b - a); // üstten alta
+        for (const yKey of yKeys) {
+            const rowItems = byY.get(yKey).sort((a, b) => a.x - b.x);
+            const row = rowItems.map((it) => it.str).join(' ').replace(/\s+/g, ' ').trim();
+            if (row) lines.push(row);
+        }
     }
     return lines;
 }
@@ -138,10 +156,11 @@ async function parseTransferPdf(file) {
         toRaw = String(lines[0]).trim();
     }
 
-    // Ürün satırları: "ST00301 MAGNOLİA 1,000 1" ya da "ST00301 MAGNOLİA 1,000\t1"
+    // Ürün satırları: "ST00301 MAGNOLİA 1,000 1" gibi.
+    // Bazı PDF'lerde sonda sıra no olmayabilir; bu yüzden opsiyonel.
     const items = [];
     for (const l of lines) {
-        const m = l.match(/^(ST\d{4,})\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s+\d+\s*$/);
+        const m = l.match(/^(ST\d{4,})\s+(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:\s+\d+)?\s*$/);
         if (!m) continue;
         const stokKodu = m[1];
         const stokAdi = String(m[2] || '').trim();
