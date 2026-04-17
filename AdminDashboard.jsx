@@ -94,19 +94,23 @@ async function extractPdfTextLines(file) {
     for (let p = 1; p <= pdf.numPages; p++) {
         const page = await pdf.getPage(p);
         const tc = await page.getTextContent();
-        // PDF.js çoğu zaman metni parça parça verir (kelime kelime).
-        // Bu yüzden Y koordinatına göre gruplayıp (satırlaştırıp) X sırasıyla birleştiriyoruz.
+        // PDF.js çoğu zaman metni parça parça verir (hatta Türkçe İ, Ğ, Ş karakterleri ayrı item olabilir).
+        // Bu yüzden satırları Y koordinatına göre gruplayıp, ardından X boşluğuna göre boşluk koy/koyma kararı veriyoruz.
         const rawItems = (tc.items || [])
-            .map((it) => ({
-                str: String(it.str || '').replace(/\u00A0/g, ' ').trim(),
-                x: Array.isArray(it.transform) ? Number(it.transform[4]) : 0,
-                y: Array.isArray(it.transform) ? Number(it.transform[5]) : 0,
-            }))
-            .filter((it) => it.str);
+            .map((it) => {
+                const tr = Array.isArray(it.transform) ? it.transform : [10, 0, 0, 10, 0, 0];
+                return {
+                    str: String(it.str || '').replace(/\u00A0/g, ' '),
+                    x: Number(tr[4]) || 0,
+                    y: Number(tr[5]) || 0,
+                    w: Number(it.width) || 0,
+                    h: Number(it.height) || Number(tr[0]) || 10,
+                };
+            })
+            .filter((it) => it.str && it.str.length > 0);
 
-        // y’yi toleransla bucket’la
-        const byY = new Map(); // yKey -> items[]
-        const yTol = 2; // aynı satır için tolerans
+        const yTol = 2;
+        const byY = new Map();
         for (const it of rawItems) {
             const yKey = Math.round(it.y / yTol) * yTol;
             if (!byY.has(yKey)) byY.set(yKey, []);
@@ -115,8 +119,27 @@ async function extractPdfTextLines(file) {
         const yKeys = Array.from(byY.keys()).sort((a, b) => b - a); // üstten alta
         for (const yKey of yKeys) {
             const rowItems = byY.get(yKey).sort((a, b) => a.x - b.x);
-            const row = rowItems.map((it) => it.str).join(' ').replace(/\s+/g, ' ').trim();
-            if (row) lines.push(row);
+            let line = '';
+            for (let i = 0; i < rowItems.length; i++) {
+                const cur = rowItems[i];
+                if (i === 0) {
+                    line = cur.str;
+                    continue;
+                }
+                const prev = rowItems[i - 1];
+                const gap = cur.x - (prev.x + prev.w);
+                // Karakter yüksekliğinin ~%25'i kadar boşluk → gerçek kelime boşluğu
+                const spaceThreshold = Math.max(0.8, (prev.h || 10) * 0.25);
+                const endsWithSpace = /\s$/.test(line);
+                const startsWithSpace = /^\s/.test(cur.str);
+                if (gap > spaceThreshold && !endsWithSpace && !startsWithSpace) {
+                    line += ' ' + cur.str;
+                } else {
+                    line += cur.str;
+                }
+            }
+            const norm = line.replace(/\s+/g, ' ').trim();
+            if (norm) lines.push(norm);
         }
     }
     return lines;
@@ -140,21 +163,72 @@ async function parseTransferPdf(file) {
     let fromRaw = null;
     let toRaw = null;
 
+    const cleanBranch = (s) =>
+        String(s || '')
+            .replace(/[:：]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+    // 1) Aynı satırda etiket + değer
+    const gonderenBefore = /^(.+?)\s*Gönderen\s*Şube/i;
+    const gonderenAfter = /Gönderen\s*Şube\s*[:：]?\s*(.+)$/i;
+    const hedefBefore = /^(.+?)\s*Hedef\s*Şube/i;
+    const hedefAfter = /Hedef\s*Şube\s*[:：]?\s*(.+)$/i;
     for (let i = 0; i < lines.length; i++) {
         const l = lines[i];
-        if (l.includes('Gönderen Şube')) {
-            // "CINARLI Gönderen Şube"
-            fromRaw = l.replace('Gönderen Şube', '').replace(':', '').trim() || fromRaw;
+        if (!fromRaw) {
+            const m = l.match(gonderenBefore);
+            if (m && m[1] && !/Hedef|Gönderen/i.test(m[1])) fromRaw = cleanBranch(m[1]);
         }
-        if (l === 'Hedef Şube' && lines[i + 1]) {
-            // Bazı PDF'lerde başlık var, değer bir sonraki satırda
-            toRaw = String(lines[i + 1]).replace(':', '').trim() || toRaw;
+        if (!fromRaw) {
+            const m = l.match(gonderenAfter);
+            if (m && m[1]) {
+                const v = cleanBranch(m[1]);
+                if (v && v.length <= 60 && !/Hedef/i.test(v)) fromRaw = v;
+            }
+        }
+        if (!toRaw) {
+            const m = l.match(hedefBefore);
+            if (m && m[1] && !/Hedef|Gönderen/i.test(m[1])) toRaw = cleanBranch(m[1]);
+        }
+        if (!toRaw) {
+            const m = l.match(hedefAfter);
+            if (m && m[1]) {
+                const v = cleanBranch(m[1]);
+                if (v && v.length <= 60) toRaw = v;
+            }
         }
     }
-    // Bazı PDF'lerde hedef şube sayfanın ilk satırında olur (örnek: ADILE)
-    if (!toRaw && lines[0] && !/TRANSFER|İRSALİYE|Sıra No/i.test(lines[0])) {
-        toRaw = String(lines[0]).trim();
+
+    // 2) Etiket tek başına bir satır ise, bir sonraki satır değer olabilir
+    for (let i = 0; i < lines.length; i++) {
+        const l = lines[i];
+        if (!fromRaw && /^Gönderen\s*Şube\s*[:：]?$/i.test(l) && lines[i + 1]) fromRaw = cleanBranch(lines[i + 1]);
+        if (!toRaw && /^Hedef\s*Şube\s*[:：]?$/i.test(l) && lines[i + 1]) toRaw = cleanBranch(lines[i + 1]);
     }
+
+    // 3) Sayfanın ilk satırı hedef olabilir
+    if (!toRaw && lines[0] && !/TRANSFER|İRSALİYE|Sıra No|Gönderen|Hedef/i.test(lines[0])) {
+        toRaw = cleanBranch(lines[0]);
+    }
+
+    // 4) Dosya adından fallback: "<GÖNDEREN> <HEDEF> <TARİH>.pdf"
+    if ((!fromRaw || !toRaw) && file && file.name) {
+        const fn = String(file.name).replace(/\.pdf$/i, '').trim();
+        const fm = fn.match(/^(.+?)\s+(.+?)\s+\d{1,2}[.\-/]\d{1,2}[.\-/]\d{4}\s*$/);
+        if (fm) {
+            if (!fromRaw) fromRaw = fm[1].trim();
+            if (!toRaw) toRaw = fm[2].trim();
+        } else {
+            // "<ŞUBE> DD.MM.YYYY.pdf" gibi tek şubeli isim → hedef
+            const fm2 = fn.match(/^(.+?)\s+\d{1,2}[.\-/]\d{1,2}[.\-/]\d{4}\s*$/);
+            if (fm2 && !toRaw) toRaw = fm2[1].trim();
+        }
+    }
+
+    // Son temizlik
+    if (fromRaw) fromRaw = String(fromRaw).replace(/\s*\bGönderen\b.*$/i, '').replace(/\s*\bHedef\b.*$/i, '').trim();
+    if (toRaw) toRaw = String(toRaw).replace(/\s*\bHedef\b.*$/i, '').replace(/\s*\bGönderen\b.*$/i, '').trim();
 
     // Ürün satırları: PDF'lerde bazen tek satır, bazen parçalı çıkar.
     // Önce satır bazlı, olmadı tüm metinden global regex ile yakala.
@@ -6059,79 +6133,126 @@ export default function AdminDashboard({ onLogout }) {
                                     </div>
                                 )}
 
-                                {activeTab === 'products' && (
-                                    <div className="space-y-2">
-                                        {uniqueProducts.length === 0 ? (
-                                            <div className="text-center text-gray-500 py-10">Ürün satırı yok.</div>
-                                        ) : (
-                                            uniqueProducts.map((sk) => {
-                                                const anyResolved = rows.some((r) => r.stokKodu === sk && r.productId);
-                                                const dec = productDecisions[sk] || { action: anyResolved ? 'keep' : 'create', stok_kodu: sk, name: rows.find((r) => r.stokKodu === sk)?.stokAdi || sk };
-                                                return (
-                                                    <div key={sk} className="bg-black/30 border border-white/10 rounded-xl p-3">
-                                                        <div className="flex items-start gap-3 flex-wrap">
-                                                            <div className="flex-1 min-w-[260px]">
-                                                                <div className="text-xs text-gray-400">Stok Kodu</div>
-                                                                <div className="text-sm font-black text-white font-mono">{sk}</div>
-                                                                <div className="text-xs text-gray-300 mt-1 truncate">{rows.find((r) => r.stokKodu === sk)?.stokAdi || ''}</div>
-                                                            </div>
-                                                            <div className="w-full md:w-[520px] bg-black/40 border border-white/10 rounded-lg p-2">
-                                                                <div className="flex gap-1 mb-2">
-                                                                    <button
-                                                                        onClick={() => setProductDecision(sk, { action: 'create', stok_kodu: sk, name: dec.name || rows.find((r) => r.stokKodu === sk)?.stokAdi || sk })}
-                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'create' ? 'bg-blue-500/30 text-blue-200 border border-blue-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
-                                                                    >➕ Yeni</button>
-                                                                    <button
-                                                                        onClick={() => setProductDecision(sk, { action: 'map-to', mapProductId: dec.mapProductId || '' })}
-                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'map-to' ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
-                                                                    >🔗 Eşle</button>
-                                                                    <button
-                                                                        onClick={() => setProductDecision(sk, { action: 'skip' })}
-                                                                        className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'skip' ? 'bg-gray-500/30 text-gray-200 border border-gray-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
-                                                                    >⏭ Atla</button>
-                                                                </div>
-
-                                                                {dec.action === 'create' && (
-                                                                    <div className="flex gap-1">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={dec.stok_kodu || sk}
-                                                                            onChange={(e) => setProductDecision(sk, { stok_kodu: e.target.value })}
-                                                                            className="flex-1 text-[11px] font-mono bg-black/40 border border-white/10 rounded px-2 py-1 text-blue-200"
-                                                                            placeholder="Stok kodu"
-                                                                        />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={dec.name || ''}
-                                                                            onChange={(e) => setProductDecision(sk, { name: e.target.value })}
-                                                                            className="flex-[2] text-[11px] bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
-                                                                            placeholder="Ürün adı"
-                                                                        />
-                                                                    </div>
-                                                                )}
-                                                                {dec.action === 'map-to' && (
-                                                                    <select
-                                                                        value={dec.mapProductId || ''}
-                                                                        onChange={(e) => setProductDecision(sk, { mapProductId: e.target.value })}
-                                                                        className="w-full text-xs bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
-                                                                    >
-                                                                        <option value="">-- Ürün seç --</option>
-                                                                        {products.slice(0, 2000).map((p) => (
-                                                                            <option key={p.id} value={p.id}>{p.stok_kodu ? `[${p.stok_kodu}] ` : ''}{p.product_name}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                )}
-                                                                {dec.action === 'skip' && (
-                                                                    <div className="text-[10px] text-gray-400">Bu stok kodu sevklerde yok sayılır (transfer satırları atlanır).</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
+                                {activeTab === 'products' && (() => {
+                                    const skSearch = searchText;
+                                    const filteredProducts = !skSearch ? uniqueProducts : uniqueProducts.filter((sk) => {
+                                        const row = rows.find((r) => r.stokKodu === sk);
+                                        const nm = (row?.stokAdi || '').toLowerCase();
+                                        return sk.toLowerCase().includes(skSearch) || nm.includes(skSearch);
+                                    });
+                                    return (
+                                        <div className="space-y-2">
+                                            {uniqueProducts.length === 0 ? (
+                                                <div className="text-center text-gray-500 py-10">Ürün satırı yok.</div>
+                                            ) : filteredProducts.length === 0 ? (
+                                                <div className="text-center text-gray-500 py-10">"{skSearch}" için eşleşen ürün bulunamadı.</div>
+                                            ) : (
+                                                <>
+                                                    <div className="text-[11px] text-gray-400 px-2 pb-1">
+                                                        {filteredProducts.length} / {uniqueProducts.length} ürün gösteriliyor
+                                                        {skSearch && <span> · filtre: <b className="text-cyan-300">"{skSearch}"</b> · Üstteki arama kutusunu kullanın</span>}
                                                     </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-                                )}
+                                                    {filteredProducts.map((sk) => {
+                                                        const anyResolved = rows.some((r) => r.stokKodu === sk && r.productId);
+                                                        const dec = productDecisions[sk] || { action: anyResolved ? 'keep' : 'create', stok_kodu: sk, name: rows.find((r) => r.stokKodu === sk)?.stokAdi || sk };
+                                                        const perRowSearch = (dec.productSearch || '').trim().toLowerCase();
+                                                        const rawName = rows.find((r) => r.stokKodu === sk)?.stokAdi || '';
+                                                        // "Eşle" seçildiğinde görünen ürün listesi (per-row filter)
+                                                        const mapOptions = (() => {
+                                                            const autoSeed = perRowSearch || (rawName ? rawName.toLowerCase().split(' ').filter((x) => x.length > 2).slice(0, 2).join(' ') : '');
+                                                            const q = perRowSearch || autoSeed;
+                                                            if (!q) return products.slice(0, 200);
+                                                            const qTokens = q.split(/\s+/).filter(Boolean);
+                                                            const scored = products
+                                                                .map((p) => {
+                                                                    const hay = `${p.stok_kodu || ''} ${p.product_name || ''}`.toLowerCase();
+                                                                    const hits = qTokens.reduce((n, t) => n + (hay.includes(t) ? 1 : 0), 0);
+                                                                    return { p, hits, hay };
+                                                                })
+                                                                .filter((x) => x.hits > 0)
+                                                                .sort((a, b) => b.hits - a.hits || a.hay.length - b.hay.length);
+                                                            return scored.slice(0, 200).map((x) => x.p);
+                                                        })();
+                                                        return (
+                                                            <div key={sk} className="bg-black/30 border border-white/10 rounded-xl p-3">
+                                                                <div className="flex items-start gap-3 flex-wrap">
+                                                                    <div className="flex-1 min-w-[260px]">
+                                                                        <div className="text-xs text-gray-400">Stok Kodu</div>
+                                                                        <div className="text-sm font-black text-white font-mono">{sk}</div>
+                                                                        <div className="text-xs text-gray-300 mt-1 truncate">{rawName}</div>
+                                                                    </div>
+                                                                    <div className="w-full md:w-[520px] bg-black/40 border border-white/10 rounded-lg p-2">
+                                                                        <div className="flex gap-1 mb-2">
+                                                                            <button
+                                                                                onClick={() => setProductDecision(sk, { action: 'create', stok_kodu: sk, name: dec.name || rawName || sk })}
+                                                                                className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'create' ? 'bg-blue-500/30 text-blue-200 border border-blue-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                            >➕ Yeni</button>
+                                                                            <button
+                                                                                onClick={() => setProductDecision(sk, { action: 'map-to', mapProductId: dec.mapProductId || '', productSearch: dec.productSearch || '' })}
+                                                                                className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'map-to' ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                            >🔗 Eşle</button>
+                                                                            <button
+                                                                                onClick={() => setProductDecision(sk, { action: 'skip' })}
+                                                                                className={`flex-1 text-[10px] font-bold uppercase px-2 py-1 rounded ${dec.action === 'skip' ? 'bg-gray-500/30 text-gray-200 border border-gray-500/50' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                                                                            >⏭ Atla</button>
+                                                                        </div>
+
+                                                                        {dec.action === 'create' && (
+                                                                            <div className="flex gap-1">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={dec.stok_kodu || sk}
+                                                                                    onChange={(e) => setProductDecision(sk, { stok_kodu: e.target.value })}
+                                                                                    className="flex-1 text-[11px] font-mono bg-black/40 border border-white/10 rounded px-2 py-1 text-blue-200"
+                                                                                    placeholder="Stok kodu"
+                                                                                />
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={dec.name || ''}
+                                                                                    onChange={(e) => setProductDecision(sk, { name: e.target.value })}
+                                                                                    className="flex-[2] text-[11px] bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
+                                                                                    placeholder="Ürün adı"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                        {dec.action === 'map-to' && (
+                                                                            <div className="space-y-1">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={dec.productSearch || ''}
+                                                                                    onChange={(e) => setProductDecision(sk, { productSearch: e.target.value })}
+                                                                                    placeholder={`🔍 Ürün ara (örn: ${rawName ? rawName.split(' ')[0] : 'pasta'})`}
+                                                                                    className="w-full text-[11px] bg-black/50 border border-purple-500/30 rounded px-2 py-1 text-white placeholder:text-gray-500"
+                                                                                />
+                                                                                <select
+                                                                                    value={dec.mapProductId || ''}
+                                                                                    onChange={(e) => setProductDecision(sk, { mapProductId: e.target.value })}
+                                                                                    className="w-full text-xs bg-black/40 border border-white/10 rounded px-2 py-1 text-white"
+                                                                                    size={Math.min(8, Math.max(3, mapOptions.length + 1))}
+                                                                                >
+                                                                                    <option value="">-- Ürün seç --</option>
+                                                                                    {mapOptions.map((p) => (
+                                                                                        <option key={p.id} value={p.id}>{p.stok_kodu ? `[${p.stok_kodu}] ` : ''}{p.product_name}</option>
+                                                                                    ))}
+                                                                                </select>
+                                                                                <div className="text-[10px] text-gray-500">
+                                                                                    {mapOptions.length} sonuç {products.length > mapOptions.length ? `/ toplam ${products.length} ürün` : ''}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                        {dec.action === 'skip' && (
+                                                                            <div className="text-[10px] text-gray-400">Bu stok kodu sevklerde yok sayılır (transfer satırları atlanır).</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
 
                                 {activeTab === 'rows' && (
                                     <div className="space-y-2">
