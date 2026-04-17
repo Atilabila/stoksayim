@@ -525,6 +525,9 @@ export default function AdminDashboard({ onLogout }) {
     const [tcvQtyOverride, setTcvQtyOverride] = useState({});
     /** Önceden kaydedilmiş değerler için düzenleme kilidi: key -> boolean */
     const [tcvUnlockedEdits, setTcvUnlockedEdits] = useState({});
+    /** Supabase'de tutulan kalıcı CSV -> ürün/şube eşleşmeleri (yükleme sonrası otomatik doldurmak için) */
+    const [supplyCsvMaterialMap, setSupplyCsvMaterialMap] = useState({}); // raw_material (upper) -> product_id
+    const [supplyCsvBranchPersistMap, setSupplyCsvBranchPersistMap] = useState({}); // raw_branch (upper) -> branch_id
 
     // POS Eşleştirme States
     const [posManualMap, setPosManualMap] = useState({});
@@ -779,6 +782,30 @@ export default function AdminDashboard({ onLogout }) {
                 setBranchTransferMap(map);
             } else {
                 setBranchTransferMap({});
+            }
+        }
+
+        // Tedarik CSV kalıcı eşleşmeleri (material -> product / branch -> branch)
+        {
+            const { data: smData, error: smErr } = await supabase
+                .from('supply_csv_material_map')
+                .select('raw_material, product_id');
+            if (!smErr && smData) {
+                const map = {};
+                smData.forEach((r) => { if (r.raw_material && r.product_id) map[String(r.raw_material).toUpperCase()] = r.product_id; });
+                setSupplyCsvMaterialMap(map);
+            } else {
+                setSupplyCsvMaterialMap({});
+            }
+            const { data: sbData, error: sbErr } = await supabase
+                .from('supply_csv_branch_map')
+                .select('raw_branch, branch_id');
+            if (!sbErr && sbData) {
+                const map = {};
+                sbData.forEach((r) => { if (r.raw_branch && r.branch_id) map[String(r.raw_branch).toUpperCase()] = r.branch_id; });
+                setSupplyCsvBranchPersistMap(map);
+            } else {
+                setSupplyCsvBranchPersistMap({});
             }
         }
 
@@ -3325,6 +3352,63 @@ export default function AdminDashboard({ onLogout }) {
         () => (salesRecipeShowResolved ? salesRecipeAllForBranch : salesRecipeNeedsMapping),
         [salesRecipeShowResolved, salesRecipeAllForBranch, salesRecipeNeedsMapping],
     );
+
+    /**
+     * Her eşlenmemiş satış ürünü için isim benzerliği (fuzzy) ile öneri listesi.
+     * Map: sale_product_id -> [{product, score}] (en iyi 3)
+     * Skor mantığı:
+     *   - Stok kodu eşit (normalize) → 200
+     *   - Stok kodu birbirini içerir → 100
+     *   - Tam ad eşit → 180
+     *   - Ad başka adın prefix'i → 150
+     *   - Ortak kelime sayısı × 20
+     *   - reçetesi olan mamul ise +30 bonus
+     */
+    const salesRecipeSuggestions = useMemo(() => {
+        const activeProducts = products.filter((p) => p.is_active !== false);
+        const recipeIdSet = new Set();
+        (recipeItems || []).forEach((ri) => { if (ri?.recipe_product_id) recipeIdSet.add(ri.recipe_product_id); });
+
+        const tokensOf = (s) => normalizeText(String(s || '')).split(' ').filter((w) => w.length >= 2);
+        const canonCode = (s) => String(s || '').toUpperCase().replace(/^ST0*/, '').replace(/[^A-Z0-9]/g, '');
+
+        const out = {};
+        salesRecipeNeedsMapping.forEach((row) => {
+            const saleName = normalizeText(row.sale_product_name || '');
+            const saleTokens = new Set(tokensOf(row.sale_product_name));
+            const saleCode = canonCode(row.sale_stok_kodu);
+            const scored = [];
+            activeProducts.forEach((p) => {
+                if (p.id === row.sale_product_id) return;
+                const pName = normalizeText(p.product_name || '');
+                const pCode = canonCode(p.stok_kodu);
+                let score = 0;
+                if (saleCode && pCode && saleCode === pCode) score += 200;
+                else if (saleCode && pCode && (saleCode.includes(pCode) || pCode.includes(saleCode))) score += 100;
+                if (saleName && pName && saleName === pName) score += 180;
+                else if (saleName && pName && (pName.startsWith(saleName) || saleName.startsWith(pName))) score += 150;
+                const pTokens = tokensOf(p.product_name);
+                let common = 0;
+                pTokens.forEach((t) => { if (saleTokens.has(t)) common++; });
+                score += common * 25;
+                if (recipeIdSet.has(p.id)) score += 30;
+                if (score > 0) scored.push({ product: p, score, hasRecipe: recipeIdSet.has(p.id) });
+            });
+            scored.sort((a, b) => b.score - a.score);
+            out[row.sale_product_id] = scored.slice(0, 3);
+        });
+        return out;
+    }, [products, recipeItems, salesRecipeNeedsMapping, normalizeText]);
+
+    // Ürün ID -> reçete malzeme sayısı (UI'da "reçetesi var/yok" göstergesi için)
+    const recipeIngredientCountByPid = useMemo(() => {
+        const m = new Map();
+        (recipeItems || []).forEach((ri) => {
+            if (!ri?.recipe_product_id) return;
+            m.set(ri.recipe_product_id, (m.get(ri.recipe_product_id) || 0) + 1);
+        });
+        return m;
+    }, [recipeItems]);
 
     const salesProductsMissingRecipe = useMemo(() => {
         if (selectedBranchId === 'ALL') return [];
@@ -9532,43 +9616,154 @@ export default function AdminDashboard({ onLogout }) {
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-auto p-4 space-y-3">
-                                {salesRecipeRowsForUi.map((r) => (
-                                    <div key={r.sale_product_id} className="grid grid-cols-1 xl:grid-cols-[minmax(0,300px),1fr] gap-3 items-start bg-white/[0.02] border border-white/5 rounded-2xl p-4">
-                                        <div className="min-w-0">
-                                            <div className="text-[10px] uppercase tracking-widest text-emerald-300 font-bold mb-2">Satış kaydı</div>
-                                            <div className="font-mono text-sm text-white break-words">
-                                                {r.sale_stok_kodu || '—'} · {r.sale_product_name}
-                                            </div>
-                                            <div className="text-xs text-gray-500 mt-1">Miktar: {r.sold_qty}</div>
-                                        </div>
-
-                                        <div className="min-w-0">
-                                            <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Ürün seç</div>
-                                            <select
-                                                value={salesRecipeMap[r.sale_product_id] || ''}
-                                                onChange={(ev) => void persistSalesRecipeMatch(r.sale_product_id, ev.target.value)}
-                                                className="w-full bg-izbel-dark border border-white/10 rounded-xl py-3 px-3 text-white outline-none focus:border-emerald-500"
-                                                disabled={!!salesRecipeMapSaving[r.sale_product_id]}
-                                            >
-                                                <option value="">Ürün seçiniz...</option>
-                                                {salesRecipeCandidateProducts.map((p) => (
-                                                    <option key={p.id} value={p.id}>
-                                                        {p.stok_kodu || '—'} · {p.product_name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {salesRecipeMapSaving[r.sale_product_id] && (
-                                                <div className="text-[11px] text-emerald-300 mt-2">Kaydediliyor...</div>
-                                            )}
-                                            {salesRecipeMap[r.sale_product_id] && (
-                                                <div className="text-[11px] text-emerald-300 mt-2">
-                                                    Seçilen: {products.find((p) => p.id === salesRecipeMap[r.sale_product_id])?.product_name || '—'}
-                                                </div>
-                                            )}
-                                        </div>
+                            {/* Eşlenmiş ama hedefte reçetesi olmayan uyarı bandı */}
+                            {salesProductsMissingRecipe.length > 0 && (
+                                <div className="mx-4 mt-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-100">
+                                    <div className="font-bold text-amber-300 mb-2 flex items-center gap-2">
+                                        ⚠️ Eşlenmiş ama hedef üründe reçete yok ({salesProductsMissingRecipe.length})
                                     </div>
-                                ))}
+                                    <div className="text-amber-100/80 mb-2">
+                                        Bu satışlar kendi hedefine 1:1 olarak tüketilir (şişe/hazır içecek gibi). Farklı malzemelerden oluşuyorsa <b>Reçete Oluştur</b>'a bas.
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {salesProductsMissingRecipe.slice(0, 10).map((m) => (
+                                            <div key={m.sale_product_id} className="bg-white/5 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-white text-xs font-bold truncate">{m.sale_product_name}</div>
+                                                    <div className="text-amber-300/70 text-[10px] truncate">
+                                                        → {m.target_stok_kodu} · {m.target_product_name}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setShowSalesRecipeMapModal(false); openRecipeBuilder(m.target_product_id); }}
+                                                    className="text-[10px] font-bold text-amber-200 bg-amber-600/40 hover:bg-amber-600/60 border border-amber-500/40 rounded px-2 py-1 whitespace-nowrap"
+                                                >
+                                                    ✏️ Reçete
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex-1 overflow-auto p-4 space-y-3">
+                                {salesRecipeRowsForUi.map((r) => {
+                                    const mappedPid = salesRecipeMap[r.sale_product_id];
+                                    const mappedProduct = mappedPid ? products.find((p) => p.id === mappedPid) : null;
+                                    const mappedHasRecipe = mappedPid && (recipeIngredientCountByPid.get(mappedPid) || 0) > 0;
+                                    const selfHasRecipe = (recipeIngredientCountByPid.get(r.sale_product_id) || 0) > 0;
+                                    const isSelfMapped = mappedPid === r.sale_product_id;
+                                    const suggestions = salesRecipeSuggestions[r.sale_product_id] || [];
+                                    return (
+                                        <div key={r.sale_product_id} className="grid grid-cols-1 xl:grid-cols-[minmax(0,300px),1fr] gap-3 items-start bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                                            <div className="min-w-0">
+                                                <div className="text-[10px] uppercase tracking-widest text-emerald-300 font-bold mb-2">Satış kaydı</div>
+                                                <div className="font-mono text-sm text-white break-words">
+                                                    {r.sale_stok_kodu || '—'} · {r.sale_product_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    Miktar: <b className="text-gray-300">{r.sold_qty}</b>
+                                                    {selfHasRecipe && <span className="ml-2 text-emerald-400">· kendi reçetesi var</span>}
+                                                </div>
+
+                                                {/* Hızlı aksiyon butonları */}
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => void persistSalesRecipeMatch(r.sale_product_id, r.sale_product_id)}
+                                                        disabled={!!salesRecipeMapSaving[r.sale_product_id] || isSelfMapped}
+                                                        title="Şişe/hazır içecek gibi 1:1 tüketilen ürünler için"
+                                                        className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg border disabled:opacity-50 transition-all bg-sky-500/15 text-sky-200 border-sky-400/30 hover:bg-sky-500/25"
+                                                    >
+                                                        🔗 Kendine 1:1 eşle
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setShowSalesRecipeMapModal(false);
+                                                            openRecipeBuilder(mappedPid || r.sale_product_id);
+                                                        }}
+                                                        className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg border bg-fuchsia-500/15 text-fuchsia-200 border-fuchsia-400/30 hover:bg-fuchsia-500/25 transition-all"
+                                                        title="Bu ürün için malzeme bazlı reçete oluştur"
+                                                    >
+                                                        ✏️ Reçete oluştur
+                                                    </button>
+                                                </div>
+
+                                                {/* Akıllı öneriler (isim/stok kodu benzerliği) */}
+                                                {suggestions.length > 0 && (
+                                                    <div className="mt-3">
+                                                        <div className="text-[10px] uppercase tracking-widest text-amber-300 font-bold mb-1.5">
+                                                            💡 Öneriler
+                                                        </div>
+                                                        <div className="flex flex-col gap-1.5">
+                                                            {suggestions.map((s) => (
+                                                                <button
+                                                                    key={s.product.id}
+                                                                    type="button"
+                                                                    onClick={() => void persistSalesRecipeMatch(r.sale_product_id, s.product.id)}
+                                                                    disabled={!!salesRecipeMapSaving[r.sale_product_id]}
+                                                                    className="text-left text-[11px] px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                                                                >
+                                                                    <span className="font-mono text-emerald-300 font-bold">{s.product.stok_kodu || '—'}</span>
+                                                                    <span className="text-white ml-1.5">{s.product.product_name}</span>
+                                                                    {s.hasRecipe && <span className="ml-1.5 text-[9px] text-emerald-400">[reçeteli]</span>}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Manuel ürün seç</div>
+                                                <select
+                                                    value={mappedPid || ''}
+                                                    onChange={(ev) => void persistSalesRecipeMatch(r.sale_product_id, ev.target.value)}
+                                                    className="w-full bg-izbel-dark border border-white/10 rounded-xl py-3 px-3 text-white outline-none focus:border-emerald-500"
+                                                    disabled={!!salesRecipeMapSaving[r.sale_product_id]}
+                                                >
+                                                    <option value="">Ürün seçiniz...</option>
+                                                    {salesRecipeCandidateProducts.map((p) => (
+                                                        <option key={p.id} value={p.id}>
+                                                            {p.stok_kodu || '—'} · {p.product_name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {salesRecipeMapSaving[r.sale_product_id] && (
+                                                    <div className="text-[11px] text-emerald-300 mt-2">Kaydediliyor...</div>
+                                                )}
+                                                {mappedPid && (
+                                                    <div className={`text-[11px] mt-2 p-2 rounded-lg ${mappedHasRecipe ? 'bg-emerald-500/10 text-emerald-200 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-200 border border-amber-500/30'}`}>
+                                                        {isSelfMapped ? (
+                                                            <>🔗 <b>Kendine 1:1</b> eşlendi — bu ürün kendi hammadde hareketi olarak düşülür.</>
+                                                        ) : (
+                                                            <>
+                                                                <b>Seçilen:</b> {mappedProduct?.product_name || '—'}
+                                                                <div className="mt-1">
+                                                                    {mappedHasRecipe
+                                                                        ? <>✓ Bu hedefin reçetesi var — malzemeler otomatik düşülecek.</>
+                                                                        : <>⚠ Bu hedefin reçetesi <b>yok</b> — kendi 1:1 düşecek. Reçete eklemek istersen "Reçete oluştur" butonuna bas.</>}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {!mappedPid && (
+                                                    <div className="text-[11px] text-gray-500 mt-2">
+                                                        Eşleme yapılana kadar bu satışın reçete tüketimi <b>hesaplanmaz</b>.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {salesRecipeRowsForUi.length === 0 && (
+                                    <div className="text-center py-10 text-gray-500 text-sm">
+                                        🎉 Bu şubedeki tüm satış ürünleri eşlenmiş. (Eşleşmişleri görmek için üstteki butonu kullan.)
+                                    </div>
+                                )}
                             </div>
 
                             <div className="px-6 py-4 border-t border-white/10 flex justify-between items-center gap-3">
@@ -9757,6 +9952,44 @@ export default function AdminDashboard({ onLogout }) {
                         return false;
                     };
 
+                    // --- SUPABASE KALICI MAPING YARDIMCILARI ---
+                    // material (CSV) -> product eşleşmesini kalıcı kaydet
+                    const persistMaterialMap = async (materialName, productId) => {
+                        if (!materialName) return;
+                        const raw = String(materialName).toUpperCase();
+                        try {
+                            if (!productId) {
+                                await supabase.from('supply_csv_material_map').delete().eq('raw_material', raw);
+                                setSupplyCsvMaterialMap((prev) => { const n = { ...prev }; delete n[raw]; return n; });
+                            } else {
+                                await supabase
+                                    .from('supply_csv_material_map')
+                                    .upsert({ raw_material: raw, product_id: productId, updated_at: new Date().toISOString() }, { onConflict: 'raw_material' });
+                                setSupplyCsvMaterialMap((prev) => ({ ...prev, [raw]: productId }));
+                            }
+                        } catch (err) {
+                            console.warn('supply_csv_material_map persist err:', err);
+                        }
+                    };
+                    // csvBranch -> systemBranch eşleşmesini kalıcı kaydet
+                    const persistBranchMap = async (csvBranch, branchId) => {
+                        if (!csvBranch) return;
+                        const raw = String(csvBranch).toUpperCase();
+                        try {
+                            if (!branchId) {
+                                await supabase.from('supply_csv_branch_map').delete().eq('raw_branch', raw);
+                                setSupplyCsvBranchPersistMap((prev) => { const n = { ...prev }; delete n[raw]; return n; });
+                            } else {
+                                await supabase
+                                    .from('supply_csv_branch_map')
+                                    .upsert({ raw_branch: raw, branch_id: branchId, updated_at: new Date().toISOString() }, { onConflict: 'raw_branch' });
+                                setSupplyCsvBranchPersistMap((prev) => ({ ...prev, [raw]: branchId }));
+                            }
+                        } catch (err) {
+                            console.warn('supply_csv_branch_map persist err:', err);
+                        }
+                    };
+
                     // --- CSV YÜKLEME ---
                     const handleTcvFileUpload = (e) => {
                         const file = e.target.files?.[0];
@@ -9800,21 +10033,36 @@ export default function AdminDashboard({ onLogout }) {
                             }));
                             result.sort((a, b) => a.csvBranch.localeCompare(b.csvBranch, 'tr') || a.materialName.localeCompare(b.materialName, 'tr'));
                             setTcvAggregated(result);
-                            // �?ube otomatik eşleme dene
+                            // Şube otomatik eşleme:
+                            // 1) DB'de kayıtlı kalıcı eşleme varsa doğrudan onu kullan
+                            // 2) Yoksa ascii-fold ile sistem şubeleriyle eşleştir
                             const bMap = {};
                             const uniqBranches = [...new Set(result.map(r => r.csvBranch))];
                             uniqBranches.forEach(cb => {
+                                const persistedId = supplyCsvBranchPersistMap[String(cb).toUpperCase()];
+                                if (persistedId) { bMap[cb] = persistedId; return; }
                                 const cbFold = asciiFoldKey(cb);
                                 const found = branches.find(b => asciiFoldKey(b.branch_name) === cbFold);
                                 if (found) bMap[cb] = found.id;
                             });
                             setTcvBranchMap(bMap);
-                            setTcvProductMap({});
+                            // Ürün otomatik eşleme: DB'de daha önce eşlenen materialName → productId
+                            const pMap = {};
+                            const uniqMaterials = [...new Set(result.map(r => r.materialName))];
+                            let autoMatched = 0;
+                            uniqMaterials.forEach(m => {
+                                const persistedPid = supplyCsvMaterialMap[String(m).toUpperCase()];
+                                if (persistedPid) { pMap[m] = persistedPid; autoMatched++; }
+                            });
+                            setTcvProductMap(pMap);
                             setTcvProductSearch({});
                             setTcvQtyOverride({});
                             setTcvUnlockedEdits({});
                             setTcvStep('match');
-                            toast.success(`CSV yüklendi: ${result.length} satır (birleştirilmiş), ${uniqBranches.length} şube.`);
+                            toast.success(
+                                `CSV yüklendi: ${result.length} satır · ${uniqBranches.length} şube` +
+                                (autoMatched > 0 ? ` · ${autoMatched} ürün otomatik eşlendi (geçmiş kayıttan)` : ''),
+                            );
                         };
                         reader.readAsText(file, 'utf-8');
                         e.target.value = '';
@@ -10057,7 +10305,11 @@ export default function AdminDashboard({ onLogout }) {
                                                         <ChevronRight size={14} className="text-gray-600 flex-shrink-0" />
                                                         <select
                                                             value={matched || ''}
-                                                            onChange={(e) => setTcvBranchMap(prev => ({ ...prev, [cb]: e.target.value || undefined }))}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value || undefined;
+                                                                setTcvBranchMap(prev => ({ ...prev, [cb]: val }));
+                                                                persistBranchMap(cb, val || null);
+                                                            }}
                                                             className="flex-1 bg-izbel-dark border border-white/10 rounded-lg py-1.5 px-2 text-xs text-white outline-none focus:border-fuchsia-500"
                                                         >
                                                             <option value="">— �?ube seçin —</option>
@@ -10152,9 +10404,10 @@ export default function AdminDashboard({ onLogout }) {
                                                                                     setTcvProductMap(prev => { const n = {...prev}; delete n[r.materialName]; return n; });
                                                                                     setTcvQtyOverride(prev => { const n = {...prev}; delete n[r.key]; return n; });
                                                                                     setTcvUnlockedEdits(prev => { const n = {...prev}; delete n[r.key]; return n; });
+                                                                                    persistMaterialMap(r.materialName, null);
                                                                                 }}
                                                                                 className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 transition-colors"
-                                                                                title="Eşleşmeyi kaldır"
+                                                                                title="Eşleşmeyi kaldır (kalıcı kayıttan da siler)"
                                                                             >
                                                                                 <X size={14} />
                                                                             </button>
@@ -10176,6 +10429,7 @@ export default function AdminDashboard({ onLogout }) {
                                                                                             onClick={() => {
                                                                                                 setTcvProductMap(prev => ({ ...prev, [r.materialName]: p.id }));
                                                                                                 setTcvProductSearch(prev => ({ ...prev, [r.materialName]: '' }));
+                                                                                                persistMaterialMap(r.materialName, p.id);
                                                                                             }}
                                                                                             className="w-full text-left px-3 py-2 hover:bg-fuchsia-500/10 transition-colors border-b border-white/5 last:border-0"
                                                                                         >
