@@ -2561,6 +2561,66 @@ export default function AdminDashboard({ onLogout }) {
         }
     };
 
+    /**
+     * Receteler.csv raw cache'inde olan ama sistemde bulunmayan ürünleri (mamul + hammadde)
+     * toplu olarak Supabase'e ekler. Satış CSV import ya da modal kırmızı uyarı butonundan tetiklenir.
+     * @returns {Promise<{created:number, failed:number, total:number}>}
+     */
+    const syncMissingRecipeProducts = useCallback(async () => {
+        if (!recipeRawRowsCache || recipeRawRowsCache.length === 0) {
+            return { created: 0, failed: 0, total: 0 };
+        }
+        const sysSet = new Set(
+            products
+                .map((p) => String(p.stok_kodu || '').trim().toUpperCase())
+                .filter(Boolean),
+        );
+        // Hem stok kodu olanları hem isim bazlı ama stok kodusuz mamulleri topla
+        const missing = new Map();
+        recipeRawRowsCache.forEach((row) => {
+            const refs = [
+                { code: row.recipe_stok_kodu, name: row.recipe_name, kind: 'Mamul' },
+                { code: row.ingredient_stok_kodu, name: row.ingredient_name, kind: 'Hammadde' },
+            ];
+            refs.forEach((rf) => {
+                const c = String(rf.code || '').trim().toUpperCase();
+                if (!c) return;
+                if (sysSet.has(c)) return;
+                if (!missing.has(c)) {
+                    missing.set(c, { stok_kodu: c, name: rf.name || c, kind: rf.kind });
+                }
+            });
+        });
+        const list = Array.from(missing.values());
+        if (list.length === 0) return { created: 0, failed: 0, total: 0 };
+        let created = 0;
+        let failed = 0;
+        const batchPayload = list.map((m) => ({
+            stok_kodu: m.stok_kodu,
+            product_name: String(m.name || m.stok_kodu).trim() || m.stok_kodu,
+            unit: 'Adet',
+            purchase_price: 0,
+            current_stock: 0,
+            is_active: true,
+        }));
+        // Batch insert (500'lük)
+        for (let i = 0; i < batchPayload.length; i += 500) {
+            const chunk = batchPayload.slice(i, i + 500);
+            const { data, error } = await supabase
+                .from('products')
+                .upsert(chunk, { onConflict: 'stok_kodu' })
+                .select('id, stok_kodu');
+            if (error) {
+                console.error('syncMissingRecipeProducts insert err:', error);
+                failed += chunk.length;
+                continue;
+            }
+            created += (data || []).length;
+        }
+        if (created > 0) await fetchData();
+        return { created, failed, total: list.length };
+    }, [recipeRawRowsCache, products]);
+
     const salesRecipeAllForBranch = useMemo(() => {
         if (selectedBranchId === 'ALL') return [];
         const productById = new Map(products.map((p) => [p.id, p]));
@@ -2869,6 +2929,94 @@ export default function AdminDashboard({ onLogout }) {
                 return parseFlexibleNumber(v);
             };
 
+            // ---- 1. TUR: Mevcut products ile eşleştirmeyi dene, eşleşmeyen (stok_kodu, isim) setini topla ----
+            const unmatchedByCode = new Map();   // stok_kodu(upper) -> name
+            const unmatchedByName = new Map();   // normalizeText(name) -> name(orijinal)
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i];
+                if (!cells || !cells.length) continue;
+                const qty = parseQty(cells[colQty]);
+                if (qty == null) continue;
+                const { product } = resolveRow(cells);
+                if (product) continue;
+                const sk = colStok >= 0 ? String(cells[colStok] ?? '').trim().toUpperCase() : '';
+                const nm = colUrun >= 0 ? String(cells[colUrun] ?? '').trim() : '';
+                if (sk && !unmatchedByCode.has(sk)) unmatchedByCode.set(sk, nm || sk);
+                if (nm) unmatchedByName.set(normalizeText(nm), nm);
+            }
+
+            // ---- 2. TUR: Reçete raw cache ile akıllı fallback — eksik ürünleri otomatik aç ----
+            let autoCreatedCount = 0;
+            if ((unmatchedByCode.size > 0 || unmatchedByName.size > 0) && recipeRawRowsCache.length > 0) {
+                // Reçete raw cache: stok_kodu + name eşleşmelerini al
+                const recipeByCode = new Map();
+                const recipeByNameNorm = new Map();
+                recipeRawRowsCache.forEach((r) => {
+                    const refs = [
+                        { code: r.recipe_stok_kodu, name: r.recipe_name },
+                        { code: r.ingredient_stok_kodu, name: r.ingredient_name },
+                    ];
+                    refs.forEach((rf) => {
+                        const c = String(rf.code || '').trim().toUpperCase();
+                        const n = String(rf.name || '').trim();
+                        if (c && n) {
+                            if (!recipeByCode.has(c)) recipeByCode.set(c, n);
+                            const nk = normalizeText(n);
+                            if (nk && !recipeByNameNorm.has(nk)) recipeByNameNorm.set(nk, { code: c, name: n });
+                        }
+                    });
+                });
+
+                const toCreate = new Map();
+                // (a) Stok kodu bazlı — satış CSV'deki kod reçete raw'da varsa
+                unmatchedByCode.forEach((nm, code) => {
+                    if (recipeByCode.has(code)) {
+                        toCreate.set(code, { stok_kodu: code, product_name: recipeByCode.get(code) || nm || code });
+                    }
+                });
+                // (b) İsim bazlı — satış CSV'deki ad reçete raw'da bir mamul/hammadde ise
+                unmatchedByName.forEach((origName, normName) => {
+                    const hit = recipeByNameNorm.get(normName);
+                    if (hit && !toCreate.has(hit.code)) {
+                        toCreate.set(hit.code, { stok_kodu: hit.code, product_name: hit.name });
+                    }
+                });
+
+                if (toCreate.size > 0) {
+                    const payload = Array.from(toCreate.values()).map((p) => ({
+                        stok_kodu: p.stok_kodu,
+                        product_name: p.product_name,
+                        unit: 'Adet',
+                        purchase_price: 0,
+                        current_stock: 0,
+                        is_active: true,
+                    }));
+                    for (let i = 0; i < payload.length; i += 500) {
+                        const chunk = payload.slice(i, i + 500);
+                        const { data, error } = await supabase
+                            .from('products')
+                            .upsert(chunk, { onConflict: 'stok_kodu' })
+                            .select('id, stok_kodu, product_name, barcode, unit, purchase_price, category, is_active');
+                        if (error) {
+                            console.error('auto-create from recipe error:', error);
+                            continue;
+                        }
+                        (data || []).forEach((p) => {
+                            // Local map'leri güncelle ki bu döngüde eşleşme bulunsun
+                            const sk = String(p.stok_kodu || '').trim().toUpperCase();
+                            if (sk) productByStokUpper.set(sk, p);
+                            const nk = normalizeText(p.product_name);
+                            if (nk) {
+                                if (!productsByNorm.has(nk)) productsByNorm.set(nk, []);
+                                productsByNorm.get(nk).push(p);
+                            }
+                            autoCreatedCount++;
+                        });
+                    }
+                }
+            }
+
+            // ---- 3. TUR: Eşleştirmeyi tekrar çalıştır (şimdi yeni ürünler de cache'te) ----
             let matched = 0;
             let skipped = 0;
             let ambiguous = 0;
@@ -2893,9 +3041,11 @@ export default function AdminDashboard({ onLogout }) {
 
             setSalesQtyByKey(merge);
             const bn = branches.find((b) => b.id === selectedBranchId)?.branch_name || '';
+            const autoMsg = autoCreatedCount > 0 ? ` — reçeteden ${autoCreatedCount} yeni ürün otomatik eklendi` : '';
             toast.success(
-                `Satış içe aktarıldı (${bn}): ${matched} satır eşleşti, ${skipped} atlandı, ${ambiguous} belirsiz.`,
+                `Satış içe aktarıldı (${bn}): ${matched} satır eşleşti, ${skipped} atlandı, ${ambiguous} belirsiz.${autoMsg}`,
             );
+            if (autoCreatedCount > 0) await fetchData();
         } catch (err) {
             toast.error('Satış dosyası okunamadı: ' + (err?.message || String(err)));
         } finally {
@@ -5017,8 +5167,37 @@ export default function AdminDashboard({ onLogout }) {
                                                 ⚠ Reçetede geçip sistemde olmayan {missingRecipeStokKodlari.length} stok kodu
                                             </div>
                                             <div className="text-xs text-red-100/80 leading-relaxed mb-2">
-                                                Receteler.csv yüklediğinizde sistem bu kodları otomatik açmalıydı ama açılmamış.
-                                                Reçete dosyasını tekrar yükleyin ya da aşağıdaki listeden manuel ürün ekleyin.
+                                                Bu kodlar sistemde yok. <b>"Tek Tıkla Sisteme Ekle"</b> ile hepsini otomatik açabilirsiniz
+                                                (stok kodu + isim ile; varsayılan birim: Adet, maliyet: 0).
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                <button
+                                                    type="button"
+                                                    disabled={recipeImporting}
+                                                    onClick={async () => {
+                                                        const confirm = window.confirm(
+                                                            `${missingRecipeStokKodlari.length} yeni ürün sisteme eklenecek.\n\n` +
+                                                            'Bu ürünlerin maliyetleri 0 TL olarak açılır, daha sonra güncellenebilir.\n\n' +
+                                                            'Devam etmek ister misiniz?',
+                                                        );
+                                                        if (!confirm) return;
+                                                        setRecipeImporting(true);
+                                                        try {
+                                                            const res = await syncMissingRecipeProducts();
+                                                            toast.success(
+                                                                `Reçete senkronizasyonu tamamlandı: ${res.created} ürün eklendi/güncellendi` +
+                                                                (res.failed > 0 ? `, ${res.failed} hatalı` : '') + '.',
+                                                            );
+                                                        } catch (err) {
+                                                            toast.error('Senkronizasyon hatası: ' + (err?.message || String(err)));
+                                                        } finally {
+                                                            setRecipeImporting(false);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-bold uppercase tracking-widest text-white bg-red-600 hover:bg-red-500 rounded-lg px-4 py-2 disabled:opacity-50"
+                                                >
+                                                    {recipeImporting ? 'İşleniyor...' : `Tek Tıkla Sisteme Ekle (${missingRecipeStokKodlari.length})`}
+                                                </button>
                                             </div>
                                             <details className="text-xs">
                                                 <summary className="cursor-pointer text-red-200 hover:text-red-100 font-bold">İlk {Math.min(missingRecipeStokKodlari.length, 30)} eksik ürünü göster</summary>
