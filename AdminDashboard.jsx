@@ -259,6 +259,20 @@ export default function AdminDashboard({ onLogout }) {
     const [scLoggerPaste, setScLoggerPaste] = useState('');
     /** Reçete düşümü branch_stocks geri alma yedeği */
     const [stockApplyUndoStack, setStockApplyUndoStack] = useState([]);
+    /** Excel export kategori bölme modalı */
+    const [showExportCategoriesModal, setShowExportCategoriesModal] = useState(false);
+    const [exportCategories, setExportCategories] = useState(() => {
+        try {
+            const saved = localStorage.getItem('exportCategories_v1');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+    const [exportCategoryProductSearch, setExportCategoryProductSearch] = useState('');
+    const [expandedCategoryId, setExpandedCategoryId] = useState(null);
+    /** İlk Sayım Modu: aktifse İmpliye Açılış + Anomali sheet üretir, varyans hesaplamaz */
+    const [firstPeriodMode, setFirstPeriodMode] = useState(false);
     /** Manuel alım (tedarik) girdileri: key branch|product -> quantity */
     const [manualPurchaseByKey, setManualPurchaseByKey] = useState({});
     const [showSupplyModal, setShowSupplyModal] = useState(false);
@@ -1276,7 +1290,7 @@ export default function AdminDashboard({ onLogout }) {
         XLSX.writeFile(wb, `izbel_sube_ozet_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
-    const exportProductCSV = () => {
+    const exportProductCSV = (customCategories = null, firstPeriodModeArg = false) => {
         void (async () => {
             const branchFilter = selectedBranchId !== 'ALL' ? selectedBranchId : null;
             const asOf = new Date().toISOString().split('T')[0];
@@ -1380,6 +1394,28 @@ export default function AdminDashboard({ onLogout }) {
                 });
             });
 
+            // Maliyet kontrolü: maliyeti 0 olan ürünleri uyar
+            const zeroCostProducts = [];
+            mutRows.forEach((r) => {
+                const p = products.find((x) => String(x.id) === String(r.productId));
+                const cost = unitCostForBranchProduct(r.branchId, p);
+                if ((!cost || cost === 0) && (consumptionByKey.get(r.branchId + '|' + r.productId) || 0) > 0) {
+                    zeroCostProducts.push(p?.product_name || r.productId);
+                }
+            });
+            if (zeroCostProducts.length > 0) {
+                const maxShow = 10;
+                const listText = zeroCostProducts.slice(0, maxShow).join('\n  - ');
+                const more = zeroCostProducts.length > maxShow ? '\n  ... ve ' + (zeroCostProducts.length - maxShow) + ' ürün daha' : '';
+                const proceed = window.confirm(
+                    'Dikkat: Aşağıdaki ' + zeroCostProducts.length + ' üründe birim maliyet 0 TL:\n\n  - ' + listText + more + '\n\nMaliyetleri girmeden devam etmek istiyor musunuz?'
+                );
+                if (!proceed) {
+                    toast.info('İndirme iptal edildi. Lütfen önce maliyetleri girin.');
+                    return;
+                }
+            }
+
             // 4) Workbook
             const workbook = new ExcelJS.Workbook();
             workbook.creator = 'İzbel Stok Sayım';
@@ -1401,26 +1437,36 @@ export default function AdminDashboard({ onLogout }) {
                 return ws;
             };
 
-            // 4.1 Mutabakat (formüllü)
-            const wsMut = makeSheet(
-                'Mutabakat',
-                [
-                    'Şube',
-                    'Sayım Dönemi',
-                    'Stok Kodu',
-                    'Ürün Adı',
-                    'Açılış Stok',
-                    'Tedarik (Manuel)',
-                    'Reçete Tüketimi',
-                    'Teorik Kalan',
-                    'Sayılan Stok',
-                    'Fark (Sayılan-Teorik)',
-                    'Birim Maliyet (TL)',
-                    'Toplam Fark TL',
-                    'Durum',
-                ],
-                [16, 20, 14, 42, 14, 16, 16, 14, 14, 18, 16, 16, 18],
-            );
+            // 4.1 Mutabakat (formüllü) — kategori bazlı çoklu sayfa desteği
+            const mutHeaders = [
+                'Şube',
+                'Sayım Dönemi',
+                'Stok Kodu',
+                'Ürün Adı',
+                'Açılış Stok',
+                'Tedarik (Manuel)',
+                'Reçete Tüketimi',
+                'Teorik Kalan',
+                'Sayılan Stok',
+                'Fark (Sayılan-Teorik)',
+                'Birim Maliyet (TL)',
+                'Toplam Fark TL',
+                'Durum',
+            ];
+            const mutWidths = [16, 20, 14, 42, 14, 16, 16, 14, 14, 18, 16, 16, 18];
+
+// Mükerrer ürün kaldırma: aynı şube+ürün varsa reçete tüketimi olanı tut
+            const mutRowDedup = new Map();
+            mutRows.forEach((r) => {
+                const dk = r.branchId + '|' + r.productId;
+                const existing = mutRowDedup.get(dk);
+                if (!existing) { mutRowDedup.set(dk, r); return; }
+                const hasCons = (consumptionByKey.get(dk) || 0) > 0;
+                if (hasCons && existing.counted == null && r.counted != null) mutRowDedup.set(dk, r);
+                if (!hasCons && r.counted != null && existing.counted == null) mutRowDedup.set(dk, r);
+            });
+            mutRows.length = 0;
+            mutRowDedup.forEach((v) => mutRows.push(v));
 
             // stable siralama (şube + ürün)
             mutRows.sort((a, b) => {
@@ -1432,111 +1478,395 @@ export default function AdminDashboard({ onLogout }) {
                 return `${pa?.product_name || ''}`.localeCompare(`${pb?.product_name || ''}`, 'tr');
             });
 
-            const mutStartRow = 2;
-            mutRows.forEach((r, idx) => {
-                const rowIndex = mutStartRow + idx;
-                const p = products.find((x) => String(x.id) === String(r.productId));
-                const bn = branches.find((x) => x.id === r.branchId)?.branch_name || String(r.branchId);
-                const periodName = periods.find((p0) => p0.id === r.periodId)?.period_name || (periods.find((p0) => p0.is_active)?.period_name || 'Dönemsiz');
-                const snap = getSnapshot(r.branchId, r.productId);
-
-                const unitCost = unitCostForBranchProduct(r.branchId, p);
-                const statusText = r.status === 'approved' ? 'Onaylandı' : r.status === 'not_counted' ? 'Sayılmadı (reçete/tedarik)' : 'Bekliyor';
-
-                const excelRow = wsMut.getRow(rowIndex);
-                excelRow.getCell(1).value = bn;
-                excelRow.getCell(2).value = periodName;
-                excelRow.getCell(3).value = p?.stok_kodu || '';
-                excelRow.getCell(4).value = p?.product_name || '(ürün bulunamadı)';
-                excelRow.getCell(5).value = snap.opening;
-                excelRow.getCell(6).value = snap.purchaseNum;
-                excelRow.getCell(7).value = snap.consumptionNum;
-                excelRow.getCell(8).value = { formula: `E${rowIndex}+F${rowIndex}-G${rowIndex}` };
-                excelRow.getCell(9).value = r.counted != null && Number.isFinite(r.counted) ? r.counted : '';
-                excelRow.getCell(10).value = r.counted != null && Number.isFinite(r.counted) ? { formula: `I${rowIndex}-H${rowIndex}` } : '';
-                excelRow.getCell(11).value = unitCost || 0;
-                excelRow.getCell(12).value =
-                    r.counted != null && Number.isFinite(r.counted) ? { formula: `J${rowIndex}*K${rowIndex}` } : '';
-                excelRow.getCell(13).value = statusText;
-
-                for (let c = 1; c <= 13; c++) {
-                    const cell = excelRow.getCell(c);
-                    cell.border = thinBorder;
-                    cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
-                    cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10, 11, 12].includes(c) ? 'right' : 'left' };
-                    if ([5, 6, 7, 8, 9, 10].includes(c)) cell.numFmt = '#,##0.00';
-                    if ([11, 12].includes(c)) cell.numFmt = '#,##0.00';
-                }
-            });
-            const mutLastRow = mutStartRow + mutRows.length - 1;
-            const mutTotalRow = wsMut.getRow(mutLastRow + 1);
-            mutTotalRow.getCell(1).value = 'TOPLAM';
-            mutTotalRow.getCell(12).value = mutRows.length ? { formula: `SUM(L${mutStartRow}:L${mutLastRow})` } : 0;
-            mutTotalRow.getCell(12).numFmt = '#,##0.00';
-            for (let c = 1; c <= 13; c++) {
-                const cell = mutTotalRow.getCell(c);
-                cell.border = thinBorder;
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-                cell.font = { ...(cell.font || {}), bold: true, name: 'Arial' };
-            }
-
-            // Mutabakat: filtre + zebra + pozitif/negatif renklendirme (kâr/zarar)
-            wsMut.autoFilter = 'A1:M1';
-            const mutZebraFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-            for (let r = mutStartRow; r <= mutLastRow; r++) {
-                if (r % 2 === 0) {
-                    const row = wsMut.getRow(r);
+            
+            const renderMutabakatSheet = (sheetName, rowsToRender) => {
+                if (!rowsToRender || !rowsToRender.length) return;
+                const wsMut = makeSheet(sheetName, mutHeaders, mutWidths);
+                const mutStartRow = 2;
+                rowsToRender.forEach((r, idx) => {
+                    const rowIndex = mutStartRow + idx;
+                    const p = products.find((x) => String(x.id) === String(r.productId));
+                    const bn = branches.find((x) => x.id === r.branchId)?.branch_name || String(r.branchId);
+                    const periodName = periods.find((p0) => p0.id === r.periodId)?.period_name || (periods.find((p0) => p0.is_active)?.period_name || 'Dönemsiz');
+                    const snap = getSnapshot(r.branchId, r.productId);
+    
+                    const unitCost = unitCostForBranchProduct(r.branchId, p);
+                    const statusText = r.status === 'approved' ? 'Onaylandı' : r.status === 'not_counted' ? 'Sayılmadı (reçete/tedarik)' : 'Bekliyor';
+    
+                    const excelRow = wsMut.getRow(rowIndex);
+                    excelRow.getCell(1).value = bn;
+                    excelRow.getCell(2).value = periodName;
+                    excelRow.getCell(3).value = p?.stok_kodu || '';
+                    excelRow.getCell(4).value = p?.product_name || '(ürün bulunamadı)';
+                    excelRow.getCell(5).value = snap.opening;
+                    excelRow.getCell(6).value = snap.purchaseNum;
+                    excelRow.getCell(7).value = snap.consumptionNum;
+                    excelRow.getCell(8).value = { formula: `E${rowIndex}+F${rowIndex}-G${rowIndex}` };
+                    excelRow.getCell(9).value = r.counted != null && Number.isFinite(r.counted) ? r.counted : 0;
+                    excelRow.getCell(10).value = r.counted != null && Number.isFinite(r.counted) ? { formula: `I${rowIndex}-H${rowIndex}` } : { formula: `0-H${rowIndex}` };
+                    excelRow.getCell(11).value = unitCost || 0;
+                    excelRow.getCell(12).value =
+                        { formula: `J${rowIndex}*K${rowIndex}` };
+                    excelRow.getCell(13).value = statusText;
+    
                     for (let c = 1; c <= 13; c++) {
-                        // Sonuç kolonları (Fark / TL) koşullu biçimlendirme ile boyanacak
-                        if (c === 10 || c === 12) continue;
-                        row.getCell(c).fill = mutZebraFill;
+                        const cell = excelRow.getCell(c);
+                        cell.border = thinBorder;
+                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10, 11, 12].includes(c) ? 'right' : 'left' };
+                        if ([5, 6, 7, 8, 9, 10].includes(c)) cell.numFmt = '#,##0.00';
+                        if ([11, 12].includes(c)) cell.numFmt = '#,##0.00';
+                    }
+                });
+                const mutLastRow = mutStartRow + rowsToRender.length - 1;
+                const mutTotalRow = wsMut.getRow(mutLastRow + 1);
+                mutTotalRow.getCell(1).value = 'TOPLAM';
+                mutTotalRow.getCell(12).value = rowsToRender.length ? { formula: `SUM(L${mutStartRow}:L${mutLastRow})` } : 0;
+                mutTotalRow.getCell(12).numFmt = '#,##0.00';
+                for (let c = 1; c <= 13; c++) {
+                    const cell = mutTotalRow.getCell(c);
+                    cell.border = thinBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                    cell.font = { ...(cell.font || {}), bold: true, name: 'Arial' };
+                }
+    
+                // Mutabakat: filtre + zebra + pozitif/negatif renklendirme (kâr/zarar)
+                wsMut.autoFilter = 'A1:M1';
+                const mutZebraFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                for (let r = mutStartRow; r <= mutLastRow; r++) {
+                    if (r % 2 === 0) {
+                        const row = wsMut.getRow(r);
+                        for (let c = 1; c <= 13; c++) {
+                            // Sonuç kolonları (Fark / TL) koşullu biçimlendirme ile boyanacak
+                            if (c === 10 || c === 12) continue;
+                            row.getCell(c).fill = mutZebraFill;
+                        }
                     }
                 }
+                if (typeof wsMut.addConditionalFormatting === 'function' && rowsToRender.length) {
+                    // Fark (J) ve Toplam Fark TL (L): Negatif=kırmızı, Pozitif=yeşil
+                    wsMut.addConditionalFormatting({
+                        ref: `J${mutStartRow}:J${mutLastRow}`,
+                        rules: [
+                            {
+                                type: 'expression',
+                                formulae: [`J${mutStartRow}<0`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
+                                    font: { color: { argb: 'FFB91C1C' }, bold: true },
+                                },
+                            },
+                            {
+                                type: 'expression',
+                                formulae: [`J${mutStartRow}>0`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
+                                    font: { color: { argb: 'FF15803D' }, bold: true },
+                                },
+                            },
+                        ],
+                    });
+                    wsMut.addConditionalFormatting({
+                        ref: `L${mutStartRow}:L${mutLastRow + 1}`,
+                        rules: [
+                            {
+                                type: 'expression',
+                                formulae: [`L${mutStartRow}<0`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
+                                    font: { color: { argb: 'FF9F1239' }, bold: true },
+                                },
+                            },
+                            {
+                                type: 'expression',
+                                formulae: [`L${mutStartRow}>0`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
+                                    font: { color: { argb: 'FF166534' }, bold: true },
+                                },
+                            },
+                        ],
+                    });
+                }
+    
+    
+            };
+
+            // ====== İLK SAYIM (Başlangıç Envanteri) RENDERER ======
+            const firstHeaders = [
+                'Şube',
+                'Sayım Dönemi',
+                'Stok Kodu',
+                'Ürün Adı',
+                'Tedarik (Manuel)',
+                'Reçete Tüketimi',
+                'Sayılan',
+                'İmpliye Açılış',
+                'Birim Maliyet (TL)',
+                'Stok Değeri TL',
+                'Durum',
+            ];
+            const firstWidths = [16, 18, 14, 42, 16, 16, 14, 18, 16, 18, 22];
+
+            const renderFirstPeriodSheet = (sheetName, rowsToRender) => {
+                if (!rowsToRender || !rowsToRender.length) return;
+                const wsF = makeSheet(sheetName, firstHeaders, firstWidths);
+                const startRow = 2;
+                rowsToRender.forEach((r, idx) => {
+                    const rowIndex = startRow + idx;
+                    const p = products.find((x) => String(x.id) === String(r.productId));
+                    const bn = branches.find((x) => x.id === r.branchId)?.branch_name || String(r.branchId);
+                    const periodName = periods.find((p0) => p0.id === r.periodId)?.period_name || (periods.find((p0) => p0.is_active)?.period_name || 'Dönemsiz');
+                    const snap = getSnapshot(r.branchId, r.productId);
+                    const unitCost = unitCostForBranchProduct(r.branchId, p);
+                    const countedVal = r.counted != null && Number.isFinite(r.counted) ? r.counted : 0;
+
+                    const row = wsF.getRow(rowIndex);
+                    row.getCell(1).value = bn;
+                    row.getCell(2).value = periodName;
+                    row.getCell(3).value = p?.stok_kodu || '';
+                    row.getCell(4).value = p?.product_name || '(ürün bulunamadı)';
+                    row.getCell(5).value = snap.purchaseNum;
+                    row.getCell(6).value = snap.consumptionNum;
+                    row.getCell(7).value = countedVal;
+                    // İmpliye Açılış = Sayılan (G) + Reçete Tüketimi (F) − Tedarik (E)
+                    row.getCell(8).value = { formula: `G${rowIndex}+F${rowIndex}-E${rowIndex}` };
+                    row.getCell(9).value = unitCost || 0;
+                    // Stok Değeri TL = Sayılan × Birim Maliyet
+                    row.getCell(10).value = { formula: `G${rowIndex}*I${rowIndex}` };
+                    // Durum: formül ile metin üret
+                    row.getCell(11).value = {
+                        formula: `IF(H${rowIndex}<0,"Anomali - Negatif",IF(H${rowIndex}=0,"Tam Tutarlı",IF(H${rowIndex}>(E${rowIndex}+F${rowIndex})*3,"Yüksek Devir Şüphesi","Tutarlı")))`,
+                    };
+
+                    for (let c = 1; c <= 11; c++) {
+                        const cell = row.getCell(c);
+                        cell.border = thinBorder;
+                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.alignment = { vertical: 'middle', horizontal: [5, 6, 7, 8, 9, 10].includes(c) ? 'right' : 'left' };
+                        if ([5, 6, 7, 8, 9, 10].includes(c)) cell.numFmt = '#,##0.00';
+                    }
+                });
+                const lastRow = startRow + rowsToRender.length - 1;
+                const totalRow = wsF.getRow(lastRow + 1);
+                totalRow.getCell(1).value = 'TOPLAM';
+                totalRow.getCell(5).value = rowsToRender.length ? { formula: `SUM(E${startRow}:E${lastRow})` } : 0;
+                totalRow.getCell(6).value = rowsToRender.length ? { formula: `SUM(F${startRow}:F${lastRow})` } : 0;
+                totalRow.getCell(7).value = rowsToRender.length ? { formula: `SUM(G${startRow}:G${lastRow})` } : 0;
+                totalRow.getCell(8).value = rowsToRender.length ? { formula: `SUM(H${startRow}:H${lastRow})` } : 0;
+                totalRow.getCell(10).value = rowsToRender.length ? { formula: `SUM(J${startRow}:J${lastRow})` } : 0;
+                [5, 6, 7, 8, 10].forEach((c) => { totalRow.getCell(c).numFmt = '#,##0.00'; });
+                for (let c = 1; c <= 11; c++) {
+                    const cell = totalRow.getCell(c);
+                    cell.border = thinBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+                    cell.font = { ...(cell.font || {}), bold: true, name: 'Arial', color: { argb: 'FF78350F' } };
+                }
+
+                wsF.autoFilter = 'A1:K1';
+                // Zebra
+                const zebraFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                for (let r = startRow; r <= lastRow; r++) {
+                    if (r % 2 === 0) {
+                        const row = wsF.getRow(r);
+                        for (let c = 1; c <= 11; c++) {
+                            if (c === 8 || c === 11) continue; // durum ve impliye açılış koşullu formatlı
+                            row.getCell(c).fill = zebraFill;
+                        }
+                    }
+                }
+
+                if (typeof wsF.addConditionalFormatting === 'function' && rowsToRender.length) {
+                    // İmpliye Açılış (H): negatif = kırmızı, >3×(E+F) = sarı, >=0 = yeşil
+                    wsF.addConditionalFormatting({
+                        ref: `H${startRow}:H${lastRow}`,
+                        rules: [
+                            {
+                                type: 'expression',
+                                formulae: [`H${startRow}<0`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
+                                    font: { color: { argb: 'FFB91C1C' }, bold: true },
+                                },
+                            },
+                            {
+                                type: 'expression',
+                                formulae: [`H${startRow}>(E${startRow}+F${startRow})*3`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } },
+                                    font: { color: { argb: 'FFB45309' }, bold: true },
+                                },
+                            },
+                            {
+                                type: 'expression',
+                                formulae: [`H${startRow}>=0`],
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
+                                    font: { color: { argb: 'FF166534' }, bold: true },
+                                },
+                            },
+                        ],
+                    });
+                    // Durum (K): metne göre renklendir
+                    wsF.addConditionalFormatting({
+                        ref: `K${startRow}:K${lastRow}`,
+                        rules: [
+                            {
+                                type: 'containsText',
+                                operator: 'containsText',
+                                text: 'Anomali',
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
+                                    font: { color: { argb: 'FFB91C1C' }, bold: true },
+                                },
+                            },
+                            {
+                                type: 'containsText',
+                                operator: 'containsText',
+                                text: 'Yüksek Devir',
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } },
+                                    font: { color: { argb: 'FFB45309' }, bold: true },
+                                },
+                            },
+                            {
+                                type: 'containsText',
+                                operator: 'containsText',
+                                text: 'Tutarlı',
+                                style: {
+                                    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
+                                    font: { color: { argb: 'FF166534' }, bold: true },
+                                },
+                            },
+                        ],
+                    });
+                }
+            };
+
+            // ====== ANOMALİ TESPİT RENDERER ======
+            const renderAnomalySheet = (allRows) => {
+                const wsA = makeSheet(
+                    'Anomali Tespit',
+                    ['Şube', 'Stok Kodu', 'Ürün Adı', 'Tedarik', 'Reçete Tüketimi', 'Sayılan', 'İmpliye Açılış', 'Anomali Tipi', 'Olası Sebep', 'Öncelik TL'],
+                    [16, 14, 42, 14, 16, 14, 16, 18, 50, 16],
+                );
+                // Önceden JS tarafında hesapla ve filtrele
+                const anomalies = [];
+                allRows.forEach((r) => {
+                    const p = products.find((x) => String(x.id) === String(r.productId));
+                    const bn = branches.find((x) => x.id === r.branchId)?.branch_name || String(r.branchId);
+                    const snap = getSnapshot(r.branchId, r.productId);
+                    const counted = r.counted != null && Number.isFinite(r.counted) ? r.counted : 0;
+                    const impliye = counted + snap.consumptionNum - snap.purchaseNum;
+                    const threshold = (snap.purchaseNum + snap.consumptionNum) * 3;
+                    const unitCost = unitCostForBranchProduct(r.branchId, p) || 0;
+                    let tip = null;
+                    let sebep = '';
+                    if (impliye < 0) {
+                        tip = 'Negatif';
+                        sebep = 'Reçete miktarı fazla yazılmış olabilir VEYA tedarik kaydı eksik VEYA sayım eksik yapılmış olabilir.';
+                    } else if (threshold > 0 && impliye > threshold) {
+                        tip = 'Yüksek Devir';
+                        sebep = 'Sayım öncesi kayıtsız stok büyük olabilir VEYA reçete az hesaplanıyor VEYA tedarik fazla kayıtlı.';
+                    }
+                    if (!tip) return;
+                    anomalies.push({
+                        branchName: bn,
+                        stokKodu: p?.stok_kodu || '',
+                        productName: p?.product_name || '(ürün bulunamadı)',
+                        purchase: snap.purchaseNum,
+                        consumption: snap.consumptionNum,
+                        counted,
+                        impliye,
+                        tip,
+                        sebep,
+                        priority: Math.abs(impliye) * unitCost,
+                    });
+                });
+                anomalies.sort((a, b) => b.priority - a.priority);
+
+                if (anomalies.length === 0) {
+                    const row = wsA.getRow(2);
+                    row.getCell(1).value = 'Hiç anomali tespit edilmedi — reçete, tedarik ve sayım verileri tutarlı görünüyor.';
+                    wsA.mergeCells(`A2:J2`);
+                    row.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+                    row.getCell(1).font = { bold: true, color: { argb: 'FF166534' }, name: 'Arial' };
+                    row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+                    row.height = 40;
+                    return;
+                }
+
+                const startRow = 2;
+                anomalies.forEach((a, idx) => {
+                    const rowIndex = startRow + idx;
+                    const row = wsA.getRow(rowIndex);
+                    row.getCell(1).value = a.branchName;
+                    row.getCell(2).value = a.stokKodu;
+                    row.getCell(3).value = a.productName;
+                    row.getCell(4).value = a.purchase;
+                    row.getCell(5).value = a.consumption;
+                    row.getCell(6).value = a.counted;
+                    row.getCell(7).value = a.impliye;
+                    row.getCell(8).value = a.tip;
+                    row.getCell(9).value = a.sebep;
+                    row.getCell(10).value = a.priority;
+
+                    for (let c = 1; c <= 10; c++) {
+                        const cell = row.getCell(c);
+                        cell.border = thinBorder;
+                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.alignment = { vertical: 'middle', horizontal: [4, 5, 6, 7, 10].includes(c) ? 'right' : 'left', wrapText: c === 9 };
+                        if ([4, 5, 6, 7, 10].includes(c)) cell.numFmt = '#,##0.00';
+                    }
+
+                    // Tip renklendirmesi
+                    const tipCell = row.getCell(8);
+                    if (a.tip === 'Negatif') {
+                        tipCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } };
+                        tipCell.font = { color: { argb: 'FFB91C1C' }, bold: true, name: 'Arial' };
+                    } else if (a.tip === 'Yüksek Devir') {
+                        tipCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+                        tipCell.font = { color: { argb: 'FFB45309' }, bold: true, name: 'Arial' };
+                    }
+
+                    const impliyeCell = row.getCell(7);
+                    if (a.impliye < 0) {
+                        impliyeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } };
+                        impliyeCell.font = { color: { argb: 'FFB91C1C' }, bold: true, name: 'Arial' };
+                    } else {
+                        impliyeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+                        impliyeCell.font = { color: { argb: 'FFB45309' }, bold: true, name: 'Arial' };
+                    }
+                });
+                wsA.autoFilter = `A1:J1`;
+            };
+
+            // ====== ANA AKIŞ: Kategori × İlk Sayım matrisi ======
+            const renderer = firstPeriodModeArg ? renderFirstPeriodSheet : renderMutabakatSheet;
+            const defaultSheetName = firstPeriodModeArg ? 'Başlangıç Envanteri' : 'Mutabakat';
+            const otherSheetName = firstPeriodModeArg ? 'Diğer (Başlangıç)' : 'Diğer (Kategorisiz)';
+
+            if (customCategories && Array.isArray(customCategories) && customCategories.length > 0) {
+                const usedKeys = new Set();
+                customCategories.forEach((cat) => {
+                    if (!cat || !cat.name) return;
+                    const prodSet = new Set((cat.productIds || []).map(String));
+                    const subset = mutRows.filter((r) => {
+                        if (!prodSet.has(String(r.productId))) return false;
+                        usedKeys.add(r.branchId + '|' + r.productId);
+                        return true;
+                    });
+                    if (subset.length) renderer(cat.name.slice(0, 31), subset);
+                });
+                const leftovers = mutRows.filter((r) => !usedKeys.has(r.branchId + '|' + r.productId));
+                if (leftovers.length) renderer(otherSheetName, leftovers);
+            } else {
+                renderer(defaultSheetName, mutRows);
             }
-            if (typeof wsMut.addConditionalFormatting === 'function' && mutRows.length) {
-                // Fark (J) ve Toplam Fark TL (L): Negatif=kırmızı, Pozitif=yeşil
-                wsMut.addConditionalFormatting({
-                    ref: `J${mutStartRow}:J${mutLastRow}`,
-                    rules: [
-                        {
-                            type: 'expression',
-                            formulae: [`J${mutStartRow}<0`],
-                            style: {
-                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
-                                font: { color: { argb: 'FFB91C1C' }, bold: true },
-                            },
-                        },
-                        {
-                            type: 'expression',
-                            formulae: [`J${mutStartRow}>0`],
-                            style: {
-                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
-                                font: { color: { argb: 'FF15803D' }, bold: true },
-                            },
-                        },
-                    ],
-                });
-                wsMut.addConditionalFormatting({
-                    ref: `L${mutStartRow}:L${mutLastRow + 1}`,
-                    rules: [
-                        {
-                            type: 'expression',
-                            formulae: [`L${mutStartRow}<0`],
-                            style: {
-                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE4E6' } },
-                                font: { color: { argb: 'FF9F1239' }, bold: true },
-                            },
-                        },
-                        {
-                            type: 'expression',
-                            formulae: [`L${mutStartRow}>0`],
-                            style: {
-                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } },
-                                font: { color: { argb: 'FF166534' }, bold: true },
-                            },
-                        },
-                    ],
-                });
+
+            // İlk sayım modundaysa ek olarak Anomali Tespit sayfası üret
+            if (firstPeriodModeArg) {
+                renderAnomalySheet(mutRows);
             }
 
             // 4.2 Satış Raporu (ayrı sayfa)
@@ -2899,9 +3229,9 @@ export default function AdminDashboard({ onLogout }) {
             r.getCell(5).value = consNum;
             r.getCell(6).value = { formula: `C${rowIndex}+D${rowIndex}-E${rowIndex}` };
             r.getCell(7).value = counted != null ? counted : '';
-            r.getCell(8).value = counted != null ? { formula: `G${rowIndex}-F${rowIndex}` } : '';
+            r.getCell(8).value = counted != null ? { formula: `G${rowIndex}-F${rowIndex}` } : { formula: `0-F${rowIndex}` };
             r.getCell(9).value = unitCost;
-            r.getCell(10).value = counted != null ? { formula: `H${rowIndex}*I${rowIndex}` } : '';
+            r.getCell(10).value = { formula: `H${rowIndex}*I${rowIndex}` };
 
             for (let c = 1; c <= 10; c++) {
                 const cell = r.getCell(c);
@@ -3140,18 +3470,9 @@ export default function AdminDashboard({ onLogout }) {
             return;
         }
 
-        try {
-            await exportRecipeConsumptionXlsx(calc);
-            toast.success('Formüllü Excel oluşturuldu. İnceleyip onaylarsanız DB’ye yazabiliriz.');
-        } catch (e) {
-            console.error(e);
-            toast.error('Excel oluşturulamadı: ' + (e?.message || String(e)));
-            return;
-        }
-
         const bn = branches.find((b) => b.id === selectedBranchId)?.branch_name || 'Seçili şube';
         const ok = window.confirm(
-            `${bn} için reçete düşümü hesaplandı ve Excel indirildi.\n\nVerileri incelediyseniz şimdi sistem stoklarına (branch_stocks) yazılsın mı?`,
+            `${bn} için ${calc.consumptionMap.size} malzemede reçete tüketimi hesaplandı.\n\nSistem stoklarına (branch_stocks) yazılsın mı?\n(Veriyi önce "Excel'e Dök" butonu ile inceleyebilirsiniz.)`,
         );
         if (!ok) return;
 
@@ -4629,6 +4950,289 @@ export default function AdminDashboard({ onLogout }) {
         <div className="min-h-screen bg-izbel-dark text-white font-sans selection:bg-blue-900 selection:text-white pb-20">
             <Toaster position="top-right" />
             {approvalFullscreenModal}
+            {showExportCategoriesModal && (
+                <div className="fixed inset-0 z-[240] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-izbel-card w-full max-w-5xl max-h-[92vh] rounded-[1.5rem] border border-emerald-500/30 shadow-2xl overflow-hidden flex flex-col">
+                        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-4">
+                            <div>
+                                <h3 className="text-lg font-black text-white">Excel Kategorilere Bölme</h3>
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Her kategori ayrı Excel sayfasında görünecektir. Kategorilere eklemediğiniz ürünler "Diğer (Kategorisiz)" sayfasında toplanır.
+                                    Formüller (reçete tüketimi, satış, sayım) aynı kalır — sadece görsel gruplama yapılır.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowExportCategoriesModal(false)}
+                                className="text-gray-400 hover:text-white text-2xl leading-none px-2"
+                                title="Kapat"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                            <label className={`flex items-start gap-3 rounded-xl p-4 cursor-pointer transition-all ${firstPeriodMode ? 'bg-amber-500/15 border border-amber-500/50' : 'bg-white/[0.03] border border-white/10 hover:border-amber-500/30'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={firstPeriodMode}
+                                    onChange={(e) => setFirstPeriodMode(e.target.checked)}
+                                    className="mt-1 accent-amber-500 w-4 h-4"
+                                />
+                                <div className="flex-1">
+                                    <div className="font-black text-sm text-amber-200 mb-1">
+                                        İlk Sayım Modu
+                                        {firstPeriodMode && (
+                                            <span className="ml-2 px-2 py-0.5 bg-amber-500 text-amber-950 rounded-full text-[10px] font-bold tracking-wider">AÇIK</span>
+                                        )}
+                                    </div>
+                                    <div className="text-xs text-amber-100/70 leading-relaxed">
+                                        İşaretli ise <b>varyans / fark hesabı yapılmaz</b>. Onun yerine <b>"İmpliye Açılış = Sayılan + Reçete Tüketimi − Tedarik"</b> hesaplanır
+                                        ve ek bir <b>"Anomali Tespit"</b> sayfası oluşturulur.
+                                        İlk dönem sayımında reçete/tedarik/sayım tutarlılığını kontrol etmek için kullanın.
+                                    </div>
+                                </div>
+                            </label>
+
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <div className="text-sm text-gray-300">
+                                    <span className="font-bold text-white">{exportCategories.length}</span> kategori tanımlı
+                                    {exportCategories.length > 0 && (
+                                        <span className="ml-2 text-gray-500">
+                                            ({exportCategories.reduce((a, c) => a + (c.productIds?.length || 0), 0)} ürün seçili)
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const name = window.prompt('Yeni kategori (Excel sayfa) adı:', '');
+                                            if (!name || !name.trim()) return;
+                                            const id = 'cat_' + Date.now();
+                                            setExportCategories((prev) => [...prev, { id, name: name.trim().slice(0, 31), productIds: [] }]);
+                                            setExpandedCategoryId(id);
+                                        }}
+                                        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg text-sm"
+                                    >
+                                        + Yeni Kategori Ekle
+                                    </button>
+                                    {exportCategories.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (window.confirm('Tüm kategorileri temizlemek istediğinize emin misiniz?')) {
+                                                    setExportCategories([]);
+                                                    setExpandedCategoryId(null);
+                                                }
+                                            }}
+                                            className="text-xs text-red-300 hover:text-red-200 border border-red-500/30 rounded-lg px-3 py-2"
+                                        >
+                                            Hepsini Temizle
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {exportCategories.length === 0 ? (
+                                <div className="border-2 border-dashed border-white/10 rounded-xl p-8 text-center text-gray-500">
+                                    <p className="text-sm">Henüz kategori yok. İsterseniz "+ Yeni Kategori Ekle" ile başlayabilir,</p>
+                                    <p className="text-sm">ya da "Kategorisiz İndir" ile eski davranışla tek Mutabakat sayfası olarak dışa aktarabilirsiniz.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {exportCategories.map((cat) => {
+                                        const isOpen = expandedCategoryId === cat.id;
+                                        const selectedSet = new Set((cat.productIds || []).map(String));
+                                        const term = exportCategoryProductSearch.trim().toLowerCase();
+                                        const filteredProducts = products
+                                            .filter((p) => p.is_active !== false)
+                                            .filter((p) => {
+                                                if (!term) return true;
+                                                return (
+                                                    (p.product_name || '').toLowerCase().includes(term) ||
+                                                    (p.stok_kodu || '').toLowerCase().includes(term)
+                                                );
+                                            })
+                                            .sort((a, b) => (a.product_name || '').localeCompare(b.product_name || '', 'tr'));
+                                        return (
+                                            <div key={cat.id} className="border border-white/10 rounded-xl bg-white/[0.02] overflow-hidden">
+                                                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <input
+                                                            type="text"
+                                                            value={cat.name}
+                                                            onChange={(e) => {
+                                                                const newName = e.target.value.slice(0, 31);
+                                                                setExportCategories((prev) =>
+                                                                    prev.map((c) => (c.id === cat.id ? { ...c, name: newName } : c)),
+                                                                );
+                                                            }}
+                                                            className="bg-izbel-dark/70 border border-white/10 rounded-lg px-3 py-1.5 text-sm font-bold text-white w-64"
+                                                            placeholder="Kategori adı"
+                                                        />
+                                                        <span className="text-xs text-gray-400">
+                                                            {cat.productIds?.length || 0} ürün
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setExpandedCategoryId(isOpen ? null : cat.id)}
+                                                            className="text-xs font-bold uppercase tracking-widest text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 rounded-lg px-3 py-1.5"
+                                                        >
+                                                            {isOpen ? 'Kapat' : 'Ürünleri Seç'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (window.confirm(`"${cat.name}" kategorisini silmek istediğinize emin misiniz?`)) {
+                                                                    setExportCategories((prev) => prev.filter((c) => c.id !== cat.id));
+                                                                    if (expandedCategoryId === cat.id) setExpandedCategoryId(null);
+                                                                }
+                                                            }}
+                                                            className="text-xs text-red-300 hover:text-red-200 border border-red-500/30 rounded-lg px-2.5 py-1.5"
+                                                            title="Kategoriyi sil"
+                                                        >
+                                                            Sil
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {isOpen && (
+                                                    <div className="border-t border-white/10 p-3 bg-black/20">
+                                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                            <input
+                                                                type="text"
+                                                                value={exportCategoryProductSearch}
+                                                                onChange={(e) => setExportCategoryProductSearch(e.target.value)}
+                                                                placeholder="Ürün ara (ad veya stok kodu)"
+                                                                className="bg-izbel-dark/70 border border-white/10 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const ids = filteredProducts.map((p) => String(p.id));
+                                                                    setExportCategories((prev) =>
+                                                                        prev.map((c) => {
+                                                                            if (c.id !== cat.id) return c;
+                                                                            const merged = new Set([...(c.productIds || []).map(String), ...ids]);
+                                                                            return { ...c, productIds: Array.from(merged) };
+                                                                        }),
+                                                                    );
+                                                                }}
+                                                                className="text-xs font-bold text-emerald-300 border border-emerald-500/30 rounded-lg px-3 py-1.5"
+                                                            >
+                                                                Filtredekileri Ekle ({filteredProducts.length})
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setExportCategories((prev) =>
+                                                                        prev.map((c) => (c.id === cat.id ? { ...c, productIds: [] } : c)),
+                                                                    );
+                                                                }}
+                                                                className="text-xs text-gray-400 border border-white/10 rounded-lg px-3 py-1.5"
+                                                            >
+                                                                Seçimi Temizle
+                                                            </button>
+                                                        </div>
+                                                        <div className="max-h-72 overflow-y-auto border border-white/5 rounded-lg bg-izbel-dark/40">
+                                                            {filteredProducts.length === 0 ? (
+                                                                <div className="p-4 text-center text-xs text-gray-500">Ürün bulunamadı.</div>
+                                                            ) : (
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 p-1">
+                                                                    {filteredProducts.slice(0, 600).map((p) => {
+                                                                        const checked = selectedSet.has(String(p.id));
+                                                                        return (
+                                                                            <label
+                                                                                key={p.id}
+                                                                                className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-xs ${checked ? 'bg-emerald-500/15 text-emerald-100' : 'hover:bg-white/5 text-gray-300'}`}
+                                                                            >
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={checked}
+                                                                                    onChange={(e) => {
+                                                                                        const add = e.target.checked;
+                                                                                        setExportCategories((prev) =>
+                                                                                            prev.map((c) => {
+                                                                                                if (c.id !== cat.id) return c;
+                                                                                                const s = new Set((c.productIds || []).map(String));
+                                                                                                if (add) s.add(String(p.id));
+                                                                                                else s.delete(String(p.id));
+                                                                                                return { ...c, productIds: Array.from(s) };
+                                                                                            }),
+                                                                                        );
+                                                                                    }}
+                                                                                    className="accent-emerald-500"
+                                                                                />
+                                                                                <span className="truncate flex-1" title={p.product_name}>{p.product_name}</span>
+                                                                                {p.stok_kodu && (
+                                                                                    <span className="text-[10px] text-gray-500 shrink-0">{p.stok_kodu}</span>
+                                                                                )}
+                                                                            </label>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                            {filteredProducts.length > 600 && (
+                                                                <div className="p-2 text-center text-[10px] text-gray-500 border-t border-white/5">
+                                                                    İlk 600 ürün gösteriliyor. Daha fazlası için arama yapın.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="px-5 py-4 border-t border-white/10 bg-black/30 flex items-center justify-between gap-3 flex-wrap">
+                            <div className="text-[11px] text-gray-500">
+                                Tanımladığınız kategoriler bu tarayıcıda saklanır, sonraki dışa aktarımda da kullanılabilir.
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowExportCategoriesModal(false)}
+                                    className="text-xs font-bold uppercase tracking-widest text-gray-300 border border-white/10 rounded-lg px-4 py-2.5"
+                                >
+                                    İptal
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        try { localStorage.setItem('exportCategories_v1', JSON.stringify(exportCategories)); } catch {}
+                                        setShowExportCategoriesModal(false);
+                                        exportProductCSV(null, firstPeriodMode);
+                                    }}
+                                    className="text-xs font-bold uppercase tracking-widest text-gray-200 border border-white/10 hover:bg-white/5 rounded-lg px-4 py-2.5"
+                                >
+                                    {firstPeriodMode ? 'Kategorisiz İndir (Tek Başlangıç)' : 'Kategorisiz İndir (Tek Mutabakat)'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const valid = exportCategories.filter((c) => c.name && c.name.trim() && (c.productIds?.length || 0) > 0);
+                                        if (valid.length === 0) {
+                                            toast.info('Hiç kategori veya seçili ürün yok. "Kategorisiz İndir" ile devam edebilirsiniz.');
+                                            return;
+                                        }
+                                        try { localStorage.setItem('exportCategories_v1', JSON.stringify(exportCategories)); } catch {}
+                                        setShowExportCategoriesModal(false);
+                                        exportProductCSV(valid, firstPeriodMode);
+                                    }}
+                                    className={`text-xs font-bold uppercase tracking-widest text-white rounded-lg px-4 py-2.5 flex items-center gap-2 ${firstPeriodMode ? 'bg-amber-600 hover:bg-amber-500' : 'bg-emerald-600 hover:bg-emerald-500'}`}
+                                >
+                                    {firstPeriodMode ? 'İlk Sayım İndir' : 'Bitir & İndir'} ({exportCategories.filter((c) => (c.productIds?.length || 0) > 0).length} sayfa)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {showSupplyModal && (
                 <div className="fixed inset-0 z-[220] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-izbel-card w-full max-w-6xl max-h-[88vh] rounded-[1.5rem] border border-fuchsia-500/30 shadow-2xl overflow-hidden flex flex-col">
@@ -5622,7 +6226,7 @@ export default function AdminDashboard({ onLogout }) {
                                 >
                                     <RotateCcw size={14} /> Stok geri al ({stockApplyUndoStack.length})
                                 </button>
-                                <button onClick={exportProductCSV} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 px-4 rounded-xl transition-all border border-white/5 print:hidden self-start">
+                                <button onClick={() => setShowExportCategoriesModal(true)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 px-4 rounded-xl transition-all border border-white/5 print:hidden self-start">
                                     <Download size={18} /> Excel'e Dök
                                 </button>
                                 <button
