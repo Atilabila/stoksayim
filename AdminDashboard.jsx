@@ -271,6 +271,7 @@ export default function AdminDashboard({ onLogout }) {
     });
     const [exportCategoryProductSearch, setExportCategoryProductSearch] = useState('');
     const [expandedCategoryId, setExpandedCategoryId] = useState(null);
+    const [onlyRecipeProducts, setOnlyRecipeProducts] = useState(false);
     /** İlk Sayım Modu: aktifse İmpliye Açılış + Anomali sheet üretir, varyans hesaplamaz */
     const [firstPeriodMode, setFirstPeriodMode] = useState(false);
     /** Manuel alım (tedarik) girdileri: key branch|product -> quantity */
@@ -601,6 +602,42 @@ export default function AdminDashboard({ onLogout }) {
         });
         return m;
     }, [branchStocks]);
+
+    /** Reçetede kullanılan tüm ürün id'leri (mamul + hammadde) */
+    const recipeProductIdSet = useMemo(() => {
+        const s = new Set();
+        (recipeItems || []).forEach((r) => {
+            if (r.recipe_product_id) s.add(String(r.recipe_product_id));
+            if (r.ingredient_product_id) s.add(String(r.ingredient_product_id));
+        });
+        return s;
+    }, [recipeItems]);
+
+    /** Reçete raw cache'ten gelen stok kodlarından hangileri sistemde yok? */
+    const missingRecipeStokKodlari = useMemo(() => {
+        if (!recipeRawRowsCache || recipeRawRowsCache.length === 0) return [];
+        const sysSet = new Set(
+            products
+                .map((p) => String(p.stok_kodu || '').trim().toUpperCase())
+                .filter(Boolean),
+        );
+        const missing = new Map();
+        recipeRawRowsCache.forEach((row) => {
+            const refs = [
+                { code: row.recipe_stok_kodu, name: row.recipe_name, kind: 'Mamul' },
+                { code: row.ingredient_stok_kodu, name: row.ingredient_name, kind: 'Hammadde' },
+            ];
+            refs.forEach((rf) => {
+                const c = String(rf.code || '').trim().toUpperCase();
+                if (!c) return;
+                if (sysSet.has(c)) return;
+                if (!missing.has(c)) {
+                    missing.set(c, { stok_kodu: c, name: rf.name || '', kind: rf.kind });
+                }
+            });
+        });
+        return Array.from(missing.values());
+    }, [recipeRawRowsCache, products]);
 
     const branchStockMap = useMemo(() => {
         const m = new Map();
@@ -4972,6 +5009,36 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                            {missingRecipeStokKodlari.length > 0 && (
+                                <div className="bg-red-500/15 border border-red-500/40 rounded-xl p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-1">
+                                            <div className="font-black text-sm text-red-200 mb-1">
+                                                ⚠ Reçetede geçip sistemde olmayan {missingRecipeStokKodlari.length} stok kodu
+                                            </div>
+                                            <div className="text-xs text-red-100/80 leading-relaxed mb-2">
+                                                Receteler.csv yüklediğinizde sistem bu kodları otomatik açmalıydı ama açılmamış.
+                                                Reçete dosyasını tekrar yükleyin ya da aşağıdaki listeden manuel ürün ekleyin.
+                                            </div>
+                                            <details className="text-xs">
+                                                <summary className="cursor-pointer text-red-200 hover:text-red-100 font-bold">İlk {Math.min(missingRecipeStokKodlari.length, 30)} eksik ürünü göster</summary>
+                                                <div className="mt-2 max-h-40 overflow-y-auto bg-black/30 rounded-lg p-2 space-y-0.5">
+                                                    {missingRecipeStokKodlari.slice(0, 30).map((m) => (
+                                                        <div key={m.stok_kodu} className="flex items-center gap-2 text-[11px]">
+                                                            <span className="font-mono text-red-300 w-20 shrink-0">{m.stok_kodu}</span>
+                                                            <span className="text-red-100 truncate flex-1">{m.name || '(isimsiz)'}</span>
+                                                            <span className="text-red-400/70 text-[9px] uppercase">{m.kind}</span>
+                                                        </div>
+                                                    ))}
+                                                    {missingRecipeStokKodlari.length > 30 && (
+                                                        <div className="text-[10px] text-red-300/70 pt-1">... ve {missingRecipeStokKodlari.length - 30} ürün daha</div>
+                                                    )}
+                                                </div>
+                                            </details>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <label className={`flex items-start gap-3 rounded-xl p-4 cursor-pointer transition-all ${firstPeriodMode ? 'bg-amber-500/15 border border-amber-500/50' : 'bg-white/[0.03] border border-white/10 hover:border-amber-500/30'}`}>
                                 <input
                                     type="checkbox"
@@ -5047,6 +5114,7 @@ export default function AdminDashboard({ onLogout }) {
                                         const term = exportCategoryProductSearch.trim().toLowerCase();
                                         const filteredProducts = products
                                             .filter((p) => p.is_active !== false)
+                                            .filter((p) => !onlyRecipeProducts || recipeProductIdSet.has(String(p.id)))
                                             .filter((p) => {
                                                 if (!term) return true;
                                                 return (
@@ -5108,6 +5176,15 @@ export default function AdminDashboard({ onLogout }) {
                                                                 placeholder="Ürün ara (ad veya stok kodu)"
                                                                 className="bg-izbel-dark/70 border border-white/10 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]"
                                                             />
+                                                            <label className={`flex items-center gap-1.5 text-xs font-bold rounded-lg px-3 py-1.5 cursor-pointer border ${onlyRecipeProducts ? 'bg-blue-500/20 border-blue-500/50 text-blue-100' : 'border-white/10 text-gray-300 hover:border-blue-500/30'}`}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={onlyRecipeProducts}
+                                                                    onChange={(e) => setOnlyRecipeProducts(e.target.checked)}
+                                                                    className="accent-blue-500"
+                                                                />
+                                                                Sadece reçetede geçenler ({recipeProductIdSet.size})
+                                                            </label>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
@@ -5127,6 +5204,25 @@ export default function AdminDashboard({ onLogout }) {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
+                                                                    const ids = Array.from(recipeProductIdSet);
+                                                                    setExportCategories((prev) =>
+                                                                        prev.map((c) => {
+                                                                            if (c.id !== cat.id) return c;
+                                                                            const merged = new Set([...(c.productIds || []).map(String), ...ids]);
+                                                                            return { ...c, productIds: Array.from(merged) };
+                                                                        }),
+                                                                    );
+                                                                    toast.success(`${ids.length} reçete ürünü eklendi.`);
+                                                                }}
+                                                                className="text-xs font-bold text-blue-300 border border-blue-500/30 rounded-lg px-3 py-1.5"
+                                                                title="Reçetede geçen tüm ürünleri tek tıkla ekler"
+                                                                disabled={recipeProductIdSet.size === 0}
+                                                            >
+                                                                Reçetedekileri Ekle ({recipeProductIdSet.size})
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
                                                                     setExportCategories((prev) =>
                                                                         prev.map((c) => (c.id === cat.id ? { ...c, productIds: [] } : c)),
                                                                     );
@@ -5141,7 +5237,7 @@ export default function AdminDashboard({ onLogout }) {
                                                                 <div className="p-4 text-center text-xs text-gray-500">Ürün bulunamadı.</div>
                                                             ) : (
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0.5 p-1">
-                                                                    {filteredProducts.slice(0, 600).map((p) => {
+                                                                    {filteredProducts.slice(0, 2000).map((p) => {
                                                                         const checked = selectedSet.has(String(p.id));
                                                                         return (
                                                                             <label
@@ -5174,9 +5270,9 @@ export default function AdminDashboard({ onLogout }) {
                                                                     })}
                                                                 </div>
                                                             )}
-                                                            {filteredProducts.length > 600 && (
+                                                            {filteredProducts.length > 2000 && (
                                                                 <div className="p-2 text-center text-[10px] text-gray-500 border-t border-white/5">
-                                                                    İlk 600 ürün gösteriliyor. Daha fazlası için arama yapın.
+                                                                    İlk 2000 ürün gösteriliyor ({filteredProducts.length} toplam). Daha fazlası için arama yapın.
                                                                 </div>
                                                             )}
                                                         </div>
