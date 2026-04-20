@@ -605,6 +605,9 @@ export default function AdminDashboard({ onLogout }) {
     const [huginXmlPreviewOpen, setHuginXmlPreviewOpen] = useState(false);
     const [huginXmlProcessing, setHuginXmlProcessing] = useState(false);
     const [huginXmlApplying, setHuginXmlApplying] = useState(false);
+    /** Hugin XML için kullanıcı tarafından seçilen tarih aralığı (YYYY-MM-DD). Boş ise aktif dönem kullanılır. */
+    const [huginXmlDateFrom, setHuginXmlDateFrom] = useState('');
+    const [huginXmlDateTo, setHuginXmlDateTo] = useState('');
 
     // POS Eşleştirme States
     const [posManualMap, setPosManualMap] = useState({});
@@ -4056,6 +4059,77 @@ export default function AdminDashboard({ onLogout }) {
      * kalıcı eşlemelerle (sales_xml_branch_map + pos_product_map) yazmak üzere
      * önizleme modalı açılır.
      */
+    /**
+     * Ham parse edilmiş XML kayıtlarından aggregate hesaplar (şube & ürün).
+     * Tarih aralığı değiştirildiğinde tekrar çalıştırılabilir.
+     * @param {Array} rawRecords parseHuginWftXml sonuçları (geçerli olanlar)
+     * @param {string} fromIso YYYY-MM-DD (dahil)
+     * @param {string} toIso   YYYY-MM-DD (dahil)
+     */
+    const aggregateHuginRaw = (rawRecords, fromIso, toIso) => {
+        const bySube = new Map();
+        let globalMinIso = '';
+        let globalMaxIso = '';
+        let totalItemCount = 0;
+        let totalQty = 0;
+        let outOfRangeFiles = 0;
+        let emptyFiles = 0;
+
+        for (const parsed of rawRecords) {
+            const { subeKodu, invoiceDateIso, items } = parsed;
+            if (!subeKodu) continue;
+            if (invoiceDateIso) {
+                if (fromIso && invoiceDateIso < fromIso) { outOfRangeFiles++; continue; }
+                if (toIso && invoiceDateIso > toIso) { outOfRangeFiles++; continue; }
+            }
+            if (!items || !items.length) { emptyFiles++; continue; }
+
+            const subeKey = String(subeKodu).toUpperCase();
+            if (!bySube.has(subeKey)) {
+                bySube.set(subeKey, {
+                    subeKodu: subeKodu,
+                    fileCount: 0, itemCount: 0, totalQty: 0,
+                    dateMin: '', dateMax: '',
+                    invoiceDates: new Set(),
+                    items: new Map(),
+                    serverNames: new Set(),
+                    dbFiles: new Set(),
+                });
+            }
+            const ctx = bySube.get(subeKey);
+            ctx.fileCount++;
+            if (parsed.serverName) ctx.serverNames.add(parsed.serverName);
+            if (parsed.dbFile) ctx.dbFiles.add(parsed.dbFile);
+            if (invoiceDateIso) {
+                ctx.invoiceDates.add(invoiceDateIso);
+                if (!ctx.dateMin || invoiceDateIso < ctx.dateMin) ctx.dateMin = invoiceDateIso;
+                if (!ctx.dateMax || invoiceDateIso > ctx.dateMax) ctx.dateMax = invoiceDateIso;
+                if (!globalMinIso || invoiceDateIso < globalMinIso) globalMinIso = invoiceDateIso;
+                if (!globalMaxIso || invoiceDateIso > globalMaxIso) globalMaxIso = invoiceDateIso;
+            }
+            for (const it of items) {
+                const stokAdi = String(it.stokAdi || '').trim();
+                const barkod = String(it.barkod || '').trim();
+                const qty = Number(it.miktar) || 0;
+                if (!stokAdi && !barkod) continue;
+                if (qty <= 0) continue;
+                const key = stokAdi ? `N:${normalizeText(stokAdi)}` : `B:${barkod}`;
+                if (!ctx.items.has(key)) {
+                    ctx.items.set(key, { stokAdi, barkod, qty: 0, priceSum: 0, lineCount: 0 });
+                }
+                const rec = ctx.items.get(key);
+                rec.qty += qty;
+                rec.priceSum += (Number(it.fiyat) || 0) * qty;
+                rec.lineCount++;
+                ctx.itemCount++;
+                totalItemCount++;
+                totalQty += qty;
+            }
+            ctx.totalQty += items.reduce((s, x) => s + (Number(x.miktar) > 0 ? Number(x.miktar) : 0), 0);
+        }
+        return { bySube, globalMinIso, globalMaxIso, totalItemCount, totalQty, outOfRangeFiles, emptyFiles };
+    };
+
     const handleHuginXmlFolderSelect = async (e) => {
         const all = Array.from(e?.target?.files || []);
         if (!all.length) {
@@ -4068,9 +4142,11 @@ export default function AdminDashboard({ onLogout }) {
             e.target.value = '';
             return;
         }
-        // Sayım dönemi tarih aralığı: açılış tarihi ~ bitiş tarihi (yoksa bugün)
-        const periodStartIso = (activePeriod.start_date || activePeriod.started_at || activePeriod.created_at || '').slice(0, 10);
-        const periodEndIso = (activePeriod.end_date || activePeriod.closed_at || new Date().toISOString()).slice(0, 10);
+        // Kullanıcı tarih aralığı girdiyse onu kullan; yoksa aktif dönem tarihleri
+        const activeStartIso = (activePeriod.start_date || activePeriod.started_at || activePeriod.created_at || '').slice(0, 10);
+        const activeEndIso = (activePeriod.end_date || activePeriod.closed_at || new Date().toISOString()).slice(0, 10);
+        const fromIso = (huginXmlDateFrom || activeStartIso || '').slice(0, 10);
+        const toIso = (huginXmlDateTo || activeEndIso || '').slice(0, 10);
 
         // SADECE *.xml ve \dist\ olmayan path'ler (şablon atla)
         const xmlFiles = all.filter((f) => {
@@ -4088,19 +4164,10 @@ export default function AdminDashboard({ onLogout }) {
         setHuginXmlProcessing(true);
         const parseStart = Date.now();
         try {
-            // Toast ile ilerleme
             const progressToast = toast.loading(`XML parse: 0 / ${xmlFiles.length}`);
 
-            // Aggregation:
-            // - bySube[SUBE_KODU] = { fileCount, itemCount, totalQty, dateMin, dateMax, invoiceDates:Set, items: Map<stokAdi|barkod, {stokAdi, barkod, qty, priceSum, files:Set}> }
-            const bySube = new Map();
-            // Ayrıca tüm kullanılan tarih aralıkları
-            let globalMinIso = '';
-            let globalMaxIso = '';
-            let totalItemCount = 0;
-            let totalQty = 0;
-            let outOfRangeFiles = 0;
-            let emptyFiles = 0;
+            // Önce TÜM XML'leri parse et (tarih filtresi uygulanmadan). Sonra aggregate.
+            const rawRecords = [];
             let parseErrors = 0;
 
             const BATCH = 50;
@@ -4113,68 +4180,18 @@ export default function AdminDashboard({ onLogout }) {
                     if (!txt) { parseErrors++; continue; }
                     const parsed = parseHuginWftXml(txt, f.name, f.lastModified);
                     if (!parsed) { parseErrors++; continue; }
-                    const { subeKodu, invoiceDateIso, items } = parsed;
-                    if (!subeKodu) { parseErrors++; continue; }
-                    // Dönem dışı kayıtları atla
-                    if (invoiceDateIso) {
-                        if (periodStartIso && invoiceDateIso < periodStartIso) { outOfRangeFiles++; continue; }
-                        if (periodEndIso && invoiceDateIso > periodEndIso) { outOfRangeFiles++; continue; }
-                    }
-                    if (!items || !items.length) { emptyFiles++; continue; }
-
-                    const subeKey = String(subeKodu).toUpperCase();
-                    if (!bySube.has(subeKey)) {
-                        bySube.set(subeKey, {
-                            subeKodu: subeKodu,
-                            fileCount: 0,
-                            itemCount: 0,
-                            totalQty: 0,
-                            dateMin: '',
-                            dateMax: '',
-                            invoiceDates: new Set(),
-                            items: new Map(),
-                            serverNames: new Set(),
-                            dbFiles: new Set(),
-                        });
-                    }
-                    const ctx = bySube.get(subeKey);
-                    ctx.fileCount++;
-                    if (parsed.serverName) ctx.serverNames.add(parsed.serverName);
-                    if (parsed.dbFile) ctx.dbFiles.add(parsed.dbFile);
-                    if (invoiceDateIso) {
-                        ctx.invoiceDates.add(invoiceDateIso);
-                        if (!ctx.dateMin || invoiceDateIso < ctx.dateMin) ctx.dateMin = invoiceDateIso;
-                        if (!ctx.dateMax || invoiceDateIso > ctx.dateMax) ctx.dateMax = invoiceDateIso;
-                        if (!globalMinIso || invoiceDateIso < globalMinIso) globalMinIso = invoiceDateIso;
-                        if (!globalMaxIso || invoiceDateIso > globalMaxIso) globalMaxIso = invoiceDateIso;
-                    }
-                    for (const it of items) {
-                        const stokAdi = String(it.stokAdi || '').trim();
-                        const barkod = String(it.barkod || '').trim();
-                        const qty = Number(it.miktar) || 0;
-                        if (!stokAdi && !barkod) continue;
-                        if (qty <= 0) continue; // iade/negatif şimdilik atlanır
-                        const key = stokAdi ? `N:${normalizeText(stokAdi)}` : `B:${barkod}`;
-                        if (!ctx.items.has(key)) {
-                            ctx.items.set(key, {
-                                stokAdi, barkod, qty: 0, priceSum: 0, lineCount: 0,
-                            });
-                        }
-                        const rec = ctx.items.get(key);
-                        rec.qty += qty;
-                        rec.priceSum += (Number(it.fiyat) || 0) * qty;
-                        rec.lineCount++;
-                        ctx.itemCount++;
-                        totalItemCount++;
-                        totalQty += qty;
-                    }
+                    if (!parsed.subeKodu) { parseErrors++; continue; }
+                    rawRecords.push(parsed);
                 }
                 toast.loading(`XML parse: ${Math.min(i + BATCH, xmlFiles.length)} / ${xmlFiles.length}`, { id: progressToast });
             }
             toast.dismiss(progressToast);
 
+            const agg = aggregateHuginRaw(rawRecords, fromIso, toIso);
+            const { bySube, globalMinIso, globalMaxIso, totalItemCount, totalQty, outOfRangeFiles, emptyFiles } = agg;
+
             if (!bySube.size) {
-                toast.error('XML parse edildi ama dönem aralığında geçerli satış bulunamadı.');
+                toast.error('XML parse edildi ama seçili tarih aralığında geçerli satış bulunamadı.');
                 return;
             }
 
@@ -4220,18 +4237,50 @@ export default function AdminDashboard({ onLogout }) {
                 }
             });
 
-            // Akıllı seçici: Aynı isimde birden fazla ürün varsa; aktif + satış-kategorili olanı
-            // öne alır. Böylece "MAX TWİSTER FOREST" gibi hem ÇINARLI MENÜ hem Yiyecek
-            // kategorisinde duplike kayıtlarda doğru (aktif/satış) olan seçilir.
+            // Tedarik CSV'den gelen ürün kümesi (aktif dönem) — skorlamada öncelik için.
+            // Aynı isimli adaylar arasında, tedariki yapılmış ürün (yani gerçekten satışı olan) tercih edilir.
+            const suppliedGlobal = new Set();
+            Object.keys(manualPurchaseByKey || {}).forEach((k) => {
+                const qty = Number(manualPurchaseByKey[k]) || 0;
+                if (qty <= 0) return;
+                const [_bid, pid] = k.split('|');
+                if (pid) suppliedGlobal.add(String(pid));
+            });
+
+            // --- Reçete mamul indeksi (receteler.csv'den yüklenmiş unique mamuller) ---
+            // mamulByName: normalizeText(recipe_name) -> recipe_stok_kodu (UPPER)
+            // productByStok: products.stok_kodu (UPPER) -> product
+            // recipeMamulProductIdSet: products.id (stok_kodu reçete mamulüne denk gelenler)
+            const mamulByName = new Map();
+            (recipeRawRowsCache || []).forEach((r) => {
+                const nm = normalizeText(r.recipe_name || '');
+                const sk = String(r.recipe_stok_kodu || '').trim().toUpperCase();
+                if (nm && sk && !mamulByName.has(nm)) mamulByName.set(nm, sk);
+            });
+            const productByStok = new Map();
+            products.forEach((p) => {
+                const sk = String(p.stok_kodu || '').trim().toUpperCase();
+                if (sk) productByStok.set(sk, p);
+            });
+            const recipeMamulProductIdSet = new Set();
+            mamulByName.forEach((sk) => {
+                const p = productByStok.get(sk);
+                if (p) recipeMamulProductIdSet.add(String(p.id));
+            });
+
+            // Akıllı seçici: Aynı isimde birden fazla ürün varsa; reçete mamulü > tedarikli > aktif > satış kategori > ST kısa kod.
             const SALES_CAT_HINTS = ['menu', 'icecek', 'yiyecek', 'kahve', 'tatli', 'sicak', 'soguk', 'salata', 'tost', 'sandwich', 'sandvic', 'burger'];
             const scoreProduct = (p) => {
                 let s = 0;
-                if (p.is_active) s += 1000; // aktif olanı her zaman tercih et
+                if (p.is_active) s += 1000;
+                // Reçete mamulü — EN GÜÇLÜ sinyal (üretim/satış yapılan kesin ürün)
+                if (recipeMamulProductIdSet.has(String(p.id))) s += 1500;
+                // Tedarik CSV'den yüklenmiş ürünler (gerçekten sipariş edilen) — ikincil güç
+                if (suppliedGlobal.has(String(p.id))) s += 500;
                 const cat = asciiFoldKey(p.category || '');
                 if (SALES_CAT_HINTS.some((h) => cat.includes(h))) s += 200;
                 if (p.barcode) s += 20;
                 const sk = String(p.stok_kodu || '');
-                // ST00xxx (5 haneli) genelde ana/satış ürünü; ST0000xxx (7 haneli) tedarik
                 if (/^ST\d{5}$/.test(sk)) s += 30;
                 return s;
             };
@@ -4249,7 +4298,8 @@ export default function AdminDashboard({ onLogout }) {
             };
 
             // Tüm şubelerden toplam agrega — eşleme bir kere yapılır (ürün bazında)
-            const allItems = new Map(); // key (ürün tanımlayıcı) -> { stokAdi, barkod, matchedId, reason, totalQty, perSube:Map }
+            // matchedSource: 'pos_map' | 'barcode' | 'recipe' | 'supplied' | 'name' | 'partial' | null
+            const allItems = new Map();
             for (const [subeKey, ctx] of bySube) {
                 for (const [_k, rec] of ctx.items) {
                     const stokAdi = rec.stokAdi;
@@ -4257,37 +4307,69 @@ export default function AdminDashboard({ onLogout }) {
                     const itemKey = stokAdi ? `N:${normalizeText(stokAdi)}` : `B:${barkod}`;
                     if (!allItems.has(itemKey)) {
                         let matchedId = null;
+                        let matchedSource = null;
                         let reason = null;
+
+                        // 1) Kalıcı POS eşlemesi (kullanıcı daha önce elle bağladıysa)
                         if (stokAdi && posManualMap[stokAdi]) {
                             matchedId = posManualMap[stokAdi];
-                        } else if (barkod && productByBarcode.has(normalizeBarcodeVal(barkod))) {
+                            matchedSource = 'pos_map';
+                        }
+                        // 2) Barkod tam eşleşme
+                        if (!matchedId && barkod && productByBarcode.has(normalizeBarcodeVal(barkod))) {
                             const list = productByBarcode.get(normalizeBarcodeVal(barkod));
                             const picked = pickBestProduct(list);
-                            if (picked.productId) matchedId = picked.productId;
+                            if (picked.productId) { matchedId = picked.productId; matchedSource = 'barcode'; }
                             else if (picked.ambiguous) reason = 'ambiguous_barcode';
                         }
+                        // 3) Reçete mamulü (recipe_name -> recipe_stok_kodu -> products.stok_kodu)
+                        if (!matchedId && stokAdi) {
+                            const kn = normalizeText(stokAdi);
+                            // 3a) tam ad eşleşmesi
+                            let sk = mamulByName.get(kn);
+                            // 3b) kısmi (en uzun mamul adı kazanır)
+                            if (!sk && kn) {
+                                let bestLen = 0;
+                                for (const [mname, msk] of mamulByName) {
+                                    if (!mname) continue;
+                                    if (kn.includes(mname) || mname.includes(kn)) {
+                                        if (mname.length > bestLen) { bestLen = mname.length; sk = msk; }
+                                    }
+                                }
+                            }
+                            if (sk) {
+                                const p = productByStok.get(sk);
+                                if (p) { matchedId = p.id; matchedSource = 'recipe'; }
+                            }
+                        }
+                        // 4) product_name tam eşleşme (normalize) + pickBestProduct
                         if (!matchedId && stokAdi) {
                             const k = normalizeText(stokAdi);
                             const list = productByNorm.get(k);
                             if (list && list.length > 0) {
                                 const picked = pickBestProduct(list);
-                                if (picked.productId) matchedId = picked.productId;
-                                else if (picked.ambiguous) reason = reason || 'ambiguous_name';
+                                if (picked.productId) {
+                                    matchedId = picked.productId;
+                                    matchedSource = suppliedGlobal.has(String(matchedId)) ? 'supplied' : 'name';
+                                } else if (picked.ambiguous) reason = reason || 'ambiguous_name';
                             } else {
-                                // kısmi içerme
+                                // 5) kısmi içerme
                                 const candidates = products.filter((p) => {
                                     const pn = normalizeText(p.product_name);
                                     return pn && (pn.includes(k) || k.includes(pn));
                                 });
                                 const picked = pickBestProduct(candidates);
-                                if (picked.productId) matchedId = picked.productId;
-                                else if (picked.ambiguous) reason = reason || 'ambiguous_partial';
+                                if (picked.productId) {
+                                    matchedId = picked.productId;
+                                    matchedSource = suppliedGlobal.has(String(matchedId)) ? 'supplied' : 'partial';
+                                } else if (picked.ambiguous) reason = reason || 'ambiguous_partial';
                                 else reason = reason || 'not_found';
                             }
                         }
                         allItems.set(itemKey, {
                             key: itemKey, stokAdi, barkod,
                             matchedProductId: matchedId,
+                            matchedSource,
                             reason,
                             totalQty: 0,
                             perSube: {},
@@ -4321,8 +4403,8 @@ export default function AdminDashboard({ onLogout }) {
 
             setHuginXmlPreview({
                 periodId: activePeriod.id,
-                periodStartIso,
-                periodEndIso,
+                periodStartIso: fromIso,
+                periodEndIso: toIso,
                 globalMinIso,
                 globalMaxIso,
                 totalFiles: xmlFiles.length,
@@ -4338,6 +4420,10 @@ export default function AdminDashboard({ onLogout }) {
                 branchMapping,        // SUBE_KODU -> branchId
                 activeTab: 'summary', // 'summary' | 'branches' | 'products' | 'rows'
                 searchText: '',
+                // Ham parse sonuçlarını sakla ki modal'da tarih aralığı değişirse yeniden aggregate edebilelim
+                rawRecords,
+                filterFromIso: fromIso,
+                filterToIso: toIso,
             });
             setHuginXmlPreviewOpen(true);
             toast.success(
@@ -7052,10 +7138,10 @@ export default function AdminDashboard({ onLogout }) {
                     });
                 };
 
-                const setProductFor = (itemKey, pid) => {
+                const setProductFor = (itemKey, pid, source = 'manual') => {
                     setHuginXmlPreview((prev) => {
                         if (!prev) return prev;
-                        const items = prev.items.map((r) => r.key === itemKey ? { ...r, matchedProductId: pid || null, reason: pid ? null : r.reason } : r);
+                        const items = prev.items.map((r) => r.key === itemKey ? { ...r, matchedProductId: pid || null, matchedSource: pid ? source : null, reason: pid ? null : r.reason } : r);
                         return { ...prev, items };
                     });
                 };
@@ -7126,7 +7212,112 @@ export default function AdminDashboard({ onLogout }) {
                                         <div className="rounded-xl border border-violet-500/20 bg-violet-950/20 p-4">
                                             <div className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-2">XML Tarih Aralığı</div>
                                             <div className="text-sm text-white font-mono">{p.globalMinIso || '—'} → {p.globalMaxIso || '—'}</div>
-                                            <div className="text-[11px] text-gray-400 mt-1">Dönem filtresi: <span className="font-mono text-amber-300">{p.periodStartIso}</span> — <span className="font-mono text-amber-300">{p.periodEndIso}</span>. Dönem dışı kalan dosyalar atlandı.</div>
+                                            <div className="text-[11px] text-gray-400 mt-1">Şu anki filtre: <span className="font-mono text-amber-300">{p.periodStartIso}</span> — <span className="font-mono text-amber-300">{p.periodEndIso}</span>. Aralığı değiştirip yeniden filtreleyebilirsiniz.</div>
+
+                                            {/* Yeniden filtrele — ham parse edilmiş kayıtlardan tekrar aggregate */}
+                                            <div className="mt-3 flex items-end gap-2 flex-wrap">
+                                                <div className="flex flex-col">
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Başlangıç</label>
+                                                    <input
+                                                        type="date"
+                                                        value={p.filterFromIso || ''}
+                                                        min={p.globalMinIso || undefined}
+                                                        max={p.globalMaxIso || undefined}
+                                                        onChange={(e) => setHuginXmlPreview((prev) => prev ? { ...prev, filterFromIso: e.target.value } : prev)}
+                                                        className="bg-izbel-dark border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono outline-none focus:border-violet-500"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Bitiş</label>
+                                                    <input
+                                                        type="date"
+                                                        value={p.filterToIso || ''}
+                                                        min={p.globalMinIso || undefined}
+                                                        max={p.globalMaxIso || undefined}
+                                                        onChange={(e) => setHuginXmlPreview((prev) => prev ? { ...prev, filterToIso: e.target.value } : prev)}
+                                                        className="bg-izbel-dark border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono outline-none focus:border-violet-500"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const from = (p.filterFromIso || '').slice(0, 10);
+                                                        const to = (p.filterToIso || '').slice(0, 10);
+                                                        if (from && to && from > to) { toast.error('Başlangıç tarihi bitişten büyük olamaz.'); return; }
+                                                        if (!p.rawRecords || !p.rawRecords.length) { toast.error('Ham kayıt bulunamadı, lütfen klasörü tekrar seçin.'); return; }
+                                                        const agg = aggregateHuginRaw(p.rawRecords, from, to);
+                                                        if (!agg.bySube.size) { toast.error('Bu aralıkta satış verisi yok.'); return; }
+                                                        // Yeni subeList & items oluştur
+                                                        const subeArray = Array.from(agg.bySube.entries()).map(([subeKey, ctx]) => ({
+                                                            subeKey,
+                                                            subeKodu: ctx.subeKodu,
+                                                            fileCount: ctx.fileCount,
+                                                            itemCount: ctx.itemCount,
+                                                            totalQty: Array.from(ctx.items.values()).reduce((s, r) => s + (r.qty || 0), 0),
+                                                            dateMin: ctx.dateMin,
+                                                            dateMax: ctx.dateMax,
+                                                            daysCount: ctx.invoiceDates.size,
+                                                            serverNames: Array.from(ctx.serverNames),
+                                                            dbFiles: Array.from(ctx.dbFiles),
+                                                            branchId: p.branchMapping[subeKey] || '',
+                                                        }));
+                                                        subeArray.sort((a, b) => (b.totalQty || 0) - (a.totalQty || 0));
+
+                                                        // Ürün agrega + mevcut eşleme bilgilerini koru
+                                                        const existingMap = new Map((p.items || []).map((r) => [r.key, r]));
+                                                        const allItems = new Map();
+                                                        for (const [subeKey, ctx] of agg.bySube) {
+                                                            for (const [_k, rec] of ctx.items) {
+                                                                const stokAdi = rec.stokAdi;
+                                                                const barkod = rec.barkod;
+                                                                const itemKey = stokAdi ? `N:${normalizeText(stokAdi)}` : `B:${barkod}`;
+                                                                if (!allItems.has(itemKey)) {
+                                                                    const existing = existingMap.get(itemKey);
+                                                                    allItems.set(itemKey, {
+                                                                        key: itemKey, stokAdi, barkod,
+                                                                        matchedProductId: existing?.matchedProductId || null,
+                                                                        matchedSource: existing?.matchedSource || null,
+                                                                        reason: existing?.reason || null,
+                                                                        totalQty: 0,
+                                                                        perSube: {},
+                                                                    });
+                                                                }
+                                                                const row = allItems.get(itemKey);
+                                                                row.totalQty += rec.qty;
+                                                                row.perSube[subeKey] = (row.perSube[subeKey] || 0) + rec.qty;
+                                                            }
+                                                        }
+                                                        const itemsArray = Array.from(allItems.values()).sort((a, b) => (b.totalQty || 0) - (a.totalQty || 0));
+
+                                                        setHuginXmlPreview((prev) => prev ? {
+                                                            ...prev,
+                                                            periodStartIso: from,
+                                                            periodEndIso: to,
+                                                            outOfRangeFiles: agg.outOfRangeFiles,
+                                                            emptyFiles: agg.emptyFiles,
+                                                            totalItemCount: agg.totalItemCount,
+                                                            totalQty: agg.totalQty,
+                                                            subeList: subeArray,
+                                                            items: itemsArray,
+                                                            parsedFiles: (prev.totalFiles || 0) - (prev.parseErrors || 0) - agg.outOfRangeFiles - agg.emptyFiles,
+                                                        } : prev);
+                                                        toast.success(`Yeniden filtrelendi: ${subeArray.length} şube · ${itemsArray.length} ürün · ${agg.totalItemCount} satır`);
+                                                    }}
+                                                    className="bg-violet-600/30 hover:bg-violet-600/50 text-violet-100 font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-lg border border-violet-500/40"
+                                                >
+                                                    Yeniden Filtrele
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setHuginXmlPreview((prev) => prev ? { ...prev, filterFromIso: p.globalMinIso || '', filterToIso: p.globalMaxIso || '' } : prev);
+                                                    }}
+                                                    className="bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-bold uppercase tracking-widest px-3 py-2 rounded-lg border border-white/10"
+                                                    title="XML'lerdeki tüm tarih aralığını kullan (filtre yok)"
+                                                >
+                                                    Tümü
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="rounded-xl border border-white/10 p-4 bg-white/5">
                                             <div className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">Şube Dağılımı</div>
@@ -7199,14 +7390,151 @@ export default function AdminDashboard({ onLogout }) {
 
                                 {tab === 'products' && (
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <input
                                                 type="text"
                                                 value={p.searchText || ''}
                                                 onChange={(e) => setSearch(e.target.value)}
                                                 placeholder="ürün / barkod ara…"
-                                                className="flex-1 bg-izbel-dark border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-violet-500/40"
+                                                className="flex-1 min-w-[200px] bg-izbel-dark border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-violet-500/40"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    // --- Reçete mamul indeksi ---
+                                                    const mamulByName = new Map();
+                                                    (recipeRawRowsCache || []).forEach((rr) => {
+                                                        const nm = normalizeText(rr.recipe_name || '');
+                                                        const sk = String(rr.recipe_stok_kodu || '').trim().toUpperCase();
+                                                        if (nm && sk && !mamulByName.has(nm)) mamulByName.set(nm, sk);
+                                                    });
+                                                    const productByStok = new Map();
+                                                    products.forEach((pp) => {
+                                                        const sk = String(pp.stok_kodu || '').trim().toUpperCase();
+                                                        if (sk) productByStok.set(sk, pp);
+                                                    });
+                                                    const recipeMamulIds = new Set();
+                                                    mamulByName.forEach((sk) => {
+                                                        const pp = productByStok.get(sk);
+                                                        if (pp) recipeMamulIds.add(String(pp.id));
+                                                    });
+
+                                                    // --- Tedarik indeksi ---
+                                                    const suppliedIds = new Set();
+                                                    Object.keys(manualPurchaseByKey || {}).forEach((k) => {
+                                                        const qty = Number(manualPurchaseByKey[k]) || 0;
+                                                        if (qty <= 0) return;
+                                                        const [, pid] = k.split('|');
+                                                        if (pid) suppliedIds.add(String(pid));
+                                                    });
+                                                    const suppliedProducts = products.filter((pp) => suppliedIds.has(String(pp.id)));
+                                                    const suppliedByName = new Map();
+                                                    suppliedProducts.forEach((pp) => {
+                                                        const nk = normalizeText(pp.product_name);
+                                                        if (nk) {
+                                                            if (!suppliedByName.has(nk)) suppliedByName.set(nk, []);
+                                                            suppliedByName.get(nk).push(pp);
+                                                        }
+                                                    });
+
+                                                    if (recipeMamulIds.size === 0 && suppliedIds.size === 0) {
+                                                        toast.error('Reçete veya tedarik verisi bulunamadı. Önce receteler.csv veya tedarik CSV yükleyin.');
+                                                        return;
+                                                    }
+
+                                                    // Yardımcı: reçete mamul arama (tam + kısmi)
+                                                    const findRecipeMamul = (stokAdi) => {
+                                                        const kn = normalizeText(stokAdi || '');
+                                                        if (!kn) return null;
+                                                        let sk = mamulByName.get(kn);
+                                                        if (!sk) {
+                                                            let bestLen = 0;
+                                                            for (const [mname, msk] of mamulByName) {
+                                                                if (!mname) continue;
+                                                                if (kn.includes(mname) || mname.includes(kn)) {
+                                                                    if (mname.length > bestLen) { bestLen = mname.length; sk = msk; }
+                                                                }
+                                                            }
+                                                        }
+                                                        return sk ? productByStok.get(sk) : null;
+                                                    };
+                                                    // Yardımcı: tedarik üründe arama (tam + kısmi, en çok tedarikli)
+                                                    const findSupplied = (stokAdi) => {
+                                                        const kn = normalizeText(stokAdi || '');
+                                                        if (!kn) return null;
+                                                        const exact = suppliedByName.get(kn);
+                                                        if (exact && exact.length === 1) return exact[0];
+                                                        if (exact && exact.length > 1) {
+                                                            const withQty = exact.map((pp) => {
+                                                                let totalSup = 0;
+                                                                Object.keys(manualPurchaseByKey || {}).forEach((k) => {
+                                                                    if (k.endsWith('|' + String(pp.id))) totalSup += Number(manualPurchaseByKey[k]) || 0;
+                                                                });
+                                                                return { pp, totalSup };
+                                                            }).sort((a, b) => b.totalSup - a.totalSup);
+                                                            if (withQty[0].totalSup > (withQty[1]?.totalSup || 0)) return withQty[0].pp;
+                                                        }
+                                                        // kısmi eşleşme (tek aday)
+                                                        const cand = suppliedProducts.filter((pp) => {
+                                                            const pn = normalizeText(pp.product_name);
+                                                            return pn && (pn.includes(kn) || kn.includes(pn));
+                                                        });
+                                                        if (cand.length === 1) return cand[0];
+                                                        return null;
+                                                    };
+                                                    // Yardımcı: genel products fuzzy (tek aday)
+                                                    const findGeneral = (stokAdi) => {
+                                                        const kn = normalizeText(stokAdi || '');
+                                                        if (!kn) return null;
+                                                        const cand = products.filter((pp) => {
+                                                            const pn = normalizeText(pp.product_name);
+                                                            return pn && (pn === kn || pn.includes(kn) || kn.includes(pn));
+                                                        });
+                                                        if (cand.length === 1) return cand[0];
+                                                        return null;
+                                                    };
+
+                                                    let cntRecipe = 0, cntSupplied = 0, cntGeneral = 0, cntFixed = 0;
+                                                    const updatedItems = p.items.map((r) => {
+                                                        const stokAdi = r.stokAdi || '';
+                                                        if (!stokAdi) return r;
+
+                                                        // 1) HİÇ eşleşmemiş satırlar: reçete -> tedarik -> genel
+                                                        if (!r.matchedProductId) {
+                                                            const pr = findRecipeMamul(stokAdi);
+                                                            if (pr) { cntRecipe++; return { ...r, matchedProductId: pr.id, matchedSource: 'recipe', reason: null }; }
+                                                            const ps = findSupplied(stokAdi);
+                                                            if (ps) { cntSupplied++; return { ...r, matchedProductId: ps.id, matchedSource: 'supplied', reason: null }; }
+                                                            const pg = findGeneral(stokAdi);
+                                                            if (pg) { cntGeneral++; return { ...r, matchedProductId: pg.id, matchedSource: 'name', reason: null }; }
+                                                            return r;
+                                                        }
+
+                                                        // 2) Eşleşmiş ama reçete mamulüne bağlı değilse, reçetede daha iyi aday varsa değiştir
+                                                        if (!recipeMamulIds.has(String(r.matchedProductId))) {
+                                                            const pr = findRecipeMamul(stokAdi);
+                                                            if (pr && pr.id !== r.matchedProductId) {
+                                                                cntFixed++;
+                                                                return { ...r, matchedProductId: pr.id, matchedSource: 'recipe', reason: null };
+                                                            }
+                                                        }
+                                                        return r;
+                                                    });
+
+                                                    setHuginXmlPreview((prev) => prev ? { ...prev, items: updatedItems } : prev);
+                                                    const parts = [];
+                                                    if (cntRecipe > 0) parts.push(`${cntRecipe} reçete`);
+                                                    if (cntSupplied > 0) parts.push(`${cntSupplied} tedarik`);
+                                                    if (cntGeneral > 0) parts.push(`${cntGeneral} genel`);
+                                                    if (cntFixed > 0) parts.push(`${cntFixed} düzeltme`);
+                                                    if (parts.length) toast.success(`Akıllı eşleme: ${parts.join(' · ')}`);
+                                                    else toast('Ek eşleşme bulunamadı (tüm satırlar zaten doğru eşlenmiş olabilir).');
+                                                }}
+                                                className="bg-emerald-600/25 hover:bg-emerald-600/45 text-emerald-200 text-[10px] font-bold uppercase tracking-widest px-3 py-2 rounded-lg border border-emerald-500/40"
+                                                title="Eşleşmemiş XML satırlarını önce reçete mamullerinden (ST kodu üzerinden), sonra tedarik CSV'den, sonra genel ürünlerden bulup otomatik eşler."
+                                            >
+                                                Akıllı Oto-Eşle (Reçete → Tedarik → Genel)
+                                            </button>
                                             <div className="text-[11px] text-gray-400">
                                                 Eşleşen: <span className="text-emerald-300 font-bold">{mappedItemCount}</span> / {p.items.length} ·
                                                 Eksik: <span className="text-amber-300 font-bold">{unmapItemCount}</span>
@@ -7283,7 +7611,20 @@ export default function AdminDashboard({ onLogout }) {
                                                                     </td>
                                                                     <td className="p-2 text-[10px]">
                                                                         {matched ? (
-                                                                            <span className="text-emerald-300">✓ eşleşti</span>
+                                                                            (() => {
+                                                                                const src = r.matchedSource;
+                                                                                const badgeCfg = src === 'recipe' ? { t: 'R', cls: 'bg-emerald-500/25 text-emerald-200 border-emerald-500/40', lbl: 'reçete' }
+                                                                                    : src === 'supplied' ? { t: 'T', cls: 'bg-amber-500/20 text-amber-200 border-amber-500/40', lbl: 'tedarik' }
+                                                                                        : src === 'barcode' ? { t: 'B', cls: 'bg-cyan-500/20 text-cyan-200 border-cyan-500/40', lbl: 'barkod' }
+                                                                                            : src === 'pos_map' ? { t: 'M', cls: 'bg-violet-500/20 text-violet-200 border-violet-500/40', lbl: 'manuel' }
+                                                                                                : { t: '?', cls: 'bg-slate-500/20 text-slate-200 border-slate-500/40', lbl: 'genel' };
+                                                                                return (
+                                                                                    <span className="inline-flex items-center gap-1">
+                                                                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full border text-[9px] font-black ${badgeCfg.cls}`} title={`Kaynak: ${badgeCfg.lbl}`}>{badgeCfg.t}</span>
+                                                                                        <span className="text-emerald-300">eşleşti</span>
+                                                                                    </span>
+                                                                                );
+                                                                            })()
                                                                         ) : r.reason === 'ambiguous_name' ? (
                                                                             <span className="text-amber-300">belirsiz isim</span>
                                                                         ) : r.reason === 'ambiguous_partial' ? (
@@ -9151,25 +9492,49 @@ export default function AdminDashboard({ onLogout }) {
                                     </span>
                                 </label>
 
-                                <label
-                                    className="flex flex-col gap-0.5 cursor-pointer self-start"
-                                    title="MARTSAYIM gibi bir kök klasör seçin. Tüm HuginOKCServis\TempSatis altındaki XML'ler (dist hariç) taranır. SUBE_KODU alanı ile şubeye otomatik yazılır — tek seferde tüm şubeler."
-                                >
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Hugin XML Klasörü (Tüm Şubeler)</span>
-                                    <span className="flex items-center gap-2 bg-violet-600/25 hover:bg-violet-600/40 text-violet-100 font-bold py-2.5 px-4 rounded-xl border border-violet-500/30 print:hidden">
-                                        <Package size={16} />
-                                        {huginXmlProcessing ? 'XML tarıyor…' : 'Hugin XML Klasörü'}
-                                        <input
-                                            type="file"
-                                            webkitdirectory=""
-                                            directory=""
-                                            multiple
-                                            className="sr-only"
-                                            onChange={handleHuginXmlFolderSelect}
-                                            disabled={huginXmlProcessing}
-                                        />
-                                    </span>
-                                </label>
+                                <div className="flex flex-col gap-1 self-start bg-violet-950/20 border border-violet-500/20 rounded-xl p-2">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-violet-300">Hugin XML Klasörü (Tüm Şubeler)</span>
+                                    <div className="flex items-end gap-1.5 flex-wrap">
+                                        <div className="flex flex-col">
+                                            <label className="text-[8px] font-bold uppercase tracking-widest text-gray-500">Baş.</label>
+                                            <input
+                                                type="date"
+                                                value={huginXmlDateFrom}
+                                                onChange={(e) => setHuginXmlDateFrom(e.target.value)}
+                                                className="bg-izbel-dark border border-white/10 rounded-md px-1.5 py-1 text-[10px] text-white font-mono outline-none focus:border-violet-500 w-[120px]"
+                                                title="Boş bırakırsanız aktif sayım dönemi başlangıç tarihi kullanılır"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-[8px] font-bold uppercase tracking-widest text-gray-500">Bit.</label>
+                                            <input
+                                                type="date"
+                                                value={huginXmlDateTo}
+                                                onChange={(e) => setHuginXmlDateTo(e.target.value)}
+                                                className="bg-izbel-dark border border-white/10 rounded-md px-1.5 py-1 text-[10px] text-white font-mono outline-none focus:border-violet-500 w-[120px]"
+                                                title="Boş bırakırsanız aktif sayım dönemi bitiş tarihi kullanılır"
+                                            />
+                                        </div>
+                                        <label
+                                            className="cursor-pointer"
+                                            title="Kök klasör seçin (örn. MARTSAYIM). Tüm TempSatis/*.xml dosyaları taranır. Tarih aralığı bu modalda da değiştirilebilir."
+                                        >
+                                            <span className="flex items-center gap-2 bg-violet-600/25 hover:bg-violet-600/40 text-violet-100 font-bold py-2 px-3 rounded-lg border border-violet-500/30 print:hidden text-xs">
+                                                <Package size={14} />
+                                                {huginXmlProcessing ? 'XML tarıyor…' : 'Klasör Seç'}
+                                                <input
+                                                    type="file"
+                                                    webkitdirectory=""
+                                                    directory=""
+                                                    multiple
+                                                    className="sr-only"
+                                                    onChange={handleHuginXmlFolderSelect}
+                                                    disabled={huginXmlProcessing}
+                                                />
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
 
                                 <label className="flex flex-col gap-0.5 cursor-pointer self-start">
                                     <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Reçete (Receteler.csv)</span>
