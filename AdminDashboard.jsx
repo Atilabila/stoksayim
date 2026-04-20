@@ -294,6 +294,75 @@ function parseScLoggerSalesLine(line) {
     return { name, qty: parseInt(qtyStr, 10) };
 }
 
+/**
+ * Hugin AKINSOFT Wolvox "WFT" satış XML'ini parse eder.
+ * Yapı: <WFT><AYAR>...<SUBE_KODU>...</SUBE_KODU>...</AYAR>
+ *              <FATURA>...</FATURA>
+ *              <FATURAHAREKET><HAREKET><STOK_ADI>...</STOK_ADI><MIKTARI_2>...</MIKTARI_2>...</HAREKET></FATURAHAREKET></WFT>
+ * Dosya tarihini isimden (DDMMYYYYHHMMSS.xml) ve LastModified'tan tahmin eder.
+ * Dönüş: { subeKodu, serverName, dbFile, persUser, fileName, invoiceDateIso, items: [{stokAdi, barkod, miktar, fiyat, birim}] }
+ */
+function parseHuginWftXml(text, fileName, lastModifiedMs) {
+    if (!text) return null;
+    let doc;
+    try {
+        const parser = new DOMParser();
+        doc = parser.parseFromString(text, 'text/xml');
+    } catch {
+        return null;
+    }
+    if (!doc || doc.querySelector('parsererror')) return null;
+
+    const getCdata = (tag, root = doc) => {
+        const el = root.querySelector(tag);
+        if (!el) return '';
+        return String(el.textContent || '').trim();
+    };
+
+    const ayar = doc.querySelector('AYAR');
+    if (!ayar) return null;
+    const subeKodu = getCdata('SUBE_KODU', ayar);
+    const serverName = getCdata('SERVERNAME', ayar);
+    const dbFile = getCdata('DBFILENAME', ayar);
+    const persUser = getCdata('PERSUSER', ayar);
+
+    const items = [];
+    const hareketler = doc.querySelectorAll('FATURAHAREKET > HAREKET');
+    hareketler.forEach((h) => {
+        const stokAdi = getCdata('STOK_ADI', h);
+        const barkod = getCdata('BARKODU', h);
+        const mStr = getCdata('MIKTARI_2', h) || getCdata('MIKTARI', h);
+        const fStr = getCdata('KPB_FIYATI', h) || getCdata('NOEND_YZK_TEMEL_FIYAT', h);
+        const birim = getCdata('BIRIMI_2', h) || getCdata('NOEND_YZK_BIRIM_ENG', h);
+        const blstkodu = getCdata('BLSTKODU', h);
+        const miktar = Number(String(mStr).replace(/,/g, '.'));
+        const fiyat = Number(String(fStr).replace(/,/g, '.'));
+        if (!stokAdi && !barkod) return;
+        if (!Number.isFinite(miktar) || miktar === 0) return;
+        items.push({ stokAdi, barkod, miktar, fiyat: Number.isFinite(fiyat) ? fiyat : 0, birim, blstkodu });
+    });
+
+    // Dosya adı formatı: DDMMYYYYHHMMSS.xml → ISO tarih (gün)
+    let invoiceDateIso = '';
+    const base = String(fileName || '').replace(/\.xml$/i, '');
+    const m = base.match(/^(\d{2})(\d{2})(\d{4})/);
+    if (m) {
+        const dd = m[1], mm = m[2], yyyy = m[3];
+        invoiceDateIso = `${yyyy}-${mm}-${dd}`;
+    } else if (lastModifiedMs) {
+        const d = new Date(lastModifiedMs);
+        if (!isNaN(d.getTime())) {
+            invoiceDateIso = d.toISOString().slice(0, 10);
+        }
+    }
+
+    return {
+        subeKodu, serverName, dbFile, persUser,
+        fileName, invoiceDateIso,
+        items,
+    };
+}
+
 export default function AdminDashboard({ onLogout }) {
     const [activeTab, setActiveTab] = useState('finans'); // 'finans', 'subeler', 'urunler', 'suberapor', 'kategoriler', 'tedarikcv'
 
@@ -528,6 +597,14 @@ export default function AdminDashboard({ onLogout }) {
     /** Supabase'de tutulan kalıcı CSV -> ürün/şube eşleşmeleri (yükleme sonrası otomatik doldurmak için) */
     const [supplyCsvMaterialMap, setSupplyCsvMaterialMap] = useState({}); // raw_material (upper) -> product_id
     const [supplyCsvBranchPersistMap, setSupplyCsvBranchPersistMap] = useState({}); // raw_branch (upper) -> branch_id
+
+    /** Hugin XML satış içe aktarma — SUBE_KODU -> branch_id kalıcı eşleme */
+    const [salesXmlBranchMap, setSalesXmlBranchMap] = useState({}); // SUBE_KODU (upper) -> branch_id
+    /** Hugin XML içe aktarma önizlemesi */
+    const [huginXmlPreview, setHuginXmlPreview] = useState(null);
+    const [huginXmlPreviewOpen, setHuginXmlPreviewOpen] = useState(false);
+    const [huginXmlProcessing, setHuginXmlProcessing] = useState(false);
+    const [huginXmlApplying, setHuginXmlApplying] = useState(false);
 
     // POS Eşleştirme States
     const [posManualMap, setPosManualMap] = useState({});
@@ -806,6 +883,22 @@ export default function AdminDashboard({ onLogout }) {
                 setSupplyCsvBranchPersistMap(map);
             } else {
                 setSupplyCsvBranchPersistMap({});
+            }
+        }
+
+        // Hugin XML SUBE_KODU -> branch_id kalıcı eşleme
+        {
+            const { data: sxData, error: sxErr } = await supabase
+                .from('sales_xml_branch_map')
+                .select('sube_kodu, branch_id');
+            if (!sxErr && sxData) {
+                const map = {};
+                sxData.forEach((r) => {
+                    if (r.sube_kodu && r.branch_id) map[String(r.sube_kodu).toUpperCase()] = r.branch_id;
+                });
+                setSalesXmlBranchMap(map);
+            } else {
+                setSalesXmlBranchMap({});
             }
         }
 
@@ -3098,29 +3191,67 @@ export default function AdminDashboard({ onLogout }) {
             }
 
             // 4) branch_transfers kaydı:
-            //    - evrak_no dolu olanlar için upsert (duplicate engelle)
-            //    - evrak_no boş olanlar için doğrudan insert
+            //    - evrak_no dolu olanlar → (evrak_no, product_id) bazında dedup + upsert ignoreDuplicates
+            //    - evrak_no boş olanlar → (from, to, product, date, qty) bazında dedup + düz insert
             let inserted = 0;
-            const withEvrak = finalized.filter((t) => t && t.evrak_no);
-            const noEvrak = finalized.filter((t) => !t || !t.evrak_no);
+            let skippedDup = 0; // zaten DB'de var, sessizce atlandı
+            let failedOther = 0;
 
+            const withEvrakRaw = finalized.filter((t) => t && t.evrak_no);
+            const noEvrakRaw = finalized.filter((t) => !t || !t.evrak_no);
+
+            // (a) evrak_no + product_id bazında dedup — aynı kombinasyon birden fazla satırda varsa miktarları topla
+            const withEvrakMap = new Map();
+            withEvrakRaw.forEach((t) => {
+                const k = `${t.evrak_no}|${t.product_id}`;
+                if (withEvrakMap.has(k)) {
+                    withEvrakMap.get(k).quantity = Number(withEvrakMap.get(k).quantity) + Number(t.quantity);
+                } else {
+                    withEvrakMap.set(k, { ...t });
+                }
+            });
+            const withEvrak = Array.from(withEvrakMap.values());
+
+            // (b) evrak_no boş olanlar için pratik dedup: (from, to, product, date, qty) anahtarı
+            const noEvrakMap = new Map();
+            noEvrakRaw.forEach((t) => {
+                const k = `${t.from_branch_id}|${t.to_branch_id}|${t.product_id}|${t.transfer_date}|${Number(t.quantity)}`;
+                if (!noEvrakMap.has(k)) noEvrakMap.set(k, { ...t });
+            });
+            const noEvrak = Array.from(noEvrakMap.values());
+
+            const dedupCollapsed = (withEvrakRaw.length - withEvrak.length) + (noEvrakRaw.length - noEvrak.length);
+
+            // evrakli kayıtlar: ignoreDuplicates:true sayesinde (evrak_no, product_id) zaten varsa sessizce atlanır.
             for (let i = 0; i < withEvrak.length; i += 500) {
                 const chunk = withEvrak.slice(i, i + 500);
                 const { data, error } = await supabase
                     .from('branch_transfers')
-                    .upsert(chunk, { onConflict: 'evrak_no,product_id', ignoreDuplicates: false })
+                    .upsert(chunk, { onConflict: 'evrak_no,product_id', ignoreDuplicates: true })
                     .select('id');
                 if (error) {
                     console.error('branch_transfers upsert err:', error);
-                    // Fallback: upsert başarısızsa satır satır insert dene
+                    // Son çare: satır satır dene (nadir durumda chunk tamamen çökerse)
                     for (const row of chunk) {
-                        const { error: insErr } = await supabase.from('branch_transfers').insert(row);
-                        if (!insErr) inserted++;
-                        else if (insErr.code !== '23505') console.warn('branch_transfers insert err:', insErr);
+                        const { data: d2, error: insErr } = await supabase
+                            .from('branch_transfers')
+                            .upsert(row, { onConflict: 'evrak_no,product_id', ignoreDuplicates: true })
+                            .select('id');
+                        if (!insErr) {
+                            if (d2 && d2.length > 0) inserted++;
+                            else skippedDup++;
+                        } else if (insErr.code === '23505') {
+                            skippedDup++;
+                        } else {
+                            failedOther++;
+                            console.warn('branch_transfers insert err:', insErr);
+                        }
                     }
                     continue;
                 }
-                inserted += (data || []).length;
+                const newRows = (data || []).length;
+                inserted += newRows;
+                skippedDup += chunk.length - newRows;
             }
 
             for (let i = 0; i < noEvrak.length; i += 500) {
@@ -3128,10 +3259,19 @@ export default function AdminDashboard({ onLogout }) {
                 const { data, error } = await supabase.from('branch_transfers').insert(chunk).select('id');
                 if (error) {
                     console.error('branch_transfers insert err (no evrak):', error);
+                    // Satır satır düş
+                    for (const row of chunk) {
+                        const { error: insErr } = await supabase.from('branch_transfers').insert(row);
+                        if (!insErr) inserted++;
+                        else if (insErr.code === '23505') skippedDup++;
+                        else { failedOther++; console.warn('branch_transfers insert err (no evrak, row):', insErr); }
+                    }
                     continue;
                 }
                 inserted += (data || []).length;
             }
+
+            console.log('[Sevk] kayıt özeti:', { finalized: finalized.length, dedupCollapsed, inserted, skippedDup, failedOther });
 
             // 5) manual_supplies’a çift taraflı delta uygula (from negatif, to pozitif)
             const deltaByKey = new Map(); // `${branchId}|${productId}` -> delta
@@ -3189,7 +3329,16 @@ export default function AdminDashboard({ onLogout }) {
             if (drop.skipDec) dropParts.push(`${drop.skipDec} atlandı`);
             if (drop.zeroQty) dropParts.push(`${drop.zeroQty} miktar 0`);
             const dropMsg = dropParts.length ? ` · Düşenler: ${dropParts.join(', ')}` : '';
-            toast.success(`Sevk kaydedildi: ${inserted}/${rows.length} satır · ${finalized.length} final${dropMsg}`);
+            const dupMsg = skippedDup > 0 ? ` · Zaten kayıtlı ${skippedDup} (atlandı)` : '';
+            const failMsg = failedOther > 0 ? ` · Hata: ${failedOther}` : '';
+            if (inserted === 0 && skippedDup > 0) {
+                toast.success(`Tüm ${skippedDup} sevk satırı zaten kayıtlıydı — hiç yeni satır eklenmedi.`, { duration: 5000 });
+            } else {
+                toast.success(
+                    `Sevk kaydedildi: ${inserted} yeni · ${finalized.length} final / ${rows.length} toplam${dupMsg}${failMsg}${dropMsg}`,
+                    { duration: 6000 },
+                );
+            }
             setTransferPreviewOpen(false);
             setTransferPreview(null);
         } catch (err) {
@@ -3896,6 +4045,417 @@ export default function AdminDashboard({ onLogout }) {
         } finally {
             setSalesImporting(false);
             e.target.value = '';
+        }
+    };
+
+    /**
+     * Hugin AKINSOFT Wolvox XML klasör seçimi:
+     * Kullanıcı "MARTSAYIM" gibi bir kök klasörü seçer → recursive XML tarar.
+     * \dist\ altındaki şablon XML'leri (hep CINARTEPE) ES EKSİKTİR ve atlanır.
+     * Her dosyadan SUBE_KODU, tarih ve satış kalemleri çıkarılır; sisteme
+     * kalıcı eşlemelerle (sales_xml_branch_map + pos_product_map) yazmak üzere
+     * önizleme modalı açılır.
+     */
+    const handleHuginXmlFolderSelect = async (e) => {
+        const all = Array.from(e?.target?.files || []);
+        if (!all.length) {
+            e.target.value = '';
+            return;
+        }
+        const activePeriod = periods.find((p) => p.is_active);
+        if (!activePeriod) {
+            toast.error('Önce aktif sayım dönemi olmalı (counting_periods.is_active).');
+            e.target.value = '';
+            return;
+        }
+        // Sayım dönemi tarih aralığı: açılış tarihi ~ bitiş tarihi (yoksa bugün)
+        const periodStartIso = (activePeriod.start_date || activePeriod.started_at || activePeriod.created_at || '').slice(0, 10);
+        const periodEndIso = (activePeriod.end_date || activePeriod.closed_at || new Date().toISOString()).slice(0, 10);
+
+        // SADECE *.xml ve \dist\ olmayan path'ler (şablon atla)
+        const xmlFiles = all.filter((f) => {
+            const name = (f.name || '').toLowerCase();
+            if (!name.endsWith('.xml')) return false;
+            const rel = (f.webkitRelativePath || f.name || '').toLowerCase();
+            if (rel.includes('\\dist\\') || rel.includes('/dist/')) return false;
+            return true;
+        });
+        if (!xmlFiles.length) {
+            toast.error('Klasörde uygun XML bulunamadı (TempSatis/*.xml).');
+            e.target.value = '';
+            return;
+        }
+        setHuginXmlProcessing(true);
+        const parseStart = Date.now();
+        try {
+            // Toast ile ilerleme
+            const progressToast = toast.loading(`XML parse: 0 / ${xmlFiles.length}`);
+
+            // Aggregation:
+            // - bySube[SUBE_KODU] = { fileCount, itemCount, totalQty, dateMin, dateMax, invoiceDates:Set, items: Map<stokAdi|barkod, {stokAdi, barkod, qty, priceSum, files:Set}> }
+            const bySube = new Map();
+            // Ayrıca tüm kullanılan tarih aralıkları
+            let globalMinIso = '';
+            let globalMaxIso = '';
+            let totalItemCount = 0;
+            let totalQty = 0;
+            let outOfRangeFiles = 0;
+            let emptyFiles = 0;
+            let parseErrors = 0;
+
+            const BATCH = 50;
+            for (let i = 0; i < xmlFiles.length; i += BATCH) {
+                const batch = xmlFiles.slice(i, Math.min(i + BATCH, xmlFiles.length));
+                const texts = await Promise.all(batch.map((f) => f.text().catch(() => null)));
+                for (let j = 0; j < batch.length; j++) {
+                    const f = batch[j];
+                    const txt = texts[j];
+                    if (!txt) { parseErrors++; continue; }
+                    const parsed = parseHuginWftXml(txt, f.name, f.lastModified);
+                    if (!parsed) { parseErrors++; continue; }
+                    const { subeKodu, invoiceDateIso, items } = parsed;
+                    if (!subeKodu) { parseErrors++; continue; }
+                    // Dönem dışı kayıtları atla
+                    if (invoiceDateIso) {
+                        if (periodStartIso && invoiceDateIso < periodStartIso) { outOfRangeFiles++; continue; }
+                        if (periodEndIso && invoiceDateIso > periodEndIso) { outOfRangeFiles++; continue; }
+                    }
+                    if (!items || !items.length) { emptyFiles++; continue; }
+
+                    const subeKey = String(subeKodu).toUpperCase();
+                    if (!bySube.has(subeKey)) {
+                        bySube.set(subeKey, {
+                            subeKodu: subeKodu,
+                            fileCount: 0,
+                            itemCount: 0,
+                            totalQty: 0,
+                            dateMin: '',
+                            dateMax: '',
+                            invoiceDates: new Set(),
+                            items: new Map(),
+                            serverNames: new Set(),
+                            dbFiles: new Set(),
+                        });
+                    }
+                    const ctx = bySube.get(subeKey);
+                    ctx.fileCount++;
+                    if (parsed.serverName) ctx.serverNames.add(parsed.serverName);
+                    if (parsed.dbFile) ctx.dbFiles.add(parsed.dbFile);
+                    if (invoiceDateIso) {
+                        ctx.invoiceDates.add(invoiceDateIso);
+                        if (!ctx.dateMin || invoiceDateIso < ctx.dateMin) ctx.dateMin = invoiceDateIso;
+                        if (!ctx.dateMax || invoiceDateIso > ctx.dateMax) ctx.dateMax = invoiceDateIso;
+                        if (!globalMinIso || invoiceDateIso < globalMinIso) globalMinIso = invoiceDateIso;
+                        if (!globalMaxIso || invoiceDateIso > globalMaxIso) globalMaxIso = invoiceDateIso;
+                    }
+                    for (const it of items) {
+                        const stokAdi = String(it.stokAdi || '').trim();
+                        const barkod = String(it.barkod || '').trim();
+                        const qty = Number(it.miktar) || 0;
+                        if (!stokAdi && !barkod) continue;
+                        if (qty <= 0) continue; // iade/negatif şimdilik atlanır
+                        const key = stokAdi ? `N:${normalizeText(stokAdi)}` : `B:${barkod}`;
+                        if (!ctx.items.has(key)) {
+                            ctx.items.set(key, {
+                                stokAdi, barkod, qty: 0, priceSum: 0, lineCount: 0,
+                            });
+                        }
+                        const rec = ctx.items.get(key);
+                        rec.qty += qty;
+                        rec.priceSum += (Number(it.fiyat) || 0) * qty;
+                        rec.lineCount++;
+                        ctx.itemCount++;
+                        totalItemCount++;
+                        totalQty += qty;
+                    }
+                }
+                toast.loading(`XML parse: ${Math.min(i + BATCH, xmlFiles.length)} / ${xmlFiles.length}`, { id: progressToast });
+            }
+            toast.dismiss(progressToast);
+
+            if (!bySube.size) {
+                toast.error('XML parse edildi ama dönem aralığında geçerli satış bulunamadı.');
+                return;
+            }
+
+            // --- Şube eşlemesi (SUBE_KODU -> branchId)
+            //  1) kalıcı map (sales_xml_branch_map) varsa onu kullan
+            //  2) yoksa asciiFoldKey ile sistem şubeleri içinde bul
+            const subeList = Array.from(bySube.keys()).sort();
+            const branchMapping = {}; // SUBE_KODU(upper) -> branchId | ''
+            subeList.forEach((sk) => {
+                const persisted = salesXmlBranchMap[sk];
+                if (persisted) { branchMapping[sk] = persisted; return; }
+                // Fuzzy
+                const skFold = asciiFoldKey(sk);
+                let best = branches.find((b) => asciiFoldKey(b.branch_name) === skFold);
+                if (!best) {
+                    // contains heuristic
+                    best = branches.find((b) => {
+                        const bn = asciiFoldKey(b.branch_name);
+                        return bn.includes(skFold) || skFold.includes(bn);
+                    });
+                }
+                branchMapping[sk] = best?.id || '';
+            });
+
+            // --- Ürün eşlemesi (stokAdi/barkod -> productId)
+            // Öncelik: 1) posManualMap (aynı isim daha önce POS map'e girdiyse)
+            //          2) barkod tam eşleşme
+            //          3) products.product_name tam (normalize) eşleşme
+            //          4) kısmi eşleşme (includes)
+            const normalizeBarcodeVal = (raw) => String(raw ?? '').trim().replace(/\s+/g, '');
+            const productByNorm = new Map();
+            const productByBarcode = new Map();
+            products.forEach((p) => {
+                const k = normalizeText(p.product_name);
+                if (k) {
+                    if (!productByNorm.has(k)) productByNorm.set(k, []);
+                    productByNorm.get(k).push(p);
+                }
+                const b = normalizeBarcodeVal(p.barcode);
+                if (b) {
+                    if (!productByBarcode.has(b)) productByBarcode.set(b, []);
+                    productByBarcode.get(b).push(p);
+                }
+            });
+
+            // Akıllı seçici: Aynı isimde birden fazla ürün varsa; aktif + satış-kategorili olanı
+            // öne alır. Böylece "MAX TWİSTER FOREST" gibi hem ÇINARLI MENÜ hem Yiyecek
+            // kategorisinde duplike kayıtlarda doğru (aktif/satış) olan seçilir.
+            const SALES_CAT_HINTS = ['menu', 'icecek', 'yiyecek', 'kahve', 'tatli', 'sicak', 'soguk', 'salata', 'tost', 'sandwich', 'sandvic', 'burger'];
+            const scoreProduct = (p) => {
+                let s = 0;
+                if (p.is_active) s += 1000; // aktif olanı her zaman tercih et
+                const cat = asciiFoldKey(p.category || '');
+                if (SALES_CAT_HINTS.some((h) => cat.includes(h))) s += 200;
+                if (p.barcode) s += 20;
+                const sk = String(p.stok_kodu || '');
+                // ST00xxx (5 haneli) genelde ana/satış ürünü; ST0000xxx (7 haneli) tedarik
+                if (/^ST\d{5}$/.test(sk)) s += 30;
+                return s;
+            };
+            const pickBestProduct = (candidates) => {
+                if (!candidates || !candidates.length) return { productId: null, ambiguous: false };
+                if (candidates.length === 1) return { productId: candidates[0].id, ambiguous: false };
+                const sorted = [...candidates].sort((a, b) => scoreProduct(b) - scoreProduct(a));
+                const top = sorted[0];
+                const second = sorted[1];
+                // En iyi skorun diğerinden en az 100 puan önde olması gerekir — yoksa belirsiz
+                if ((scoreProduct(top) - scoreProduct(second)) >= 100) {
+                    return { productId: top.id, ambiguous: false };
+                }
+                return { productId: null, ambiguous: true };
+            };
+
+            // Tüm şubelerden toplam agrega — eşleme bir kere yapılır (ürün bazında)
+            const allItems = new Map(); // key (ürün tanımlayıcı) -> { stokAdi, barkod, matchedId, reason, totalQty, perSube:Map }
+            for (const [subeKey, ctx] of bySube) {
+                for (const [_k, rec] of ctx.items) {
+                    const stokAdi = rec.stokAdi;
+                    const barkod = rec.barkod;
+                    const itemKey = stokAdi ? `N:${normalizeText(stokAdi)}` : `B:${barkod}`;
+                    if (!allItems.has(itemKey)) {
+                        let matchedId = null;
+                        let reason = null;
+                        if (stokAdi && posManualMap[stokAdi]) {
+                            matchedId = posManualMap[stokAdi];
+                        } else if (barkod && productByBarcode.has(normalizeBarcodeVal(barkod))) {
+                            const list = productByBarcode.get(normalizeBarcodeVal(barkod));
+                            const picked = pickBestProduct(list);
+                            if (picked.productId) matchedId = picked.productId;
+                            else if (picked.ambiguous) reason = 'ambiguous_barcode';
+                        }
+                        if (!matchedId && stokAdi) {
+                            const k = normalizeText(stokAdi);
+                            const list = productByNorm.get(k);
+                            if (list && list.length > 0) {
+                                const picked = pickBestProduct(list);
+                                if (picked.productId) matchedId = picked.productId;
+                                else if (picked.ambiguous) reason = reason || 'ambiguous_name';
+                            } else {
+                                // kısmi içerme
+                                const candidates = products.filter((p) => {
+                                    const pn = normalizeText(p.product_name);
+                                    return pn && (pn.includes(k) || k.includes(pn));
+                                });
+                                const picked = pickBestProduct(candidates);
+                                if (picked.productId) matchedId = picked.productId;
+                                else if (picked.ambiguous) reason = reason || 'ambiguous_partial';
+                                else reason = reason || 'not_found';
+                            }
+                        }
+                        allItems.set(itemKey, {
+                            key: itemKey, stokAdi, barkod,
+                            matchedProductId: matchedId,
+                            reason,
+                            totalQty: 0,
+                            perSube: {},
+                        });
+                    }
+                    const rowRef = allItems.get(itemKey);
+                    rowRef.totalQty += rec.qty;
+                    rowRef.perSube[subeKey] = (rowRef.perSube[subeKey] || 0) + rec.qty;
+                }
+            }
+
+            const itemsArray = Array.from(allItems.values())
+                .sort((a, b) => (b.totalQty || 0) - (a.totalQty || 0));
+
+            const subeArray = Array.from(bySube.entries()).map(([subeKey, ctx]) => ({
+                subeKey,
+                subeKodu: ctx.subeKodu,
+                fileCount: ctx.fileCount,
+                itemCount: ctx.itemCount,
+                totalQty: ctx.totalQty || Array.from(ctx.items.values()).reduce((s, r) => s + (r.qty || 0), 0),
+                dateMin: ctx.dateMin,
+                dateMax: ctx.dateMax,
+                daysCount: ctx.invoiceDates.size,
+                serverNames: Array.from(ctx.serverNames),
+                dbFiles: Array.from(ctx.dbFiles),
+                branchId: branchMapping[subeKey] || '',
+            }));
+            subeArray.sort((a, b) => (b.totalQty || 0) - (a.totalQty || 0));
+
+            const elapsed = Math.round((Date.now() - parseStart) / 100) / 10;
+
+            setHuginXmlPreview({
+                periodId: activePeriod.id,
+                periodStartIso,
+                periodEndIso,
+                globalMinIso,
+                globalMaxIso,
+                totalFiles: xmlFiles.length,
+                parsedFiles: xmlFiles.length - parseErrors - outOfRangeFiles - emptyFiles,
+                outOfRangeFiles,
+                emptyFiles,
+                parseErrors,
+                totalItemCount,
+                totalQty,
+                elapsedSec: elapsed,
+                subeList: subeArray,
+                items: itemsArray,
+                branchMapping,        // SUBE_KODU -> branchId
+                activeTab: 'summary', // 'summary' | 'branches' | 'products' | 'rows'
+                searchText: '',
+            });
+            setHuginXmlPreviewOpen(true);
+            toast.success(
+                `XML parse tamam: ${xmlFiles.length} dosya · ${subeArray.length} şube · ${totalItemCount} satır · ${elapsed}s`,
+                { duration: 5000 },
+            );
+        } catch (err) {
+            console.error('Hugin XML parse err:', err);
+            toast.error('XML parse hatası: ' + (err?.message || String(err)));
+        } finally {
+            setHuginXmlProcessing(false);
+            e.target.value = '';
+        }
+    };
+
+    /**
+     * Hugin XML önizlemesi onaylandığında:
+     *  - sales_xml_branch_map: SUBE_KODU -> branchId kalıcı yaz
+     *  - pos_product_map: seçilen ürün eşlemelerini kalıcı yaz
+     *  - salesQtyByKey: her (branchId, productId) için miktarı topla (mevcut değeri ezer; undo snapshot alınır)
+     */
+    const applyHuginXmlPreview = async () => {
+        if (!huginXmlPreview) return;
+        setHuginXmlApplying(true);
+        try {
+            const { items, subeList, branchMapping } = huginXmlPreview;
+
+            // 1) Şube eşlemesi: SUBE_KODU -> branchId, sadece değişmiş/yeni olanları kaydet
+            const branchMapRows = [];
+            subeList.forEach((s) => {
+                const bid = branchMapping[s.subeKey];
+                if (!bid) return;
+                const existing = salesXmlBranchMap[s.subeKey];
+                if (existing !== bid) {
+                    branchMapRows.push({ sube_kodu: s.subeKey, branch_id: bid, updated_at: new Date().toISOString() });
+                }
+            });
+            if (branchMapRows.length > 0) {
+                const { error: bmErr } = await supabase
+                    .from('sales_xml_branch_map')
+                    .upsert(branchMapRows, { onConflict: 'sube_kodu' });
+                if (bmErr) {
+                    console.error('sales_xml_branch_map upsert err:', bmErr);
+                    toast.error('Şube eşlemesi kaydedilemedi: ' + bmErr.message);
+                    return;
+                }
+            }
+
+            // 2) POS ürün eşlemesi — yeni eşlenenler için
+            const posRows = [];
+            items.forEach((r) => {
+                if (!r.stokAdi) return;
+                if (!r.matchedProductId) return;
+                if (posManualMap[r.stokAdi] === r.matchedProductId) return;
+                posRows.push({ pos_product_name: r.stokAdi, product_id: r.matchedProductId });
+            });
+            if (posRows.length > 0) {
+                const { error: pmErr } = await supabase
+                    .from('pos_product_map')
+                    .upsert(posRows, { onConflict: 'pos_product_name' });
+                if (pmErr) console.warn('pos_product_map upsert err:', pmErr);
+            }
+
+            // 3) salesQtyByKey merge
+            pushSalesUndoSnapshot();
+            setSalesQtyByKey((prev) => {
+                const merge = { ...prev };
+                let written = 0;
+                items.forEach((r) => {
+                    if (!r.matchedProductId) return;
+                    Object.entries(r.perSube).forEach(([subeKey, qty]) => {
+                        const bid = branchMapping[subeKey];
+                        if (!bid) return;
+                        const key = `${bid}|${r.matchedProductId}`;
+                        merge[key] = (Number(merge[key]) || 0) + Number(qty || 0);
+                        written++;
+                    });
+                });
+                console.log('[Hugin XML] salesQtyByKey güncellendi:', written, 'satır');
+                return merge;
+            });
+
+            const mappedSube = subeList.filter((s) => !!branchMapping[s.subeKey]).length;
+            const mappedItems = items.filter((r) => !!r.matchedProductId).length;
+            const unmapSube = subeList.length - mappedSube;
+            const unmapItems = items.length - mappedItems;
+
+            toast.success(
+                `Satışlar uygulandı · Şube: ${mappedSube}/${subeList.length}` +
+                (unmapSube ? ` (${unmapSube} atlandı)` : '') +
+                ` · Ürün: ${mappedItems}/${items.length}` +
+                (unmapItems ? ` (${unmapItems} atlandı)` : ''),
+                { duration: 6000 },
+            );
+
+            // Yeni eşlemeleri local state'e de yansıt
+            if (branchMapRows.length > 0) {
+                setSalesXmlBranchMap((prev) => {
+                    const next = { ...prev };
+                    branchMapRows.forEach((r) => { next[r.sube_kodu] = r.branch_id; });
+                    return next;
+                });
+            }
+            if (posRows.length > 0) {
+                setPosManualMap((prev) => {
+                    const next = { ...prev };
+                    posRows.forEach((r) => { next[r.pos_product_name] = r.product_id; });
+                    return next;
+                });
+            }
+
+            setHuginXmlPreviewOpen(false);
+            setHuginXmlPreview(null);
+        } catch (err) {
+            console.error('applyHuginXmlPreview err:', err);
+            toast.error('Kaydetme hatası: ' + (err?.message || String(err)));
+        } finally {
+            setHuginXmlApplying(false);
         }
     };
 
@@ -6476,6 +7036,338 @@ export default function AdminDashboard({ onLogout }) {
                     </div>
                 );
             })()}
+            {huginXmlPreviewOpen && huginXmlPreview && (() => {
+                const p = huginXmlPreview;
+                const tab = p.activeTab || 'summary';
+                const searchText = (p.searchText || '').trim().toLowerCase();
+                const setTab = (t) => setHuginXmlPreview((prev) => prev ? { ...prev, activeTab: t } : prev);
+                const setSearch = (s) => setHuginXmlPreview((prev) => prev ? { ...prev, searchText: s } : prev);
+
+                const setBranchMapFor = (subeKey, bid) => {
+                    setHuginXmlPreview((prev) => {
+                        if (!prev) return prev;
+                        const next = { ...prev, branchMapping: { ...prev.branchMapping, [subeKey]: bid || '' } };
+                        next.subeList = prev.subeList.map((s) => s.subeKey === subeKey ? { ...s, branchId: bid || '' } : s);
+                        return next;
+                    });
+                };
+
+                const setProductFor = (itemKey, pid) => {
+                    setHuginXmlPreview((prev) => {
+                        if (!prev) return prev;
+                        const items = prev.items.map((r) => r.key === itemKey ? { ...r, matchedProductId: pid || null, reason: pid ? null : r.reason } : r);
+                        return { ...prev, items };
+                    });
+                };
+
+                const mappedSubeCount = p.subeList.filter((s) => !!p.branchMapping[s.subeKey]).length;
+                const unmapSubeCount = p.subeList.length - mappedSubeCount;
+                const mappedItemCount = p.items.filter((r) => !!r.matchedProductId).length;
+                const unmapItemCount = p.items.length - mappedItemCount;
+                const readyPct = p.items.length > 0 ? Math.round((mappedItemCount / p.items.length) * 100) : 0;
+
+                return (
+                    <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+                        {/* Ortak datalist: ürün eşleme input'larında hızlı arama için (stok_kodu + isim) */}
+                        <datalist id="hugin-products-datalist">
+                            {products.map((pp) => {
+                                const label = `${pp.product_name || ''}${pp.category ? ' · ' + pp.category : ''}${pp.is_active === false ? ' (PASİF)' : ''}`;
+                                const val = pp.stok_kodu || pp.product_name || '';
+                                if (!val) return null;
+                                return <option key={pp.id} value={val}>{label}</option>;
+                            })}
+                        </datalist>
+                        <div className="w-full max-w-7xl max-h-[92vh] bg-izbel-dark rounded-2xl border border-white/10 flex flex-col overflow-hidden">
+                            <div className="p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-violet-900/40 via-fuchsia-900/30 to-transparent">
+                                <div>
+                                    <h3 className="text-lg font-black text-white">Hugin XML (AKINSOFT Wolvox) — Önizleme &amp; Onay</h3>
+                                    <div className="text-[11px] text-gray-400 mt-1">
+                                        Dönem: <span className="text-violet-300 font-bold">{p.periodStartIso}</span> — <span className="text-violet-300 font-bold">{p.periodEndIso}</span> ·
+                                        Dosya: <span className="text-white font-bold">{p.totalFiles}</span> · Şube: <span className="text-white font-bold">{p.subeList.length}</span> ·
+                                        Ürün: <span className="text-white font-bold">{p.items.length}</span> · Hazır: <span className="text-emerald-300 font-bold">{readyPct}%</span>
+                                        <span className="ml-2 text-gray-500">· {p.elapsedSec}s</span>
+                                    </div>
+                                </div>
+                                <button type="button" onClick={() => { setHuginXmlPreviewOpen(false); setHuginXmlPreview(null); }} className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/5">
+                                    <X size={22} />
+                                </button>
+                            </div>
+
+                            {/* İstatistik kartları */}
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 p-4 border-b border-white/5 bg-black/20">
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5"><div className="text-[9px] text-gray-500 uppercase tracking-widest">Dosya</div><div className="text-xl font-black text-white">{p.totalFiles}</div></div>
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5"><div className="text-[9px] text-gray-500 uppercase tracking-widest">Parse OK</div><div className="text-xl font-black text-emerald-300">{p.parsedFiles}</div></div>
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5"><div className="text-[9px] text-gray-500 uppercase tracking-widest">Dönem Dışı</div><div className="text-xl font-black text-amber-300">{p.outOfRangeFiles}</div></div>
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5"><div className="text-[9px] text-gray-500 uppercase tracking-widest">Boş / Hatalı</div><div className="text-xl font-black text-rose-300">{p.emptyFiles + p.parseErrors}</div></div>
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5"><div className="text-[9px] text-gray-500 uppercase tracking-widest">Satır</div><div className="text-xl font-black text-white">{p.totalItemCount}</div></div>
+                                <div className="bg-white/5 rounded-xl p-3 border border-white/5"><div className="text-[9px] text-gray-500 uppercase tracking-widest">Toplam Miktar</div><div className="text-xl font-black text-white">{p.totalQty.toLocaleString('tr-TR')}</div></div>
+                            </div>
+
+                            {/* Sekmeler */}
+                            <div className="flex gap-2 px-4 pt-3 border-b border-white/5">
+                                {[
+                                    { id: 'summary', label: 'Özet' },
+                                    { id: 'branches', label: `Şube Eşleme (${p.subeList.length})${unmapSubeCount ? ` • ${unmapSubeCount} eksik` : ''}` },
+                                    { id: 'products', label: `Ürün Eşleme (${p.items.length})${unmapItemCount ? ` • ${unmapItemCount} eksik` : ''}` },
+                                    { id: 'rows', label: 'Satırlar (ilk 300)' },
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => setTab(t.id)}
+                                        className={`px-3 py-2 text-[11px] font-bold uppercase tracking-widest rounded-t-lg border-b-2 transition-colors ${tab === t.id ? 'text-violet-200 border-violet-400 bg-violet-500/10' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                                    >{t.label}</button>
+                                ))}
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4">
+                                {tab === 'summary' && (
+                                    <div className="space-y-4">
+                                        <div className="rounded-xl border border-violet-500/20 bg-violet-950/20 p-4">
+                                            <div className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-2">XML Tarih Aralığı</div>
+                                            <div className="text-sm text-white font-mono">{p.globalMinIso || '—'} → {p.globalMaxIso || '—'}</div>
+                                            <div className="text-[11px] text-gray-400 mt-1">Dönem filtresi: <span className="font-mono text-amber-300">{p.periodStartIso}</span> — <span className="font-mono text-amber-300">{p.periodEndIso}</span>. Dönem dışı kalan dosyalar atlandı.</div>
+                                        </div>
+                                        <div className="rounded-xl border border-white/10 p-4 bg-white/5">
+                                            <div className="text-xs font-bold text-gray-300 uppercase tracking-widest mb-3">Şube Dağılımı</div>
+                                            <div className="divide-y divide-white/5">
+                                                {p.subeList.map((s) => {
+                                                    const b = branches.find((br) => br.id === s.branchId);
+                                                    return (
+                                                        <div key={s.subeKey} className="flex items-center justify-between py-2 text-xs">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-bold text-white truncate">{s.subeKodu}</div>
+                                                                <div className="text-[10px] text-gray-500 font-mono truncate">{s.serverNames.join(', ')}</div>
+                                                            </div>
+                                                            <div className="w-24 text-right text-gray-400">{s.fileCount} dosya</div>
+                                                            <div className="w-28 text-right text-gray-400">{s.daysCount} gün</div>
+                                                            <div className="w-36 text-right font-mono text-white">{s.totalQty.toLocaleString('tr-TR')} adet</div>
+                                                            <div className="w-52 text-right">
+                                                                {b ? <span className="text-emerald-300 font-bold">{b.branch_name}</span> : <span className="text-amber-400 font-bold">— EŞLEŞMEDİ —</span>}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {tab === 'branches' && (
+                                    <div className="space-y-2">
+                                        <div className="text-[11px] text-gray-400">
+                                            XML içindeki <span className="font-mono text-white">SUBE_KODU</span> alanı ile sistem şubesi arasında eşleme yapın.
+                                            Seçtiğiniz eşleme kalıcı olarak kaydedilir (sonraki yüklemelerde otomatik dolar).
+                                        </div>
+                                        <div className="rounded-xl border border-white/10 overflow-hidden">
+                                            <table className="w-full text-xs">
+                                                <thead className="bg-white/5 text-[10px] uppercase text-gray-400">
+                                                    <tr>
+                                                        <th className="p-2 text-left">SUBE_KODU</th>
+                                                        <th className="p-2 text-left">Server</th>
+                                                        <th className="p-2 text-right">Dosya</th>
+                                                        <th className="p-2 text-right">Miktar</th>
+                                                        <th className="p-2 text-left">Sistem Şubesi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {p.subeList.map((s) => (
+                                                        <tr key={s.subeKey} className="hover:bg-white/5">
+                                                            <td className="p-2 font-bold text-white">{s.subeKodu}</td>
+                                                            <td className="p-2 text-[10px] text-gray-500 font-mono">{s.serverNames.join(', ')}</td>
+                                                            <td className="p-2 text-right text-gray-300">{s.fileCount}</td>
+                                                            <td className="p-2 text-right font-mono text-white">{s.totalQty.toLocaleString('tr-TR')}</td>
+                                                            <td className="p-2">
+                                                                <select
+                                                                    value={s.branchId || ''}
+                                                                    onChange={(e) => setBranchMapFor(s.subeKey, e.target.value || '')}
+                                                                    className={`w-full bg-izbel-dark border rounded-lg px-2 py-1.5 text-xs outline-none ${s.branchId ? 'text-emerald-300 border-emerald-500/30' : 'text-amber-300 border-amber-500/40'}`}
+                                                                >
+                                                                    <option value="">— şube seçin —</option>
+                                                                    {branches.map((b) => (
+                                                                        <option key={b.id} value={b.id}>{b.branch_name}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {tab === 'products' && (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                value={p.searchText || ''}
+                                                onChange={(e) => setSearch(e.target.value)}
+                                                placeholder="ürün / barkod ara…"
+                                                className="flex-1 bg-izbel-dark border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-violet-500/40"
+                                            />
+                                            <div className="text-[11px] text-gray-400">
+                                                Eşleşen: <span className="text-emerald-300 font-bold">{mappedItemCount}</span> / {p.items.length} ·
+                                                Eksik: <span className="text-amber-300 font-bold">{unmapItemCount}</span>
+                                            </div>
+                                        </div>
+                                        <div className="rounded-xl border border-white/10 overflow-hidden">
+                                            <table className="w-full text-xs">
+                                                <thead className="bg-white/5 text-[10px] uppercase text-gray-400 sticky top-0">
+                                                    <tr>
+                                                        <th className="p-2 text-left">Stok Adı (XML)</th>
+                                                        <th className="p-2 text-left">Barkod</th>
+                                                        <th className="p-2 text-right">Miktar</th>
+                                                        <th className="p-2 text-left">Sistem Ürünü</th>
+                                                        <th className="p-2 text-left">Durum</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {p.items
+                                                        .filter((r) => {
+                                                            if (!searchText) return true;
+                                                            return (
+                                                                (r.stokAdi || '').toLowerCase().includes(searchText)
+                                                                || (r.barkod || '').toLowerCase().includes(searchText)
+                                                            );
+                                                        })
+                                                        .slice(0, 500)
+                                                        .map((r) => {
+                                                            const matched = r.matchedProductId ? products.find((pp) => pp.id === r.matchedProductId) : null;
+                                                            return (
+                                                                <tr key={r.key} className="hover:bg-white/5">
+                                                                    <td className="p-2 font-bold text-white">{r.stokAdi || '—'}</td>
+                                                                    <td className="p-2 font-mono text-[10px] text-gray-500">{r.barkod || '—'}</td>
+                                                                    <td className="p-2 text-right font-mono text-white">{r.totalQty.toLocaleString('tr-TR')}</td>
+                                                                    <td className="p-2">
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <input
+                                                                                type="text"
+                                                                                list="hugin-products-datalist"
+                                                                                defaultValue={matched ? (matched.stok_kodu || matched.product_name || '') : ''}
+                                                                                placeholder="stok kodu ya da isim..."
+                                                                                onBlur={(e) => {
+                                                                                    const q = String(e.target.value || '').trim();
+                                                                                    if (!q) { setProductFor(r.key, null); return; }
+                                                                                    const qU = q.toUpperCase();
+                                                                                    // 1) stok_kodu tam eşleşme
+                                                                                    let p = products.find((pp) => String(pp.stok_kodu || '').toUpperCase() === qU);
+                                                                                    // 2) product_name tam eşleşme (normalize)
+                                                                                    if (!p) {
+                                                                                        const qn = normalizeText(q);
+                                                                                        p = products.find((pp) => normalizeText(pp.product_name) === qn);
+                                                                                    }
+                                                                                    // 3) kısmi
+                                                                                    if (!p) {
+                                                                                        const qn = normalizeText(q);
+                                                                                        const cand = products.filter((pp) => normalizeText(pp.product_name).includes(qn));
+                                                                                        if (cand.length === 1) p = cand[0];
+                                                                                    }
+                                                                                    if (p) {
+                                                                                        setProductFor(r.key, p.id);
+                                                                                        e.target.value = p.stok_kodu || p.product_name;
+                                                                                    } else {
+                                                                                        toast.error(`"${q}" ürünü bulunamadı.`);
+                                                                                    }
+                                                                                }}
+                                                                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } }}
+                                                                                className={`w-full bg-izbel-dark border rounded-lg px-2 py-1.5 text-[11px] outline-none font-mono ${matched ? 'text-emerald-300 border-emerald-500/30' : 'text-amber-300 border-amber-500/40'}`}
+                                                                            />
+                                                                            {matched && (
+                                                                                <div className="text-[10px] text-emerald-200/80 truncate" title={matched.product_name}>
+                                                                                    {matched.product_name}{matched.category ? ` · ${matched.category}` : ''}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-2 text-[10px]">
+                                                                        {matched ? (
+                                                                            <span className="text-emerald-300">✓ eşleşti</span>
+                                                                        ) : r.reason === 'ambiguous_name' ? (
+                                                                            <span className="text-amber-300">belirsiz isim</span>
+                                                                        ) : r.reason === 'ambiguous_partial' ? (
+                                                                            <span className="text-amber-300">kısmi isim</span>
+                                                                        ) : r.reason === 'ambiguous_barcode' ? (
+                                                                            <span className="text-amber-300">belirsiz barkod</span>
+                                                                        ) : (
+                                                                            <span className="text-rose-300">bulunamadı</span>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {p.items.length > 500 && (
+                                            <div className="text-[10px] text-gray-500 text-center">İlk 500 satır gösteriliyor. Aramayı kullanın.</div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {tab === 'rows' && (
+                                    <div className="rounded-xl border border-white/10 overflow-hidden">
+                                        <table className="w-full text-xs">
+                                            <thead className="bg-white/5 text-[10px] uppercase text-gray-400">
+                                                <tr>
+                                                    <th className="p-2 text-left">SUBE_KODU → Sistem Şubesi</th>
+                                                    <th className="p-2 text-left">Stok Adı</th>
+                                                    <th className="p-2 text-right">Miktar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {(() => {
+                                                    const rowsOut = [];
+                                                    p.items.slice(0, 300).forEach((r) => {
+                                                        Object.entries(r.perSube).forEach(([subeKey, qty]) => {
+                                                            const bid = p.branchMapping[subeKey];
+                                                            const b = bid ? branches.find((br) => br.id === bid) : null;
+                                                            rowsOut.push({ subeKey, b, stokAdi: r.stokAdi, qty });
+                                                        });
+                                                    });
+                                                    return rowsOut.map((x, i) => (
+                                                        <tr key={i} className="hover:bg-white/5">
+                                                            <td className="p-2">
+                                                                <span className="font-bold text-white">{x.subeKey}</span>
+                                                                <span className="text-gray-500"> → </span>
+                                                                {x.b ? <span className="text-emerald-300">{x.b.branch_name}</span> : <span className="text-amber-300">eşleşmedi</span>}
+                                                            </td>
+                                                            <td className="p-2 text-gray-300">{x.stokAdi}</td>
+                                                            <td className="p-2 text-right font-mono text-white">{Number(x.qty).toLocaleString('tr-TR')}</td>
+                                                        </tr>
+                                                    ));
+                                                })()}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-4 border-t border-white/10 flex items-center justify-between bg-black/20">
+                                <div className="text-[11px] text-gray-400">
+                                    Onayladığınızda: eşlenen şube/ürünler Supabase'e kalıcı yazılır, satış miktarları seçili döneme aktarılır.
+                                    <span className="ml-2 text-amber-300">Eksik eşlemeler atlanır.</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setHuginXmlPreviewOpen(false); setHuginXmlPreview(null); }}
+                                        disabled={huginXmlApplying}
+                                        className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white px-4 py-2 rounded-lg border border-white/10"
+                                    >İptal</button>
+                                    <button
+                                        type="button"
+                                        onClick={() => void applyHuginXmlPreview()}
+                                        disabled={huginXmlApplying || mappedSubeCount === 0 || mappedItemCount === 0}
+                                        className="text-xs font-black uppercase tracking-widest text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-lg px-6 py-2 disabled:opacity-50"
+                                    >{huginXmlApplying ? 'Kaydediliyor...' : 'Onayla & Satışları Kaydet'}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
             {salesPreviewOpen && salesPreview && (() => {
                 const rows = salesPreview.rows || [];
                 const decisions = salesPreview.decisions || {};
@@ -8255,6 +9147,26 @@ export default function AdminDashboard({ onLogout }) {
                                             className="sr-only"
                                             onChange={handleBranchSalesImport}
                                             disabled={salesImporting}
+                                        />
+                                    </span>
+                                </label>
+
+                                <label
+                                    className="flex flex-col gap-0.5 cursor-pointer self-start"
+                                    title="MARTSAYIM gibi bir kök klasör seçin. Tüm HuginOKCServis\TempSatis altındaki XML'ler (dist hariç) taranır. SUBE_KODU alanı ile şubeye otomatik yazılır — tek seferde tüm şubeler."
+                                >
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500">Hugin XML Klasörü (Tüm Şubeler)</span>
+                                    <span className="flex items-center gap-2 bg-violet-600/25 hover:bg-violet-600/40 text-violet-100 font-bold py-2.5 px-4 rounded-xl border border-violet-500/30 print:hidden">
+                                        <Package size={16} />
+                                        {huginXmlProcessing ? 'XML tarıyor…' : 'Hugin XML Klasörü'}
+                                        <input
+                                            type="file"
+                                            webkitdirectory=""
+                                            directory=""
+                                            multiple
+                                            className="sr-only"
+                                            onChange={handleHuginXmlFolderSelect}
+                                            disabled={huginXmlProcessing}
                                         />
                                     </span>
                                 </label>
