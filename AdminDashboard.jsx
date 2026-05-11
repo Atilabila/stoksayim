@@ -3447,7 +3447,9 @@ export default function AdminDashboard({ onLogout }) {
                     if (p) { pid = p.id; created++; }
                 }
                 if (!pid) { skipped++; return; }
-                const k = `${branchId}|${pid}`;
+                const rowBranchId = r.branchId || branchId;
+                if (!rowBranchId) { skipped++; return; }
+                const k = `${rowBranchId}|${pid}`;
                 merge[k] = (Number(merge[k]) || 0) + Number(r.qty || 0);
                 applied++;
             });
@@ -3708,56 +3710,46 @@ export default function AdminDashboard({ onLogout }) {
         [products, branches, selectedBranchId, pushSalesUndoSnapshot],
     );
 
-    /** POS / satış raporu: Excel veya CSV. �?ube filtresindeki şubeye yazılır (Tüm şubeler seçiliyse içe aktarılamaz). */
+    /** POS / satış raporu: Excel veya CSV (çoklu dosya). Şube Excel'de yoksa dosya adından çözülür. */
     const handleBranchSalesImport = async (e) => {
-        const file = e?.target?.files?.[0];
-        if (!file) return;
-        if (selectedBranchId === 'ALL') {
-            toast.error('Önce şube seçin; satışlar seçili şubeye işlenir.');
+        const files = Array.from(e?.target?.files || []);
+        if (!files.length) return;
+
+        const validFiles = files.filter(f => !(f.name || '').startsWith('~$'));
+        if (!validFiles.length) {
+            toast.error('Geçerli dosya bulunamadı (geçici ~$ dosyaları atlandı).');
             e.target.value = '';
             return;
         }
+
+        const isTxtLike = (f) => {
+            const ln = (f.name || '').toLowerCase();
+            return ln.endsWith('.txt') || ln.endsWith('.text') || (f.type && f.type.startsWith('text/'));
+        };
+        const txtFiles = validFiles.filter(isTxtLike);
+        const excelFiles = validFiles.filter(f => !isTxtLike(f));
+
         setSalesImporting(true);
         try {
-            const lowerName = (file.name || '').toLowerCase();
-            if (lowerName.endsWith('.txt') || lowerName.endsWith('.text') || (file.type && file.type.startsWith('text/'))) {
-                const text = await file.text();
+            // SCLogger / TXT: eski akış (seçili şube zorunlu)
+            let txtCount = 0;
+            for (const f of txtFiles) {
+                if (selectedBranchId === 'ALL') {
+                    toast.error('SCLogger/TXT için önce şube seçin. TXT dosyaları atlanıyor.');
+                    continue;
+                }
+                const text = await f.text();
                 importScLoggerPlainText(text);
+                txtCount++;
+            }
+            if (!excelFiles.length) {
+                if (txtCount === 0 && txtFiles.length === 0) toast.error('İşlenecek Excel/CSV dosyası bulunamadı.');
+                e.target.value = '';
+                setSalesImporting(false);
                 return;
             }
 
-            const buf = await file.arrayBuffer();
-            const wb = XLSX.read(buf, { type: 'array' });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-            if (!rows?.length) {
-                toast.error('Dosya boş.');
-                return;
-            }
-            const header = (rows[0] || []).map((h) => asciiFoldKey(String(h || '')));
-            const colStok = header.findIndex((h) => (h.includes('stok') && h.includes('kod')) || h === 'stokkodu');
-            const colUrun = header.findIndex(
-                (h) =>
-                    (h.includes('urun') && h.includes('ad'))
-                    || h === 'urun'
-                    || (h.includes('stok') && h.includes('ad')),
-            );
-            const colBarkod = header.findIndex((h) => h.includes('barkod') || h === 'barcode' || h.includes('ean'));
-            const colQty = header.findIndex(
-                (h) =>
-                    h === 'miktar'
-                    || h.includes('satis')
-                    || h === 'adet'
-                    || h === 'qty'
-                    || h === 'quantity'
-                    || h.includes('cikis')
-                    || h.includes('net'),
-            );
-            if (colQty < 0) {
-                toast.error('Miktar sütunu bulunamadı (Miktar, Satış, Adet, Qty vb.).');
-                return;
-            }
-
+            // ---------- Global ürün lookup (bir kere) ----------
             const normalizeBarcodeCsv = (raw) => String(raw ?? '').trim().replace(/\s+/g, '');
             const productByStokUpper = new Map();
             const stokDup = new Set();
@@ -3802,17 +3794,13 @@ export default function AdminDashboard({ onLogout }) {
                 return { product: null, reason: 'not_found' };
             };
 
-            const resolveRow = (cells) => {
+            const makeResolveRow = (colStok, colBarkod, colUrun) => (cells) => {
                 const skRaw = colStok >= 0 ? String(cells[colStok] ?? '').trim() : '';
                 if (skRaw) {
                     const sk = skRaw.toUpperCase();
-                    // Stok kodu tek başına güvenilir olsa da, CSV kodu farklı bir sistemden geldiyse
-                    // barkod/ad fallback ile yine eşleştirmeyi deniyoruz.
-                    if (stokDup.has(sk)) {
-                        // continue to fallback
-                    } else {
-                    const ps = productByStokUpper.get(sk);
-                    if (ps) return { product: ps, reason: null };
+                    if (!stokDup.has(sk)) {
+                        const ps = productByStokUpper.get(sk);
+                        if (ps) return { product: ps, reason: null };
                     }
                 }
                 const bcRaw = colBarkod >= 0 ? String(cells[colBarkod] ?? '').trim() : '';
@@ -3828,31 +3816,7 @@ export default function AdminDashboard({ onLogout }) {
                 return { product: null, reason: 'empty' };
             };
 
-            const parseQty = (v) => {
-                return parseFlexibleNumber(v);
-            };
-
-            // ---- Parse + Classify: Preview modalı açılacak, kaydetmek için onay bekleyecek ----
-            // Şubeye tedarik edilmiş ürünleri hazırla (eşleme için güçlü sinyal)
-            const productById = new Map(products.map((p) => [String(p.id), p]));
-            const supplyQtyByProductId = new Map(); // pid -> qty
-            const supplyByCode = new Map();   // stok_kodu(upper) -> product
-            const supplyByNameNorm = new Map(); // normalizeText(name) -> product
-            Object.keys(manualPurchaseByKey).forEach((k) => {
-                const [bid, pid] = k.split('|');
-                if (bid !== selectedBranchId) return;
-                const qty = Number(manualPurchaseByKey[k]) || 0;
-                if (qty <= 0) return;
-                supplyQtyByProductId.set(pid, (supplyQtyByProductId.get(pid) || 0) + qty);
-                const p = productById.get(pid);
-                if (!p) return;
-                const code = String(p.stok_kodu || '').trim().toUpperCase();
-                const nameNorm = normalizeText(p.product_name || '');
-                if (code && !supplyByCode.has(code)) supplyByCode.set(code, p);
-                if (nameNorm && !supplyByNameNorm.has(nameNorm)) supplyByNameNorm.set(nameNorm, p);
-            });
-
-            // Reçete cache'ini hazırla (öneriler için)
+            // Reçete cache
             const recipeByCode = new Map();
             const recipeByNameNorm = new Map();
             (recipeRawRowsCache || []).forEach((r) => {
@@ -3871,139 +3835,243 @@ export default function AdminDashboard({ onLogout }) {
                 });
             });
 
-            // Her satırı sınıflandır
-            const classified = [];
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i];
-                if (!cells || !cells.length) continue;
-                const qty = parseQty(cells[colQty]);
-                if (qty == null) continue;
-                const skRaw = colStok >= 0 ? String(cells[colStok] ?? '').trim() : '';
-                const skUpper = skRaw.toUpperCase();
-                const bcRaw = colBarkod >= 0 ? String(cells[colBarkod] ?? '').trim() : '';
-                const nmRaw = colUrun >= 0 ? String(cells[colUrun] ?? '').trim() : '';
-                const { product, reason } = resolveRow(cells);
+            const productById = new Map(products.map((p) => [String(p.id), p]));
 
-                // Güven skoru + eşleşme metodu tespit et
-                let confidence = 0;
-                let matchMethod = '';
-                if (product) {
-                    if (skUpper && String(product.stok_kodu || '').toUpperCase() === skUpper) {
-                        confidence = 100; matchMethod = 'Stok kodu';
-                    } else if (bcRaw && normalizeBarcodeCsv(product.barcode) === normalizeBarcodeCsv(bcRaw)) {
-                        confidence = 95; matchMethod = 'Barkod';
-                    } else if (nmRaw && normalizeText(product.product_name) === normalizeText(nmRaw)) {
-                        confidence = 90; matchMethod = 'Tam isim';
-                    } else if (nmRaw && posManualMap[nmRaw]) {
-                        confidence = 100; matchMethod = 'Manuel kayıt (POS map)';
+            // ---------- Her Excel dosyasını işle ----------
+            let allClassified = [];
+            const globalSupplyList = new Map();
+            let summaryFiles = 0;
+            let summaryTotalRows = 0;
+            let summaryBranchOk = 0;
+            let summaryBranchFail = 0;
+            let summaryProductOk = 0;
+            let summaryProductFail = 0;
+
+            for (const file of excelFiles) {
+                // --- Şube çöz ---
+                let fileBranchId;
+                let fileBranchName;
+                if (selectedBranchId !== 'ALL') {
+                    fileBranchId = selectedBranchId;
+                    fileBranchName = branches.find(b => b.id === selectedBranchId)?.branch_name || '';
+                } else {
+                    const fnNoExt = file.name.replace(/\.(xlsx|xls|csv)$/i, '').trim();
+                    fileBranchId = tryResolveBranchId(fnNoExt);
+                    fileBranchName = fnNoExt;
+                    if (fileBranchId) {
+                        const b = branches.find(x => x.id === fileBranchId);
+                        if (b) fileBranchName = b.branch_name;
+                        summaryBranchOk++;
                     } else {
-                        confidence = 70; matchMethod = 'Kısmi isim';
+                        summaryBranchFail++;
                     }
                 }
 
-                // Tedarik cross-check: Eşleşen ürün bu şubeye tedarik edildi mi?
-                let supplyQty = 0;
-                if (product && supplyQtyByProductId.has(String(product.id))) {
-                    supplyQty = supplyQtyByProductId.get(String(product.id)) || 0;
-                    // Zayıf eşleşme (isim bazlı) + tedarik doğrulaması = güven artışı
-                    if (confidence < 90 && supplyQty > 0) {
-                        confidence = Math.max(confidence, 85);
-                        matchMethod = matchMethod ? `${matchMethod} + Tedarik` : 'Tedarik';
-                    }
+                // --- Parse Excel ---
+                const buf = await file.arrayBuffer();
+                const wb = XLSX.read(buf, { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                if (!rows?.length) continue;
+
+                const header = (rows[0] || []).map((h) => asciiFoldKey(String(h || '')));
+                const colStok = header.findIndex((h) => (h.includes('stok') && h.includes('kod')) || h === 'stokkodu');
+                const colUrun = header.findIndex(
+                    (h) =>
+                        (h.includes('urun') && h.includes('ad'))
+                        || h === 'urunadi'
+                        || /^urun$/i.test(h)
+                        || (h.includes('stok') && h.includes('ad')),
+                );
+                const colBarkod = header.findIndex((h) => h.includes('barkod') || h === 'barcode' || h.includes('ean'));
+                const colQty = header.findIndex(
+                    (h) =>
+                        h.includes('miktar')
+                        || h.includes('satis')
+                        || h === 'adet'
+                        || h === 'qty'
+                        || h === 'quantity'
+                        || h.includes('cikis')
+                        || h.includes('net'),
+                );
+                if (colQty < 0) {
+                    toast.error(`"${file.name}" dosyasında Miktar sütunu bulunamadı.`);
+                    continue;
                 }
 
-                // Öneri (öncelik: 1) Tedarik, 2) Reçete)
-                let suggestion = null;
-                let supplySuggestion = null; // → action: 'map-to' (ürün zaten sistemde)
-                if (!product) {
-                    // 1) Tedarik — bu şubede fiilen var olan ürünler arasında ara
-                    if (skUpper && supplyByCode.has(skUpper)) {
-                        const p = supplyByCode.get(skUpper);
-                        supplySuggestion = {
-                            source: 'supply',
-                            productId: p.id,
-                            code: p.stok_kodu || '',
-                            name: p.product_name || '',
-                            qty: supplyQtyByProductId.get(String(p.id)) || 0,
-                            matchKind: 'Stok kodu',
-                        };
-                    } else if (nmRaw) {
-                        const nk = normalizeText(nmRaw);
-                        if (supplyByNameNorm.has(nk)) {
-                            const p = supplyByNameNorm.get(nk);
-                            supplySuggestion = {
-                                source: 'supply',
-                                productId: p.id,
-                                code: p.stok_kodu || '',
-                                name: p.product_name || '',
-                                qty: supplyQtyByProductId.get(String(p.id)) || 0,
-                                matchKind: 'Tam isim',
-                            };
+                const resolveRow = makeResolveRow(colStok, colBarkod, colUrun);
+
+                // --- Bu şube için tedarik lookup ---
+                const supplyQtyByProductId = new Map();
+                const supplyByCode = new Map();
+                const supplyByNameNorm = new Map();
+                if (fileBranchId) {
+                    Object.keys(manualPurchaseByKey).forEach((k) => {
+                        const [bid, pid] = k.split('|');
+                        if (bid !== fileBranchId) return;
+                        const qty = Number(manualPurchaseByKey[k]) || 0;
+                        if (qty <= 0) return;
+                        supplyQtyByProductId.set(pid, (supplyQtyByProductId.get(pid) || 0) + qty);
+                        const p = productById.get(pid);
+                        if (!p) return;
+                        const code = String(p.stok_kodu || '').trim().toUpperCase();
+                        const nameNorm = normalizeText(p.product_name || '');
+                        if (code && !supplyByCode.has(code)) supplyByCode.set(code, p);
+                        if (nameNorm && !supplyByNameNorm.has(nameNorm)) supplyByNameNorm.set(nameNorm, p);
+                    });
+                }
+                supplyQtyByProductId.forEach((qty, pid) => {
+                    if (globalSupplyList.has(pid)) {
+                        globalSupplyList.get(pid).qty += qty;
+                    } else {
+                        const p = productById.get(String(pid));
+                        globalSupplyList.set(pid, {
+                            productId: pid,
+                            stok_kodu: p?.stok_kodu || '',
+                            product_name: p?.product_name || '',
+                            qty,
+                        });
+                    }
+                });
+
+                // --- Satır sınıflandırma ---
+                let fileMatched = 0;
+                let fileUnmatched = 0;
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i];
+                    if (!cells || !cells.length) continue;
+                    const qty = parseFlexibleNumber(cells[colQty]);
+                    if (qty == null) continue;
+                    const skRaw = colStok >= 0 ? String(cells[colStok] ?? '').trim() : '';
+                    const skUpper = skRaw.toUpperCase();
+                    const bcRaw = colBarkod >= 0 ? String(cells[colBarkod] ?? '').trim() : '';
+                    const nmRaw = colUrun >= 0 ? String(cells[colUrun] ?? '').trim() : '';
+                    const { product, reason } = resolveRow(cells);
+
+                    let confidence = 0;
+                    let matchMethod = '';
+                    if (product) {
+                        if (skUpper && String(product.stok_kodu || '').toUpperCase() === skUpper) {
+                            confidence = 100; matchMethod = 'Stok kodu';
+                        } else if (bcRaw && normalizeBarcodeCsv(product.barcode) === normalizeBarcodeCsv(bcRaw)) {
+                            confidence = 95; matchMethod = 'Barkod';
+                        } else if (nmRaw && normalizeText(product.product_name) === normalizeText(nmRaw)) {
+                            confidence = 90; matchMethod = 'Tam isim';
+                        } else if (nmRaw && posManualMap[nmRaw]) {
+                            confidence = 100; matchMethod = 'Manuel kayıt (POS map)';
                         } else {
-                            // Kısmi isim — tedarik içinde içerik taraması
-                            for (const [supNorm, p] of supplyByNameNorm) {
-                                if (supNorm.includes(nk) || nk.includes(supNorm)) {
-                                    supplySuggestion = {
-                                        source: 'supply',
-                                        productId: p.id,
-                                        code: p.stok_kodu || '',
-                                        name: p.product_name || '',
-                                        qty: supplyQtyByProductId.get(String(p.id)) || 0,
-                                        matchKind: 'Kısmi isim',
-                                    };
-                                    break;
+                            confidence = 70; matchMethod = 'Kısmi isim';
+                        }
+                        fileMatched++;
+                    } else {
+                        fileUnmatched++;
+                    }
+
+                    let supplyQty = 0;
+                    if (product && supplyQtyByProductId.has(String(product.id))) {
+                        supplyQty = supplyQtyByProductId.get(String(product.id)) || 0;
+                        if (confidence < 90 && supplyQty > 0) {
+                            confidence = Math.max(confidence, 85);
+                            matchMethod = matchMethod ? `${matchMethod} + Tedarik` : 'Tedarik';
+                        }
+                    }
+
+                    let suggestion = null;
+                    let supplySuggestion = null;
+                    if (!product) {
+                        if (skUpper && supplyByCode.has(skUpper)) {
+                            const p = supplyByCode.get(skUpper);
+                            supplySuggestion = {
+                                source: 'supply', productId: p.id,
+                                code: p.stok_kodu || '', name: p.product_name || '',
+                                qty: supplyQtyByProductId.get(String(p.id)) || 0,
+                                matchKind: 'Stok kodu',
+                            };
+                        } else if (nmRaw) {
+                            const nk = normalizeText(nmRaw);
+                            if (supplyByNameNorm.has(nk)) {
+                                const p = supplyByNameNorm.get(nk);
+                                supplySuggestion = {
+                                    source: 'supply', productId: p.id,
+                                    code: p.stok_kodu || '', name: p.product_name || '',
+                                    qty: supplyQtyByProductId.get(String(p.id)) || 0,
+                                    matchKind: 'Tam isim',
+                                };
+                            } else {
+                                for (const [supNorm, p] of supplyByNameNorm) {
+                                    if (supNorm.includes(nk) || nk.includes(supNorm)) {
+                                        supplySuggestion = {
+                                            source: 'supply', productId: p.id,
+                                            code: p.stok_kodu || '', name: p.product_name || '',
+                                            qty: supplyQtyByProductId.get(String(p.id)) || 0,
+                                            matchKind: 'Kısmi isim',
+                                        };
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        if (skUpper && recipeByCode.has(skUpper)) {
+                            suggestion = { source: 'recipe', ...recipeByCode.get(skUpper) };
+                        } else if (nmRaw) {
+                            const nk = normalizeText(nmRaw);
+                            const hit = recipeByNameNorm.get(nk);
+                            if (hit) suggestion = { source: 'recipe', ...hit };
+                        }
                     }
-                    // 2) Reçete — tedarik yoksa reçeteye bak
-                    if (skUpper && recipeByCode.has(skUpper)) {
-                        suggestion = { source: 'recipe', ...recipeByCode.get(skUpper) };
-                    } else if (nmRaw) {
-                        const nk = normalizeText(nmRaw);
-                        const hit = recipeByNameNorm.get(nk);
-                        if (hit) suggestion = { source: 'recipe', ...hit };
-                    }
-                }
 
-                classified.push({
-                    idx: classified.length,
-                    rowNum: i + 1,
-                    stok_kodu: skRaw,
-                    barcode: bcRaw,
-                    name: nmRaw,
-                    qty,
-                    product: product || null,
-                    confidence,
-                    matchMethod,
-                    reason: reason || null,
-                    suggestion,
-                    supplySuggestion,
-                    supplyQty,
-                });
+                    allClassified.push({
+                        idx: 0,
+                        rowNum: i + 1,
+                        stok_kodu: skRaw,
+                        barcode: bcRaw,
+                        name: nmRaw,
+                        qty,
+                        product: product || null,
+                        confidence,
+                        matchMethod,
+                        reason: reason || null,
+                        suggestion,
+                        supplySuggestion,
+                        supplyQty,
+                        branchId: fileBranchId || '',
+                        branchName: fileBranchName || '',
+                        sourceFile: file.name,
+                    });
+                }
+                summaryTotalRows += fileMatched + fileUnmatched;
+                summaryProductOk += fileMatched;
+                summaryProductFail += fileUnmatched;
+                summaryFiles++;
             }
 
-            // Aynı satır/ürün için CSV'de mükerrer tespit (stok_kodu bazında)
-            const dupMap = new Map();
-            classified.forEach((r) => {
+            if (allClassified.length === 0) {
+                toast.error('Hiçbir dosyadan geçerli satış satırı okunamadı.');
+                e.target.value = '';
+                setSalesImporting(false);
+                return;
+            }
+
+            // Mükerrer tespiti (stok_kodu veya isim bazında, tüm satırlar için)
+            const dupMapAll = new Map();
+            allClassified.forEach((r) => {
                 const k = r.stok_kodu ? `C:${r.stok_kodu.toUpperCase()}` : (r.name ? `N:${normalizeText(r.name)}` : '');
                 if (!k) return;
-                if (!dupMap.has(k)) dupMap.set(k, []);
-                dupMap.get(k).push(r.idx);
+                if (!dupMapAll.has(k)) dupMapAll.set(k, []);
+                dupMapAll.get(k).push(r);
             });
-            classified.forEach((r) => {
+            allClassified.forEach((r) => {
                 const k = r.stok_kodu ? `C:${r.stok_kodu.toUpperCase()}` : (r.name ? `N:${normalizeText(r.name)}` : '');
-                const arr = k ? dupMap.get(k) : null;
+                const arr = k ? dupMapAll.get(k) : null;
                 r.duplicateCount = arr ? arr.length : 1;
             });
 
-            // Varsayılan kararlar:
-            //  - eşleşen → keep (conf ≥ 90 otomatik, düşükse review-keep)
-            //  - eksik + tedarik önerisi → map-to (ürün zaten sistemde, sadece isim farklı)
-            //  - eksik + reçete önerisi → create (yeni ürün oluştur)
-            //  - eksik önerisiz → skip
+            // Re-index
+            allClassified.forEach((r, i) => { r.idx = i; });
+
+            // Varsayılan kararlar
             const defaultDecisions = {};
-            classified.forEach((r) => {
+            allClassified.forEach((r) => {
                 if (r.product) {
                     defaultDecisions[r.idx] = { action: r.confidence >= 90 ? 'keep' : 'review-keep', mapProductId: r.product.id };
                 } else if (r.supplySuggestion) {
@@ -4015,34 +4083,31 @@ export default function AdminDashboard({ onLogout }) {
                 }
             });
 
-            const bn = branches.find((b) => b.id === selectedBranchId)?.branch_name || '';
-            // Modal için tedarik listesini hazırla (dropdown + bulk actions için)
-            const supplyList = Array.from(supplyQtyByProductId.entries())
-                .map(([pid, qty]) => {
-                    const p = productById.get(String(pid));
-                    if (!p) return null;
-                    return {
-                        productId: p.id,
-                        stok_kodu: p.stok_kodu || '',
-                        product_name: p.product_name || '',
-                        qty,
-                    };
-                })
+            const supplyList = Array.from(globalSupplyList.values())
                 .filter(Boolean)
                 .sort((a, b) => (b.qty || 0) - (a.qty || 0));
 
+            const branchNames = [...new Set(allClassified.map(r => r.branchName).filter(Boolean))];
+            const displayBranchName = branchNames.length === 1 ? branchNames[0] : `${branchNames.length} şube`;
+            const isMulti = selectedBranchId === 'ALL' && branchNames.length > 1;
+
             setSalesPreview({
-                fileName: file.name,
-                branchId: selectedBranchId,
-                branchName: bn,
-                rows: classified,
+                fileName: summaryFiles > 1 ? `${summaryFiles} dosya` : (allClassified[0]?.sourceFile || ''),
+                branchId: selectedBranchId !== 'ALL' ? selectedBranchId : '',
+                branchName: displayBranchName,
+                rows: allClassified,
                 decisions: defaultDecisions,
                 activeTab: 'missing',
                 searchText: '',
                 supplyList,
+                isMultiBranch: isMulti,
             });
             setSalesPreviewOpen(true);
-            return; // Kaydetme işi modal onayına bağlı
+
+            toast.success(
+                `${summaryFiles} dosya, ${summaryTotalRows} satır | �?ube: ${summaryBranchOk} eşleşti, ${summaryBranchFail} eşleşmedi | Ürün: ${summaryProductOk} eşleşti, ${summaryProductFail} eşleşmedi`,
+                { duration: 6000 },
+            );
         } catch (err) {
             toast.error('Satış dosyası okunamadı: ' + (err?.message || String(err)));
         } finally {
@@ -7781,7 +7846,10 @@ export default function AdminDashboard({ onLogout }) {
                                     <h3 className="text-lg font-black text-white">Satış İçe Aktarma - Önizleme & Onay</h3>
                                     <p className="text-xs text-gray-400 mt-1">
                                         Dosya: <span className="font-mono text-blue-300">{salesPreview.fileName}</span> |
-                                        Şube: <span className="text-blue-300 font-bold">{salesPreview.branchName}</span> |
+                                        Şube: <span className="text-blue-300 font-bold">{salesPreview.branchName}</span>
+                                        {salesPreview.isMultiBranch && (
+                                            <span className="text-amber-300 ml-1">(her satırda ayrı şube)</span>
+                                        )} |
                                         Toplam <span className="text-white font-bold">{rows.length}</span> satır
                                     </p>
                                 </div>
@@ -7929,6 +7997,12 @@ export default function AdminDashboard({ onLogout }) {
                                                         <div className="flex-1 min-w-[260px]">
                                                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                                                                 <span className="text-[10px] uppercase tracking-wider text-gray-500">Satır {r.rowNum}</span>
+                                                                {r.branchName && (
+                                                                    <span className="text-[10px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded px-1.5">{r.branchName}</span>
+                                                                )}
+                                                                {r.sourceFile && (
+                                                                    <span className="text-[10px] font-mono text-gray-500 truncate max-w-[120px]" title={r.sourceFile}>{r.sourceFile}</span>
+                                                                )}
                                                                 {r.stok_kodu && (
                                                                     <span className="text-xs font-mono bg-white/10 px-1.5 py-0.5 rounded text-blue-200">{r.stok_kodu}</span>
                                                                 )}
@@ -9488,6 +9562,7 @@ export default function AdminDashboard({ onLogout }) {
                                             className="sr-only"
                                             onChange={handleBranchSalesImport}
                                             disabled={salesImporting}
+                                            multiple
                                         />
                                     </span>
                                 </label>
