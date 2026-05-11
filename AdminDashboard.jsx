@@ -1952,6 +1952,109 @@ export default function AdminDashboard({ onLogout }) {
                 return `${pa?.product_name || ''}`.localeCompare(`${pb?.product_name || ''}`, 'tr');
             });
 
+            const renderCountedProductsSheet = () => {
+                const searchWords = normalizeText(productSearch).split(' ').filter(Boolean);
+                const countedRows = filteredCounts
+                    .filter((c) => {
+                        if (!onlyMissingBarcode) return true;
+                        return !(c.products?.barcode || '').trim();
+                    })
+                    .filter((c) => {
+                        if (!searchWords.length) return true;
+                        const branchName = branches.find((b) => b.id === c.branch_id)?.branch_name || '';
+                        const hay = normalizeText([
+                            c.products?.product_name,
+                            c.products?.stok_kodu,
+                            c.products?.barcode,
+                            c.products?.category,
+                            branchName,
+                        ].filter(Boolean).join(' '));
+                        return searchWords.every((w) => hay.includes(w));
+                    })
+                    .sort((a, b) => {
+                        const ab = branches.find((x) => x.id === a.branch_id)?.branch_name || String(a.branch_id);
+                        const bb = branches.find((x) => x.id === b.branch_id)?.branch_name || String(b.branch_id);
+                        if (ab !== bb) return ab.localeCompare(bb, 'tr');
+                        return `${a.products?.product_name || ''}`.localeCompare(`${b.products?.product_name || ''}`, 'tr');
+                    });
+
+                const ws = makeSheet(
+                    'Sayımı Yapılanlar',
+                    ['Şube', 'Sayım Dönemi', 'Stok Kodu', 'Ürün Adı', 'Kategori', 'Barkod', 'Birim', 'Şube Sistem Stok', 'Sayım Bulunan', 'Fark', 'Birim Maliyet (TL)', 'Sayım Değeri TL', 'Fark TL', 'Durum', 'İlk Sayım', 'Son Sayım', 'Personel'],
+                    [18, 20, 14, 42, 22, 18, 10, 16, 16, 14, 16, 18, 16, 14, 20, 20, 18],
+                );
+
+                if (!countedRows.length) {
+                    const row = ws.getRow(2);
+                    row.getCell(1).value = 'Seçili filtrelerde sayımı yapılmış ürün yok.';
+                    row.getCell(1).font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF64748B' } };
+                    row.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
+                    ws.mergeCells('A2:Q2');
+                    return;
+                }
+
+                countedRows.forEach((c, idx) => {
+                    const rowIndex = 2 + idx;
+                    const row = ws.getRow(rowIndex);
+                    const branchName = branches.find((b) => b.id === c.branch_id)?.branch_name || String(c.branch_id || '');
+                    const periodName = periods.find((p0) => p0.id === c.period_id)?.period_name || 'Dönemsiz';
+                    const times = formatIstanbulCountTimes(c);
+                    const sys = sysStockForCount(c);
+                    const counted = Number(c.counted_stock) || 0;
+                    const diff = counted - sys;
+                    const unitCost = unitCostForCount(c);
+                    const statusText = c.status === 'approved' ? 'Onaylandı' : 'Bekliyor';
+
+                    row.getCell(1).value = branchName;
+                    row.getCell(2).value = periodName;
+                    row.getCell(3).value = c.products?.stok_kodu || '';
+                    row.getCell(4).value = c.products?.product_name || '(ürün bulunamadı)';
+                    row.getCell(5).value = c.products?.category || '';
+                    row.getCell(6).value = c.products?.barcode || '';
+                    row.getCell(7).value = c.products?.unit || '';
+                    row.getCell(8).value = sys;
+                    row.getCell(9).value = counted;
+                    row.getCell(10).value = diff;
+                    row.getCell(11).value = unitCost || 0;
+                    row.getCell(12).value = { formula: `I${rowIndex}*K${rowIndex}` };
+                    row.getCell(13).value = { formula: `J${rowIndex}*K${rowIndex}` };
+                    row.getCell(14).value = statusText;
+                    row.getCell(15).value = times.first;
+                    row.getCell(16).value = times.last;
+                    row.getCell(17).value = c.person_name || '';
+
+                    for (let col = 1; col <= 17; col++) {
+                        const cell = row.getCell(col);
+                        cell.border = thinBorder;
+                        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.alignment = { vertical: 'middle', horizontal: [8, 9, 10, 11, 12, 13].includes(col) ? 'right' : 'left' };
+                        if ([8, 9, 10, 11, 12, 13].includes(col)) cell.numFmt = '#,##0.00';
+                    }
+                });
+
+                const lastRow = countedRows.length + 1;
+                const totalRow = ws.getRow(lastRow + 1);
+                totalRow.getCell(1).value = 'TOPLAM';
+                totalRow.getCell(9).value = { formula: `SUM(I2:I${lastRow})` };
+                totalRow.getCell(12).value = { formula: `SUM(L2:L${lastRow})` };
+                totalRow.getCell(13).value = { formula: `SUM(M2:M${lastRow})` };
+                [9, 12, 13].forEach((col) => { totalRow.getCell(col).numFmt = '#,##0.00'; });
+                for (let col = 1; col <= 17; col++) {
+                    const cell = totalRow.getCell(col);
+                    cell.border = thinBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                    cell.font = { ...(cell.font || {}), bold: true, name: 'Arial' };
+                }
+
+                ws.autoFilter = 'A1:Q1';
+                const zebraFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+                for (let rowIndex = 2; rowIndex <= lastRow; rowIndex++) {
+                    if (rowIndex % 2 === 0) {
+                        for (let col = 1; col <= 17; col++) ws.getRow(rowIndex).getCell(col).fill = zebraFill;
+                    }
+                }
+            };
+
             
             const renderMutabakatSheet = (sheetName, rowsToRender) => {
                 if (!rowsToRender || !rowsToRender.length) return;
@@ -2326,6 +2429,8 @@ export default function AdminDashboard({ onLogout }) {
             const renderer = firstPeriodModeArg ? renderFirstPeriodSheet : renderMutabakatSheet;
             const defaultSheetName = firstPeriodModeArg ? 'Başlangıç Envanteri' : 'Mutabakat';
             const otherSheetName = firstPeriodModeArg ? 'Diğer (Başlangıç)' : 'Diğer (Kategorisiz)';
+
+            renderCountedProductsSheet();
 
             if (customCategories && Array.isArray(customCategories) && customCategories.length > 0) {
                 const usedKeys = new Set();
@@ -11859,8 +11964,6 @@ export default function AdminDashboard({ onLogout }) {
         </div>
     );
 }
-
-
 
 
 

@@ -227,21 +227,12 @@ export default function CountingScreen({ branchId, branchInfo, personName, onLog
         }
     };
 
-    // Search by product name / stok kodu / barkod (kelime kelime)
+    // Search the full active product catalog by product name / stok kodu / barkod (kelime kelime).
+    // Saving a count creates the branch_stocks row when the selected branch has no row yet.
     const handleSearch = async () => {
         const raw = (searchTerm || '').trim();
         if (!raw) {
             toast.error('Lütfen bir ürün ismi, stok kodu veya barkod yazın.', { style: { background: '#151828', color: '#fff' } });
-            return;
-        }
-
-        if (!isBranchProductsReady) {
-            toast.error('Şube ürünleri yükleniyor, lütfen tekrar deneyin.', { style: { background: '#151828', color: '#fff' } });
-            return;
-        }
-        if (!branchProductIds.length) {
-            toast.error('Bu şube için ürün tanımı bulunamadı. Admin panelden şube stok listesini girin.', { style: { background: '#151828', color: '#fff' } });
-            setSearchResults([]);
             return;
         }
 
@@ -258,9 +249,8 @@ export default function CountingScreen({ branchId, branchInfo, personName, onLog
             .from('products')
             .select('id, product_name, stok_kodu, barcode, category, unit, current_stock, purchase_price, is_active')
             .eq('is_active', true)
-            .in('id', branchProductIds)
             .or(`product_name.ilike.%${firstWord}%,stok_kodu.ilike.%${firstWord}%,barcode.ilike.%${firstWord}%`)
-            .limit(100);
+            .limit(1000);
 
         if (error) {
             toast.error('Arama sırasında hata oluştu.', { style: { background: '#EF4444', color: '#fff' } });
@@ -811,9 +801,16 @@ export default function CountingScreen({ branchId, branchInfo, personName, onLog
                                         >
                                             <span className="font-bold text-white text-lg leading-tight">{product.product_name}</span>
                                             <div className="flex justify-between items-center w-full">
-                                                <span className="text-xs text-gray-500 font-mono inline-block bg-white/5 px-2 py-1 rounded-lg border border-white/5">
-                                                    {product.barcode || 'Barkodsuz'}
-                                                </span>
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    {product.stok_kodu && (
+                                                        <span className="text-xs text-emerald-300 font-mono font-bold inline-block bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                                                            {product.stok_kodu}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-xs text-gray-500 font-mono inline-block bg-white/5 px-2 py-1 rounded-lg border border-white/5 truncate">
+                                                        {product.barcode || 'Barkodsuz'}
+                                                    </span>
+                                                </div>
                                                 {product.category && (
                                                     <span className="text-xs text-blue-400 font-bold bg-blue-500/10 px-2 py-1 rounded-lg">
                                                         {product.category}
